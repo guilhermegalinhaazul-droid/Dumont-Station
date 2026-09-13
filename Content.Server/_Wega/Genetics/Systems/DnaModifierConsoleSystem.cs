@@ -479,7 +479,7 @@ namespace Content.Server.Genetics.System
                 return;
 
             var scanBody = scanner.BodyContainer.ContainedEntity;
-            if (!TryComp<DnaModifierComponent>(scanBody, out var dnaModifier))
+            if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
             EnzymeInfo? dataToSend = null;
@@ -630,7 +630,7 @@ namespace Content.Server.Genetics.System
                 return;
 
             var scanBody = scanner.BodyContainer.ContainedEntity;
-            if (!TryComp<DnaModifierComponent>(scanBody, out var dnaModifier) || !scanBody.HasValue)
+            if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
             if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
@@ -706,7 +706,7 @@ namespace Content.Server.Genetics.System
                 return;
 
             var scanBody = scanner.BodyContainer.ContainedEntity;
-            if (!TryComp<DnaModifierComponent>(scanBody, out var dnaModifier) || !scanBody.HasValue)
+            if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
             if (args.CurrentTab == 0 && dnaModifier.UniqueIdentifiers != null)
@@ -736,7 +736,7 @@ namespace Content.Server.Genetics.System
                 return;
 
             var scanBody = scanner.BodyContainer.ContainedEntity;
-            if (!TryComp<DnaModifierComponent>(scanBody, out var dnaModifier) || !scanBody.HasValue)
+            if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
             int type = -1;

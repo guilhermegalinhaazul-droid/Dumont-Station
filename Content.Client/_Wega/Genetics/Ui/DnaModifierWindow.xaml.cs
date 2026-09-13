@@ -55,6 +55,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
         Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-rejuvenator"));
+        Tabs.SetTabTitle(4, "Combinar");
 
         Tabs.OnTabChanged += OnTabChanged;
 
