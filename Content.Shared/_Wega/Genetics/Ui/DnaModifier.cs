@@ -12,6 +12,17 @@ public sealed class SharedDnaModifier
 }
 
 [Serializable, NetSerializable]
+public sealed class GeneCatalogEntry
+{
+    public string GeneId { get; set; } = string.Empty;
+    public string GeneName { get; set; } = string.Empty;
+    public string Origin { get; set; } = string.Empty;
+    public bool Discovered { get; set; }
+    public bool Active { get; set; }
+    public bool Available { get; set; }
+}
+
+[Serializable, NetSerializable]
 public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
 {
     public readonly NetEntity Console;
@@ -29,13 +40,16 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
     public readonly bool ScannerInRange;
     public readonly bool HasDisk;
     public readonly Dictionary<int, EnzymeInfo?> Buffers;
+    public readonly List<GeneCatalogEntry>? GeneCatalog;
     public readonly TimeSpan InjectorCooldownRemaining;
     public readonly TimeSpan SubjectInjectCooldownRemaining;
     public DnaModifierBoundUserInterfaceState(
         NetEntity console,
         UniqueIdentifiersData?
-        unique, List<EnzymesPrototypeInfo>?
-        enzymes, EnzymeInfo? enzyme,
+        unique,
+        List<EnzymesPrototypeInfo>?
+        enzymes,
+        EnzymeInfo? enzyme,
         string? scannerBodyInfo,
         string? scannerBodyStatus,
         string? scannerBodyDna,
@@ -47,6 +61,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
         bool scannerInRange,
         bool hasDisk,
         Dictionary<int, EnzymeInfo?> buffers,
+        List<GeneCatalogEntry>? geneCatalog,
         TimeSpan injectorCooldownRemaining,
         TimeSpan subjectInjectCooldownRemaining)
     {
@@ -65,6 +80,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
         ScannerInRange = scannerInRange;
         HasDisk = hasDisk;
         Buffers = buffers;
+        GeneCatalog = geneCatalog;
         InjectorCooldownRemaining = injectorCooldownRemaining;
         SubjectInjectCooldownRemaining = subjectInjectCooldownRemaining;
     }

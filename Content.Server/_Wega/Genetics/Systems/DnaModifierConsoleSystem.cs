@@ -38,6 +38,7 @@ using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Prototypes;
+using Content.Trauma.Shared.Genetics.Mutations;
 
 namespace Content.Server.Genetics.System
 {
@@ -60,6 +61,7 @@ namespace Content.Server.Genetics.System
         [Dependency] private readonly SharedTransformSystem _transform = default!;
         [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+        [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
 
         private static readonly EntProtoId Injector = "DnaInjector";
         private static readonly ProtoId<DamageTypePrototype> RadDamage = "Radiation";
@@ -239,6 +241,7 @@ namespace Content.Server.Genetics.System
             EnzymeInfo? enzyme = null;
             UniqueIdentifiersData? uniqueIdentifiers = null;
             List<EnzymesPrototypeInfo>? enzymesPrototypes = null;
+            List<GeneCatalogEntry>? geneCatalog = BuildHybridGeneCatalog(ent);
 
             var currentTime = _timing.CurTime;
             var injectorCooldown = ent.Comp.LastInjectorTime + ent.Comp.InjectorCooldown;
@@ -265,12 +268,17 @@ namespace Content.Server.Genetics.System
                 }
 
                 // GET STATE
-                if (scanBody != null && TryComp<MobStateComponent>(scanBody, out var mobState))
+                if (scanBody != null)
                 {
-                    scanBodyInfo = MetaData(scanBody.Value).EntityName;
-                    scannerBodyStatus = (mobState.CurrentState != MobState.Invalid)
-                        ? GetStatus(mobState.CurrentState)
-                        : Loc.GetString("dna-modifier-entity-unknown-text");
+                    if (TryComp<MutatableComponent>(scanBody.Value, out _))
+                        _scannedGenome.ScanGenome(scanBody.Value);
+
+                    if (TryComp<MobStateComponent>(scanBody, out var mobState))
+                    {
+                        scanBodyInfo = MetaData(scanBody.Value).EntityName;
+                        scannerBodyStatus = (mobState.CurrentState != MobState.Invalid)
+                            ? GetStatus(mobState.CurrentState)
+                            : Loc.GetString("dna-modifier-entity-unknown-text");
 
                     if (TryComp<HumanoidAppearanceComponent>(scanBody.Value, out var humanoid))
                     {
@@ -312,10 +320,11 @@ namespace Content.Server.Genetics.System
                             scannerBodyRadiation = Math.Clamp(radiationDamage.Float() / 200f, 0f, 1f);
                     }
 
-                    if (TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
-                    {
-                        uniqueIdentifiers = dnaModifier.UniqueIdentifiers;
-                        enzymesPrototypes = dnaModifier.EnzymesPrototypes;
+                        if (TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
+                        {
+                            uniqueIdentifiers = dnaModifier.UniqueIdentifiers;
+                            enzymesPrototypes = dnaModifier.EnzymesPrototypes;
+                        }
                     }
                 }
             }
@@ -336,9 +345,35 @@ namespace Content.Server.Genetics.System
                 scannerInRange,
                 hasDisk,
                 buffer,
+                geneCatalog,
                 currentTime < injectorCooldown ? injectorCooldown - currentTime : TimeSpan.Zero,
                 currentTime < subjectInjectCooldown ? subjectInjectCooldown - currentTime : TimeSpan.Zero
             );
+        }
+
+        private List<GeneCatalogEntry>? BuildHybridGeneCatalog(Entity<DnaModifierConsoleComponent> ent)
+        {
+            var catalog = new List<GeneCatalogEntry>();
+            var wegaIds = _prototypeManager.EnumeratePrototypes<StructuralEnzymesPrototype>()
+                .Select(p => p.ID)
+                .Distinct()
+                .OrderBy(id => id)
+                .ToList();
+
+            foreach (var id in wegaIds)
+            {
+                catalog.Add(new GeneCatalogEntry
+                {
+                    GeneId = id,
+                    GeneName = id,
+                    Origin = "Wega",
+                    Discovered = false,
+                    Active = false,
+                    Available = false,
+                });
+            }
+
+            return catalog;
         }
 
         private string GetStatus(MobState mobState)

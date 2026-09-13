@@ -150,8 +150,16 @@ public sealed partial class DnaModifierWindow : FancyWindow
             ? _gameTiming.CurTime + state.SubjectInjectCooldownRemaining
             : null;
 
-        // U.I.
-        if (state.Unique != null && !_initializedUi)
+        // U.I. gene catalog unified gate: show the integrated gene table inside the Wega UI panel
+        if (state.GeneCatalog != null)
+        {
+            UiPanel.Visible = true;
+            UiContainer.RemoveAllChildren();
+            CreateGeneCatalogUi(state.GeneCatalog);
+            _initializedUi = true;
+            _activeButtonUi = null;
+        }
+        else if (state.Unique != null && !_initializedUi)
         {
             UiPanel.Visible = true;
             UiContainer.RemoveAllChildren();
@@ -237,6 +245,50 @@ public sealed partial class DnaModifierWindow : FancyWindow
         EjectRejuveButton.Disabled = state.ScannerHasBeaker ? false : true;
         EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
             new DnaModifierConsoleEjectRejuveEvent(_console));
+    }
+
+    private void CreateGeneCatalogUi(List<GeneCatalogEntry> genes)
+    {
+        var root = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            Margin = new Thickness(0, 0, 0, 10)
+        };
+
+        var title = new Label
+        {
+            Text = "GENES",
+            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor }
+        };
+        root.AddChild(title);
+
+        foreach (var gene in genes)
+        {
+            var row = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                Margin = new Thickness(0, 2)
+            };
+
+            var name = new Label
+            {
+                Text = gene.GeneName,
+                MinWidth = 180
+            };
+
+            var status = new Label
+            {
+                Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
+                MinWidth = 150,
+                StyleClasses = gene.Active ? { StyleNano.StyleClassLabelGreen } : { StyleNano.StyleClassLabelSecondaryColor }
+            };
+
+            row.AddChild(name);
+            row.AddChild(status);
+            root.AddChild(row);
+        }
+
+        UiContainer.AddChild(root);
     }
 
     private void UpdateCooldowns()
