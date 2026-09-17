@@ -92,6 +92,9 @@ public sealed partial class DnaModifierWindow
 
     private Control CreateSequencingPanel(DnaModifierHybridSequencingStateEvent state)
     {
+        var bases = state.Bases!;
+        var originalBases = state.OriginalBases!;
+
         var panel = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -114,11 +117,11 @@ public sealed partial class DnaModifierWindow
             Columns = 16,
         };
 
-        for (var i = 0; i < state.Bases!.Length; i++)
+        for (var i = 0; i < bases.Length; i++)
         {
             var index = i;
-            var currentBase = state.Bases[index];
-            var originalBase = state.OriginalBases![index];
+            var currentBase = bases[index];
+            var originalBase = originalBases[index];
             var button = new Button
             {
                 Text = currentBase.ToString(),
@@ -157,7 +160,7 @@ public sealed partial class DnaModifierWindow
         var reset = new Button
         {
             Text = "Resetar",
-            Disabled = state.Bases == state.OriginalBases,
+            Disabled = bases == originalBases,
         };
         reset.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
             new DnaModifierHybridResetSequenceEvent(_console));
@@ -165,7 +168,7 @@ public sealed partial class DnaModifierWindow
         var submit = new Button
         {
             Text = "Validar sequência",
-            Disabled = state.Bases.Contains('X'),
+            Disabled = bases.Contains('X'),
         };
         submit.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
             new DnaModifierHybridSubmitSequenceEvent(_console));
