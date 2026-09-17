@@ -143,9 +143,13 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     private bool TryGetSelection(EntityUid console, out Selection selection, out Sequence sequence)
     {
         sequence = default!;
-        if (!_selections.TryGetValue(console, out selection!))
+        if (!_selections.TryGetValue(console, out var found))
+        {
+            selection = default!;
             return false;
+        }
 
+        selection = found;
         if (!TryGetScannedBody(console, out var body) || body != selection.Body)
         {
             _selections.Remove(console);
