@@ -70,12 +70,13 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
 
             if (byCanonicalKey.TryGetValue(canonicalKey, out var wegaEntry))
             {
-                // Wega remains the visible/primary identity, but discovery of the Trauma-backed
-                // representation stays tied to MutationData instead of being implied by Wega.
+                // Wega remains the visible/primary identity, while discovery/availability of
+                // the Trauma-backed gene remains tied to the real MutationData state.
                 wegaEntry.TraumaMutationId = traumaId;
                 wegaEntry.Origin = "Wega+Trauma";
                 wegaEntry.Discovered = discovered;
                 wegaEntry.Active |= active;
+                wegaEntry.Available = discovered;
                 wegaEntry.CanSequence = canSequence;
                 continue;
             }
