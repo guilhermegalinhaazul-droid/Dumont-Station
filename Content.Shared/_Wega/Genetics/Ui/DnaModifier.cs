@@ -40,6 +40,12 @@ public sealed class GeneCatalogEntry
     public bool Discovered { get; set; }
     public bool Active { get; set; }
     public bool Available { get; set; }
+
+    /// <summary>
+    /// True when the currently scanned genome contains a sequence for this Trauma mutation.
+    /// This is independent from discovery and general gene availability.
+    /// </summary>
+    public bool CanSequence { get; set; }
 }
 
 [Serializable, NetSerializable]
