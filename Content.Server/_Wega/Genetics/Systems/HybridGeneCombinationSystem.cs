@@ -277,7 +277,19 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
                 ? resultEntry.GeneName
                 : resultId;
 
-            var canCombine = body is { } target && CanUseRecipe(target, recipe, out var unavailableReason);
+            bool canCombine;
+            string? unavailableReason;
+            if (body is { } target)
+            {
+                canCombine = CanUseRecipe(target, recipe, out var reason);
+                unavailableReason = canCombine ? null : reason;
+            }
+            else
+            {
+                canCombine = false;
+                unavailableReason = "Insira um organismo mutável no scanner.";
+            }
+
             states.Add(new HybridGeneCombinationRecipeState
             {
                 RecipeId = recipe.ID,
@@ -286,11 +298,7 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
                 ResultMutationId = resultId,
                 ResultGeneName = resultName,
                 CanCombine = canCombine,
-                UnavailableReason = canCombine
-                    ? null
-                    : body == null
-                        ? "Insira um organismo mutável no scanner."
-                        : unavailableReason,
+                UnavailableReason = unavailableReason,
             });
         }
 
