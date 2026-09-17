@@ -5,6 +5,7 @@
 using Content.Server.Medical.Components;
 using Content.Shared.Genetics;
 using Content.Trauma.Shared.Genetics.Mutations;
+using Robust.Shared.Player;
 
 namespace Content.Server.Genetics.System;
 
@@ -19,7 +20,7 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     [Dependency] private readonly MutationSystem _mutation = default!;
     [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
 
-    private readonly Dictionary<EntityUid, Selection> _selections = new();
+    private readonly Dictionary<(EntityUid Console, ICommonSession Session), Selection> _selections = new();
 
     public override void Initialize()
     {
@@ -32,50 +33,54 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         SubscribeNetworkEvent<DnaModifierHybridSubmitSequenceEvent>(OnSubmitSequence);
     }
 
-    private void OnCatalogRequest(DnaModifierHybridCatalogRequestEvent args)
+    private void OnCatalogRequest(DnaModifierHybridCatalogRequestEvent args, EntitySessionEventArgs sessionArgs)
     {
-        SendState(GetEntity(args.Console));
+        SendState(GetEntity(args.Console), sessionArgs.SenderSession);
     }
 
-    private void OnSelectGene(DnaModifierHybridSelectGeneEvent args)
+    private void OnSelectGene(DnaModifierHybridSelectGeneEvent args, EntitySessionEventArgs sessionArgs)
     {
         var console = GetEntity(args.Console);
+        var session = sessionArgs.SenderSession;
+        var key = (console, session);
+
         if (!TryGetScannedBody(console, out var body)
             || !TryResolveMutation(args.MutationId, out var mutationId)
             || _mutation.GetRoundData(mutationId) is not { } data)
         {
-            _selections.Remove(console);
-            SendState(console);
+            _selections.Remove(key);
+            SendState(console, session);
             return;
         }
 
         if (data.Discovered)
         {
-            _selections.Remove(console);
-            SendState(console);
+            _selections.Remove(key);
+            SendState(console, session);
             return;
         }
 
         if (!PrepareGenome(body) || !TryFindSequence(body, mutationId, out var sequenceIndex, out _))
         {
-            _selections.Remove(console);
-            SendState(console);
+            _selections.Remove(key);
+            SendState(console, session);
             return;
         }
 
-        _selections[console] = new Selection(body, mutationId, sequenceIndex);
-        SendState(console);
+        _selections[key] = new Selection(body, mutationId, sequenceIndex);
+        SendState(console, session);
     }
 
-    private void OnSetBase(DnaModifierHybridSetBaseEvent args)
+    private void OnSetBase(DnaModifierHybridSetBaseEvent args, EntitySessionEventArgs sessionArgs)
     {
         var console = GetEntity(args.Console);
+        var session = sessionArgs.SenderSession;
         if (args.Base.Length != 1 || !"XATGC".Contains(args.Base[0]))
             return;
 
-        if (!TryGetSelection(console, out var selection, out var sequence))
+        if (!TryGetSelection(console, session, out var selection, out var sequence))
         {
-            SendState(console);
+            SendState(console, session);
             return;
         }
 
@@ -92,30 +97,34 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         bases[index] = args.Base[0];
         sequence.Bases = new string(bases);
         selection.LastAttemptFailed = false;
-        SendState(console);
+        SendState(console, session);
     }
 
-    private void OnResetSequence(DnaModifierHybridResetSequenceEvent args)
+    private void OnResetSequence(DnaModifierHybridResetSequenceEvent args, EntitySessionEventArgs sessionArgs)
     {
         var console = GetEntity(args.Console);
-        if (!TryGetSelection(console, out var selection, out var sequence))
+        var session = sessionArgs.SenderSession;
+        if (!TryGetSelection(console, session, out var selection, out var sequence))
         {
-            SendState(console);
+            SendState(console, session);
             return;
         }
 
         sequence.Bases = sequence.OriginalBases;
         selection.LastAttemptFailed = false;
-        SendState(console);
+        SendState(console, session);
     }
 
-    private void OnSubmitSequence(DnaModifierHybridSubmitSequenceEvent args)
+    private void OnSubmitSequence(DnaModifierHybridSubmitSequenceEvent args, EntitySessionEventArgs sessionArgs)
     {
         var console = GetEntity(args.Console);
-        if (!TryGetSelection(console, out var selection, out var sequence)
+        var session = sessionArgs.SenderSession;
+        var key = (console, session);
+
+        if (!TryGetSelection(console, session, out var selection, out var sequence)
             || _mutation.GetRoundData(selection.Mutation) is not { } data)
         {
-            SendState(console);
+            SendState(console, session);
             return;
         }
 
@@ -123,27 +132,32 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         // is created, and successful sequencing does not activate the mutation on the organism.
         if (data.Discovered)
         {
-            _selections.Remove(console);
-            SendState(console);
+            _selections.Remove(key);
+            SendState(console, session);
             return;
         }
 
         if (sequence.Bases != data.Bases)
         {
             selection.LastAttemptFailed = true;
-            SendState(console);
+            SendState(console, session);
             return;
         }
 
         data.Discovered = true;
-        _selections.Remove(console);
-        SendState(console);
+        _selections.Remove(key);
+        SendState(console, session);
     }
 
-    private bool TryGetSelection(EntityUid console, out Selection selection, out Sequence sequence)
+    private bool TryGetSelection(
+        EntityUid console,
+        ICommonSession session,
+        out Selection selection,
+        out Sequence sequence)
     {
         sequence = default!;
-        if (!_selections.TryGetValue(console, out var found))
+        var key = (console, session);
+        if (!_selections.TryGetValue(key, out var found))
         {
             selection = default!;
             return false;
@@ -152,14 +166,14 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         selection = found;
         if (!TryGetScannedBody(console, out var body) || body != selection.Body)
         {
-            _selections.Remove(console);
+            _selections.Remove(key);
             return false;
         }
 
         var current = _scannedGenome.GetSequence(body, selection.SequenceIndex);
         if (current == null || current.Mutation != selection.Mutation)
         {
-            _selections.Remove(console);
+            _selections.Remove(key);
             return false;
         }
 
@@ -232,7 +246,7 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         return false;
     }
 
-    private void SendState(EntityUid console)
+    private void SendState(EntityUid console, ICommonSession session)
     {
         EntityUid? body = null;
         if (TryGetScannedBody(console, out var scannedBody) && PrepareGenome(scannedBody))
@@ -243,13 +257,14 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         string? bases = null;
         string? originalBases = null;
         var failed = false;
+        var key = (console, session);
 
-        if (_selections.TryGetValue(console, out var selection))
+        if (_selections.TryGetValue(key, out var selection))
         {
             if (body != selection.Body
                 || _mutation.GetRoundData(selection.Mutation)?.Discovered == true)
             {
-                _selections.Remove(console);
+                _selections.Remove(key);
             }
             else
             {
@@ -267,7 +282,7 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
                 }
                 else
                 {
-                    _selections.Remove(console);
+                    _selections.Remove(key);
                 }
             }
         }
@@ -278,7 +293,7 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
             mutationId,
             bases,
             originalBases,
-            failed));
+            failed), session);
     }
 
     private sealed class Selection
