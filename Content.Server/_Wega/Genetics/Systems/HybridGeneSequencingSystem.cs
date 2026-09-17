@@ -272,7 +272,7 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
                 // second DNA model for the Wega UI.
                 var states = new List<SequenceState>();
                 _scannedGenome.AddSequenceStates(selection.Body, states);
-                if (selection.SequenceIndex < states.Count)
+                if (selection.SequenceIndex < (uint) states.Count)
                 {
                     var state = states[(int) selection.SequenceIndex];
                     mutationId = selection.Mutation.ToString();
