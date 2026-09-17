@@ -63,25 +63,23 @@ public sealed partial class DnaModifierWindow
             MinWidth = 180,
         });
 
-        row.AddChild(new Label
+        var status = new Label
         {
             Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
             MinWidth = 150,
-            StyleClasses = gene.Active
-                ? { StyleNano.StyleClassLabelGreen }
-                : { StyleNano.StyleClassLabelSecondaryColor },
-        });
+        };
+        status.StyleClasses.Add(gene.Active
+            ? StyleNano.StyleClassLabelGreen
+            : StyleNano.StyleClassLabelSecondaryColor);
+        row.AddChild(status);
 
         if (gene.TraumaMutationId != null && !gene.Discovered)
         {
             var mutationId = gene.TraumaMutationId;
             var sequenceButton = new Button
             {
-                Text = "Sequenciar",
+                Text = gene.CanSequence ? "Sequenciar" : "Sem amostra",
                 Disabled = !gene.CanSequence,
-                ToolTip = gene.CanSequence
-                    ? "Abrir sequência de DNA desta mutação."
-                    : "Esta mutação não está presente na amostra escaneada.",
             };
 
             sequenceButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
