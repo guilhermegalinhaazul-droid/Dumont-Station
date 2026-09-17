@@ -57,5 +57,9 @@ public sealed class HybridGeneSequencingClientSystem : EntitySystem
             return;
 
         window.ApplyHybridCombinationState(args);
+
+        // Combination can change Active and can introduce a new undiscovered sequence.
+        // Refresh the existing hybrid catalog immediately instead of maintaining a second copy.
+        _network.SendSystemNetworkMessage(new DnaModifierHybridCatalogRequestEvent(args.Console));
     }
 }
