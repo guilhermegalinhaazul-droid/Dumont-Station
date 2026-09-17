@@ -130,9 +130,7 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
         Entity<DnaModifierConsoleComponent> console,
         ref DnaModifierHybridCombineDoAfterEvent args)
     {
-        if (args.User is { } user)
-            _pendingCombinations.Remove((console.Owner, user));
-
+        _pendingCombinations.Remove((console.Owner, args.User));
         var session = FindSession(args.User);
 
         if (args.Cancelled)
