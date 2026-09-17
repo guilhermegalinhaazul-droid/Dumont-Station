@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Content.Server.Medical.Components;
+using Content.Server.Power.EntitySystems;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
@@ -28,9 +29,12 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
     [Dependency] private readonly ISharedPlayerManager _players = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MutationSystem _mutation = default!;
+    [Dependency] private readonly PowerReceiverSystem _power = default!;
     [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
+
+    private readonly HashSet<(EntityUid Console, EntityUid User)> _pendingCombinations = new();
 
     public override void Initialize()
     {
@@ -59,6 +63,13 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
             || !TryComp<DnaModifierConsoleComponent>(console, out var consoleComp)
             || session.AttachedEntity is not { } user)
         {
+            return;
+        }
+
+        var pendingKey = (console, user);
+        if (_pendingCombinations.Contains(pendingKey))
+        {
+            SendState(console, session, "Uma combinação já está em andamento.");
             return;
         }
 
@@ -104,8 +115,10 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
             AttemptFrequency = AttemptFrequency.EveryTick,
         };
 
+        _pendingCombinations.Add(pendingKey);
         if (!_doAfter.TryStartDoAfter(doAfterArgs))
         {
+            _pendingCombinations.Remove(pendingKey);
             SendState(console, session, "Não foi possível iniciar a combinação.");
             return;
         }
@@ -117,6 +130,9 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
         Entity<DnaModifierConsoleComponent> console,
         ref DnaModifierHybridCombineDoAfterEvent args)
     {
+        if (args.User is { } user)
+            _pendingCombinations.Remove((console.Owner, user));
+
         var session = FindSession(args.User);
 
         if (args.Cancelled)
@@ -129,7 +145,8 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
         args.Handled = true;
         var body = GetEntity(args.Body);
 
-        if (!TryGetScannedBody(console.Owner, out var currentBody)
+        if (!_power.IsPowered(console.Owner)
+            || !TryGetScannedBody(console.Owner, out var currentBody)
             || currentBody != body
             || !TryResolveRecipe(args.RecipeId, out _, out var recipe)
             || _mutation.GetMutatable(body) is not { } mutatable)
@@ -200,8 +217,12 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
         ref DoAfterAttemptEvent<DnaModifierHybridCombineDoAfterEvent> args)
     {
         var body = GetEntity(args.Event.Body);
-        if (!TryGetScannedBody(console.Owner, out var currentBody) || currentBody != body)
+        if (!_power.IsPowered(console.Owner)
+            || !TryGetScannedBody(console.Owner, out var currentBody)
+            || currentBody != body)
+        {
             args.Cancel();
+        }
     }
 
     private bool CanUseRecipe(EntityUid body, MutationRecipePrototype recipe, out string reason)
@@ -346,7 +367,8 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
 
     private bool IsAuthorized(EntityUid console, ICommonSession session)
     {
-        return session.AttachedEntity is { } actor
+        return _power.IsPowered(console)
+            && session.AttachedEntity is { } actor
             && TryComp<DnaModifierConsoleComponent>(console, out _)
             && _ui.IsUiOpen(console, DnaModifierUiKey.Key, actor);
     }
