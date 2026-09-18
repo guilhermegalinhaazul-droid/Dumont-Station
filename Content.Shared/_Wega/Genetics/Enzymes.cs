@@ -37,6 +37,7 @@ public sealed class EnzymeInfo
     /// Trauma mutation state belonging to the donor organism. Discovery is deliberately
     /// not stored here because it is global genetics knowledge, not organism state.
     /// </summary>
+    public bool HasTraumaMutationState { get; set; }
     public List<string>? TraumaActiveMutations { get; set; }
     public List<string>? TraumaDormantMutations { get; set; }
 
@@ -51,6 +52,7 @@ public sealed class EnzymeInfo
             GeneticIdentityName = GeneticIdentityName,
             Dna = Dna,
             SpeciesId = SpeciesId,
+            HasTraumaMutationState = HasTraumaMutationState,
             TraumaActiveMutations = TraumaActiveMutations?.ToList(),
             TraumaDormantMutations = TraumaDormantMutations?.ToList()
         };
