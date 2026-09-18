@@ -13,9 +13,16 @@ public sealed partial class DnaModifierWindow
 {
     private void InitializeEiUi()
     {
-        EiCopyBuffer1Button.OnPressed += _ => OnButtonServerSavedPressed(1, 4);
-        EiCopyBuffer2Button.OnPressed += _ => OnButtonServerSavedPressed(2, 4);
-        EiCopyBuffer3Button.OnPressed += _ => OnButtonServerSavedPressed(3, 4);
+        EiCopyBuffer1Button.OnPressed += _ => CopyEiToBuffer(1);
+        EiCopyBuffer2Button.OnPressed += _ => CopyEiToBuffer(2);
+        EiCopyBuffer3Button.OnPressed += _ => CopyEiToBuffer(3);
+    }
+
+    private void CopyEiToBuffer(int index)
+    {
+        _updateBuffer = true;
+        _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierEiCopyRequestEvent(_console, index));
     }
 
     private void UpdateEiState(DnaModifierBoundUserInterfaceState state)
@@ -102,7 +109,12 @@ public sealed partial class DnaModifierWindow
             Text = hasReceiver ? "Aplicar EI ao organismo no scanner" : "Insira um receptor no scanner",
             Disabled = !hasReceiver,
         };
-        apply.OnPressed += _ => OnSubjectInjectPressed(index, apply);
+        apply.OnPressed += _ =>
+        {
+            apply.Disabled = true;
+            _entNetworkManager.SendSystemNetworkMessage(
+                new DnaModifierEiApplyRequestEvent(_console, index));
+        };
         root.AddChild(apply);
 
         return root;
