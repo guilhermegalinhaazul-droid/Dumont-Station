@@ -553,6 +553,12 @@ namespace Content.Server.Genetics.System
                     }
                     break;
 
+                // Full EI: identity + Wega appearance/genes + organism Trauma mutation state.
+                // The client only selects the destination buffer; every value is captured here.
+                case 4:
+                    dataToSend = _dnaModifier.CaptureGeneticProfile((scanBody.Value, dnaModifier));
+                    break;
+
                 default: return;
             }
 
@@ -672,12 +678,22 @@ namespace Content.Server.Genetics.System
                 return;
 
             PlayClickSound((clientEntity, console));
-            _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), data);
+
+            if (data.IsFullGeneticProfile)
+            {
+                if (!_dnaModifier.ApplyGeneticProfile((scanBody.Value, dnaModifier), data))
+                    return;
+            }
+            else
+            {
+                _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), data);
+            }
 
             console.LastSubjectInjectTime = _timing.CurTime;
 
             var damage = new DamageSpecifier { DamageDict = { { RadDamage, 20 } } };
             _damage.TryChangeDamage(scanBody.Value, damage, true);
+            UpdateUserInterface(clientEntity, console);
         }
 
         private void OnExportOnDiskPressed(DnaModifierConsoleExportOnDiskEvent args)
