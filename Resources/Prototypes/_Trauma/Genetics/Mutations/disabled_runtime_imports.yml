@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Placeholder kept to document why several imported Trauma mutation prototypes are
+# intentionally disabled in this hybrid branch.
+#
+# This fork does not currently include every runtime action/trigger/accent
+# component used by Trauma genetics. Loading those raw prototypes makes the
+# server crash before the game opens. The compatible hybrid implementation keeps
+# the real Mutation prototype/system code, while YAML entries that require
+# missing runtime components are disabled until their systems are ported.
