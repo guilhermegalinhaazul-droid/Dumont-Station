@@ -104,7 +104,7 @@ public sealed partial class DnaModifierSystem
         }
 
         Dirty(target.Owner, target.Comp);
-        ChangeDna(target);
+        ChangeDna(target.AsNullable());
 
         // Identity is recovered from the stored EI, never from a client-supplied name.
         if (!string.IsNullOrWhiteSpace(profile.GeneticIdentityName))
@@ -170,7 +170,7 @@ public sealed partial class DnaModifierSystem
         List<EntProtoId<MutationComponent>> active,
         out List<EntProtoId<MutationComponent>> ordered)
     {
-        ordered = new List<EntProtoId<MutationComponent>>();
+        var result = new List<EntProtoId<MutationComponent>>();
         var activeSet = active.ToHashSet();
         var visiting = new HashSet<EntProtoId<MutationComponent>>();
         var visited = new HashSet<EntProtoId<MutationComponent>>();
@@ -178,9 +178,13 @@ public sealed partial class DnaModifierSystem
         foreach (var id in active)
         {
             if (!Visit(id))
+            {
+                ordered = result;
                 return false;
+            }
         }
 
+        ordered = result;
         return true;
 
         bool Visit(EntProtoId<MutationComponent> id)
@@ -202,7 +206,7 @@ public sealed partial class DnaModifierSystem
 
             visiting.Remove(id);
             visited.Add(id);
-            ordered.Add(id);
+            result.Add(id);
             return true;
         }
     }
