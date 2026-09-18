@@ -1,0 +1,38 @@
+# Temporary build validation for hybrid genetics integration.
+# Remove after the branch compiles cleanly.
+name: Hybrid Genetics Server Build
+
+on:
+  push:
+    branches:
+      - hybrid-genetics-final
+  workflow_dispatch:
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup submodules
+        run: git submodule update --init --recursive
+
+      - name: Pull engine updates
+        uses: space-wizards/submodule-dependency@v0.1.5
+
+      - name: Update engine submodules
+        run: |
+          cd RobustToolbox/
+          git submodule update --init --recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.1.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build server
+        run: dotnet build Content.Server/Content.Server.csproj --configuration DebugOpt --no-restore -m:1
