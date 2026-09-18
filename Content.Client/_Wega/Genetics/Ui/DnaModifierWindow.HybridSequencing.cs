@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Linq;
 using Content.Client.Stylesheets;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
@@ -11,9 +12,18 @@ namespace Content.Client._Wega.Genetics.Ui;
 
 public sealed partial class DnaModifierWindow
 {
+    private string? _hybridGeneFeedback;
+    private bool _hybridGeneFeedbackSuccess;
+
+    public void SetHybridGeneFeedback(string message, bool success)
+    {
+        _hybridGeneFeedback = message;
+        _hybridGeneFeedbackSuccess = success;
+    }
+
     /// <summary>
-    /// Applies the authoritative hybrid catalog/sequencing state received from the server.
-    /// This is intentionally a minimal Wega view over Trauma's existing sequencing data.
+    /// Main player-facing genetics catalog. Wega's hexadecimal data remains an internal
+    /// implementation detail and is not needed to discover or toggle genes here.
     /// </summary>
     public void ApplyHybridSequencingState(DnaModifierHybridSequencingStateEvent state)
     {
@@ -31,12 +41,58 @@ public sealed partial class DnaModifierWindow
 
         root.AddChild(new Label
         {
-            Text = "GENES",
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor },
+            Text = "CATÁLOGO DE GENES",
+            StyleClasses = { StyleNano.StyleClassLabelBig },
         });
 
-        foreach (var gene in state.Catalog)
-            root.AddChild(CreateHybridGeneRow(gene));
+        if (!string.IsNullOrWhiteSpace(_hybridGeneFeedback))
+        {
+            var feedback = new Label { Text = _hybridGeneFeedback };
+            feedback.StyleClasses.Add(_hybridGeneFeedbackSuccess
+                ? StyleNano.StyleClassLabelGreen
+                : StyleNano.StyleClassLabelSecondaryColor);
+            root.AddChild(feedback);
+        }
+
+        var filter = new OptionButton { MinWidth = 180 };
+        filter.AddItem("Todos", 0);
+        filter.AddItem("Descobertos", 1);
+        filter.AddItem("Ativos", 2);
+        filter.AddItem("Desconhecidos", 3);
+        filter.SelectId(0);
+        root.AddChild(filter);
+
+        var geneList = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            Margin = new Thickness(0, 6, 0, 0),
+        };
+        root.AddChild(geneList);
+
+        void RenderGenes(int filterId)
+        {
+            geneList.RemoveAllChildren();
+            foreach (var gene in state.Catalog)
+            {
+                var visible = filterId switch
+                {
+                    1 => gene.Discovered,
+                    2 => gene.Active,
+                    3 => !gene.Discovered,
+                    _ => true,
+                };
+
+                if (visible)
+                    geneList.AddChild(CreateHybridGeneRow(gene));
+            }
+        }
+
+        filter.OnItemSelected += args =>
+        {
+            filter.SelectId(args.Id);
+            RenderGenes(args.Id);
+        };
+        RenderGenes(0);
 
         if (state.MutationId != null
             && state.Bases != null
@@ -60,18 +116,38 @@ public sealed partial class DnaModifierWindow
         row.AddChild(new Label
         {
             Text = gene.GeneName,
-            MinWidth = 180,
+            MinWidth = 230,
         });
+
+        var statusText = gene.Active
+            ? gene.Discovered ? "[ativo]" : "[ativo, não identificado]"
+            : gene.Discovered ? "[descoberto]" : "[desconhecido]";
 
         var status = new Label
         {
-            Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
-            MinWidth = 150,
+            Text = statusText,
+            MinWidth = 170,
         };
         status.StyleClasses.Add(gene.Active
             ? StyleNano.StyleClassLabelGreen
             : StyleNano.StyleClassLabelSecondaryColor);
         row.AddChild(status);
+
+        if (gene.Active || (gene.Discovered && gene.Available))
+        {
+            var desiredState = !gene.Active;
+            var toggle = new Button
+            {
+                Text = desiredState ? "Ativar" : "Desativar",
+            };
+            toggle.OnPressed += _ =>
+            {
+                toggle.Disabled = true;
+                _entNetworkManager.SendSystemNetworkMessage(
+                    new DnaModifierHybridSetGeneActiveEvent(_console, gene.CanonicalKey, desiredState));
+            };
+            row.AddChild(toggle);
+        }
 
         if (gene.TraumaMutationId != null && !gene.Discovered)
         {
@@ -103,19 +179,16 @@ public sealed partial class DnaModifierWindow
 
         panel.AddChild(new Label
         {
-            Text = $"Sequenciamento: {state.MutationId}",
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor },
+            Text = "SEQUENCIAMENTO GENÉTICO",
+            StyleClasses = { StyleNano.StyleClassLabelBig },
         });
 
         panel.AddChild(new Label
         {
-            Text = "Complete as bases desconhecidas (X) usando A, T, G e C.",
+            Text = "Complete as bases desconhecidas (X) usando A, T, G e C. A validação ocorre no servidor.",
         });
 
-        var grid = new GridContainer
-        {
-            Columns = 16,
-        };
+        var grid = new GridContainer { Columns = 16 };
 
         for (var i = 0; i < bases.Length; i++)
         {
@@ -144,12 +217,7 @@ public sealed partial class DnaModifierWindow
         panel.AddChild(grid);
 
         if (state.LastAttemptFailed)
-        {
-            panel.AddChild(new Label
-            {
-                Text = "Sequência incorreta.",
-            });
-        }
+            panel.AddChild(new Label { Text = "Sequência incorreta." });
 
         var actions = new BoxContainer
         {
@@ -160,7 +228,7 @@ public sealed partial class DnaModifierWindow
         var reset = new Button
         {
             Text = "Resetar",
-            Disabled = bases == originalBases,
+            Disabled = bases.SequenceEqual(originalBases),
         };
         reset.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
             new DnaModifierHybridResetSequenceEvent(_console));
@@ -181,8 +249,8 @@ public sealed partial class DnaModifierWindow
     }
 
     /// <summary>
-    /// Matches Trauma GeneticsConsoleSystem.CycleBase(..., Next): X → A → C → G → T → X.
-    /// The actual target sequence and A↔T / G↔C complementarity remain owned by MutationData.
+    /// Matches Trauma's sequencer cycle. The target and complementary strand remain owned by
+    /// MutationData/ScannedGenomeSystem; the client only proposes edits to originally unknown bases.
     /// </summary>
     private static char CycleBase(char current)
         => current switch
