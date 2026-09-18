@@ -40,11 +40,11 @@ public sealed partial class DnaModifierSystem
         {
             profile.HasTraumaMutationState = true;
             var mutationData = _eiMutation.GetMutatableData(source.Owner);
-            profile.TraumaDormantMutations = mutationData.Dormant
-                .Select(id => id.ToString())
+            profile.TraumaDormantMutationNumbers = mutationData.Dormant
+                .Select(GetMutationNumber)
                 .ToList();
-            profile.TraumaActiveMutations = mutationData.Mutations
-                .Select(id => id.ToString())
+            profile.TraumaActiveMutationNumbers = mutationData.Mutations
+                .Select(GetMutationNumber)
                 .ToList();
         }
 
@@ -71,8 +71,8 @@ public sealed partial class DnaModifierSystem
             if (_eiMutation.GetMutatable(target.Owner, force: false) == null)
                 return false;
 
-            if (!TryResolveMutationIds(profile.TraumaActiveMutations, active)
-                || !TryResolveMutationIds(profile.TraumaDormantMutations, dormant)
+            if (!TryResolveMutationNumbers(profile.TraumaActiveMutationNumbers, active)
+                || !TryResolveMutationNumbers(profile.TraumaDormantMutationNumbers, dormant)
                 || !ValidateMutationSet(active)
                 || !TryOrderMutationsForLoad(active, out var orderedActive))
             {
@@ -133,19 +133,23 @@ public sealed partial class DnaModifierSystem
         return true;
     }
 
-    private bool TryResolveMutationIds(
-        List<string>? stored,
+    private int GetMutationNumber(EntProtoId<MutationComponent> id)
+        => _eiMutation.GetRoundData(id)?.Number
+            ?? throw new InvalidOperationException($"Mutation {id} has no round data.");
+
+    private bool TryResolveMutationNumbers(
+        List<int>? stored,
         List<EntProtoId<MutationComponent>> resolved)
     {
         if (stored == null)
             return true;
 
-        foreach (var raw in stored)
+        foreach (var number in stored)
         {
             var found = false;
             foreach (var id in _eiMutation.AllMutations.Keys)
             {
-                if (!string.Equals(id.ToString(), raw, StringComparison.Ordinal))
+                if (_eiMutation.GetRoundData(id)?.Number != number)
                     continue;
 
                 resolved.Add(id);
