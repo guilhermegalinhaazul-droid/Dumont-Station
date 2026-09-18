@@ -5,19 +5,11 @@
 namespace Content.Shared.Genetics;
 
 /// <summary>
-/// Provides the canonical identity used to merge Wega structural enzymes and Trauma mutations
-/// into a single catalog entry. Explicit aliases can be added here when equivalent genes use
-/// different prototype IDs; otherwise the prototype ID itself is the canonical identity.
+/// Resolves the prototype-provided canonical identity used to fold equivalent Wega genes and
+/// Trauma mutations into one catalog entry. Equivalence data belongs to prototypes, not code.
 /// </summary>
 public static class GeneCanonicalKeys
 {
-    private static readonly Dictionary<string, string> Aliases = new(StringComparer.OrdinalIgnoreCase);
-
-    public static string Get(string geneId)
-    {
-        if (Aliases.TryGetValue(geneId, out var canonical))
-            return canonical;
-
-        return geneId;
-    }
+    public static string Get(string geneId, string? canonicalKey = null)
+        => string.IsNullOrWhiteSpace(canonicalKey) ? geneId : canonicalKey;
 }
