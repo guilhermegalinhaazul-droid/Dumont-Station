@@ -6,7 +6,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// <summary>
 /// Mutation that modifies bleeding rate and blood refresh rate.
 /// </summary>
-[RegisterComponent, NetworkedComponent, Access(typeof(BleedingMutationSystem))]
+[RegisterComponent, NetworkedComponent]
 public sealed partial class BleedingMutationComponent : Component
 {
     [DataField]
