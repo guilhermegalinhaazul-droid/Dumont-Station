@@ -15,10 +15,6 @@
   id: MutationWacky
   name: Wacky
   description: You are not a clown. You are the entire circus.
-  components:
-  - type: SpeechFontOverride
-    font: LDFComicSans
-    sourceOnly: false
 
 - type: entity
   parent: BaseFreeMutation
@@ -30,7 +26,7 @@
     removes:
     - MutationStoner
   - type: ReplacementAccent
-    accent: Heckacious # not the same as ss13 but dear god im not writing all that byond shitcode
+    accent: Heckacious
 
 - type: entity
   parent: BaseMutation
@@ -42,7 +38,7 @@
     instability: -40
   - type: RemovesMutation
     removes:
-    - MutationUnintelligible # no free -70
+    - MutationUnintelligible
   - type: StatusEffectsMutation
     statusEffects:
     - StatusEffectMutedMutation
@@ -56,22 +52,13 @@
   - type: Mutation
     instability: -30
     conflicts:
-    - MutationMute # can upgrade to Mute
-  # TODO
+    - MutationMute
 
 - type: entity
   parent: BaseFreeMutation
   id: MutationSwedish
   name: Swedish
   description: A horrible mutation originating from the distant past. Thought to be eradicated after the incident in 2037.
-  components:
-  - type: CharactersAccent
-    chars:
-      w: [ "v" ]
-      j: [ "y" ]
-      b: [ "bj" ]
-      a: [ "å", "ä", "æ", "a" ]
-      o: [ "ö", "ø", "o" ]
 
 - type: entity
   parent: BaseFreeMutation
@@ -90,25 +77,12 @@
   components:
   - type: ReplacementAccent
     accent: Elvis
-  - type: RandomTrigger
-    prob: 0.075 # 7.5%
-  - type: EntityEffectOnTrigger
-    effects:
-    - !type:RelayMutated
-      effect: !type:NestedEffect
-        conditions:
-        - !type:NestedCondition
-          proto: IsAwake
-        - !type:InContainerCondition
-          inverted: true # can't dance inside a locker bro
-        proto: MutationElvisDance
 
 - type: entity
   parent: BaseFreeMutation
   id: MutationStoner
   name: Stoner
   description: A common mutation that severely decreases intelligence.
-  # TODO
 
 - type: entity
   parent: BaseFreeMutation
