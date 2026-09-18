@@ -61,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
              Exclude="..\Content.Trauma.Shared\Genetics\Mutations\BodySystem.cs;..\Content.Trauma.Shared\Genetics\Mutations\CommonMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Mutations\MutationRelaySystem.cs"
              Link="_Wega\Genetics\Trauma\Mutations\%(Filename)%(Extension)" />
     <Compile Include="..\Content.Trauma.Shared\Genetics\Abilities\*.cs"
-             Exclude="..\Content.Trauma.Shared\Genetics\Abilities\MindReadActionSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\BleedingMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\ChemSpikeMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\InjectChemicalsActionSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\MetabolismSpeedMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\TemperatureDamageMutationSystem.cs"
+             Exclude="..\Content.Trauma.Shared\Genetics\Abilities\MindReadActionSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\BleedingMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\ChemSpikeMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\InjectChemicalsActionSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\MetabolismSpeedMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\TemperatureDamageMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Abilities\RadioMutationSystem.cs"
              Link="_Wega\Genetics\Trauma\Abilities\%(Filename)%(Extension)" />
     <Compile Include="..\Content.Trauma.Shared\Actions\ActionProjectileComponent.cs"
              Link="_Wega\Genetics\Trauma\Actions\ActionProjectileComponent.cs" />
