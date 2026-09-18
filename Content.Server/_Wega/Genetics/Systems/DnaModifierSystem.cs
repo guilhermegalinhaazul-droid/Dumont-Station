@@ -1121,25 +1121,15 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        foreach (var enzyme in component.EnzymesPrototypes)
-        {
-            if (enzyme.Order == 55)
-            {
-                enzyme.HexCode = GenerateLastHexCode();
-                continue;
-            }
+        // Unstable mutagen/form mutation is not a disease-unlock mechanism. Disease genes
+        // continue to be controlled by the dedicated Wega disease/deviation/radiation paths.
+        // Preserve the existing form-block mutation without exposing or activating Disease IDs.
+        var formBlock = component.EnzymesPrototypes.FirstOrDefault(enzyme => enzyme.Order == 55);
+        if (formBlock == null)
+            return;
 
-            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(enzyme.EnzymesPrototypeId, out var enzymePrototype))
-                continue;
-
-            if (enzymePrototype.TypeDeviation == EnzymesType.Disease)
-            {
-                enzyme.HexCode = GetHexCodeDisease();
-            }
-        }
-
+        formBlock.HexCode = GenerateLastHexCode();
         TryChangeStructuralEnzymes((uid, component));
-
         Dirty(uid, component);
     }
     #endregion
