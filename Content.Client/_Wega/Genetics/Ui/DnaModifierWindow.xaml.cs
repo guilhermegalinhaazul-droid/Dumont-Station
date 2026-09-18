@@ -461,7 +461,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         {
             Name = "InjectorButton",
             Text = Loc.GetString("dna-modifier-button-injector"),
-            Disabled = _injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown
+            Disabled = data.IsFullGeneticProfile || (_injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown)
         };
         injectorButton.OnPressed += _ => OnInjectorPressed(bufferIndex, injectorButton);
         buttonsContainer.AddChild(injectorButton);
