@@ -8,6 +8,7 @@ using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
 using Content.Trauma.Shared.Genetics.Mutations;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Genetics.System;
 
