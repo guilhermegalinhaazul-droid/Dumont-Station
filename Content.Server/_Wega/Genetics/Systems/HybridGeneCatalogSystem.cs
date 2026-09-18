@@ -109,19 +109,10 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
         => BuildCatalog(body).FirstOrDefault(entry =>
             string.Equals(entry.CanonicalKey, canonicalKey, StringComparison.OrdinalIgnoreCase));
 
-    private string GetWegaName(StructuralEnzymesPrototype prototype)
+    private static string GetWegaName(StructuralEnzymesPrototype prototype)
     {
-        // Wega's prototype currently stores a localized effect message rather than a dedicated
-        // display-name key. Prefer a sibling *-name string when one exists, then fall back to ID.
-        var message = prototype.Message;
-        if (!string.IsNullOrWhiteSpace(message)
-            && message.EndsWith("-message", StringComparison.Ordinal))
-        {
-            var nameKey = message[..^"-message".Length] + "-name";
-            if (Loc.TryGetString(nameKey, out var name))
-                return name;
-        }
-
+        // StructuralEnzymesPrototype restricts access to its localization message.
+        // The prototype ID is stable and safe to expose in the unified catalog.
         return prototype.ID;
     }
 
