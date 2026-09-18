@@ -234,7 +234,7 @@ public sealed partial class DnaModifierWindow
             };
             bond.StyleClasses.Add(pair.Valid
                 ? StyleNano.StyleClassLabelSecondaryColor
-                : StyleNano.StyleClassLabelRed);
+                : StyleNano.StyleClassLabelSecondaryColor);
             grid.AddChild(bond);
 
             var bottom = new Button
