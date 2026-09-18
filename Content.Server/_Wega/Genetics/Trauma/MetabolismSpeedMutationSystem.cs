@@ -39,10 +39,13 @@ public sealed partial class MetabolismSpeedMutationSystem : EntitySystem
             Dirty(uid, mobComp);
         }
 
-        foreach (var organ in _body.GetOrgans<MetabolizerComponent>(uid))
+        foreach (var organ in _body.GetBodyOrgans(uid))
         {
-            organ.Comp.UpdateIntervalMultiplier += add;
-            Dirty(organ);
+            if (!_query.TryComp(organ.Id, out var organComp))
+                continue;
+
+            organComp.UpdateIntervalMultiplier += add;
+            Dirty(organ.Id, organComp);
         }
     }
 }
