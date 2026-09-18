@@ -11,26 +11,23 @@ using Robust.Shared.Prototypes;
 namespace Content.Server.Genetics.System;
 
 /// <summary>
-/// Builds the unified Wega + Trauma gene catalog without owning mutation, sequencing,
-/// discovery, or structural-enzyme state. Those remain owned by their existing systems.
+/// Read-only projection of the real Wega structural-enzyme and Trauma mutation state.
+/// It owns no gene state of its own.
 /// </summary>
 public sealed class HybridGeneCatalogSystem : EntitySystem
 {
+    [Dependency] private readonly DnaModifierSystem _dnaModifier = default!;
     [Dependency] private readonly StructuralEnzymesIndexerSystem _enzymesIndexer = default!;
     [Dependency] private readonly MutationSystem _mutation = default!;
     [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
-    /// <summary>
-    /// Builds the round catalog. Wega order is preserved, Wega diseases are omitted, and
-    /// equivalent Trauma mutations are folded into their Wega entry through GeneCanonicalKeys.
-    /// Trauma-only mutations are appended and remain present even before discovery.
-    /// </summary>
     public List<GeneCatalogEntry> BuildCatalog(EntityUid? scannedBody = null)
     {
         var catalog = new List<GeneCatalogEntry>();
         var byCanonicalKey = new Dictionary<string, GeneCatalogEntry>(StringComparer.OrdinalIgnoreCase);
 
+        // StructuralEnzymesIndexerSystem remains the only Wega ordering/index authority.
         foreach (var enzymeInfo in _enzymesIndexer.GetAllEnzymesPrototypes())
         {
             if (string.IsNullOrEmpty(enzymeInfo.EnzymesPrototypeId)
@@ -41,7 +38,7 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
             }
 
             var wegaId = prototype.ID;
-            var canonicalKey = GeneCanonicalKeys.Get(wegaId);
+            var canonicalKey = GeneCanonicalKeys.Get(wegaId, prototype.CanonicalKey);
             if (byCanonicalKey.ContainsKey(canonicalKey))
                 continue;
 
@@ -49,10 +46,11 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
             {
                 CanonicalKey = canonicalKey,
                 GeneId = wegaId,
-                GeneName = wegaId,
+                GeneName = GetWegaName(prototype),
                 Origin = "Wega",
                 WegaGeneId = wegaId,
                 Discovered = true,
+                Active = scannedBody is { } body && _dnaModifier.IsStructuralEnzymeActive(body, wegaId),
                 Available = true,
             };
 
@@ -60,24 +58,26 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
             byCanonicalKey.Add(canonicalKey, entry);
         }
 
-        foreach (var mutationId in _mutation.AllMutations.Keys.OrderBy(id => id.ToString()))
+        // MutationSystem.AllMutations is the only mutation index used here.
+        foreach (var (mutationId, mutationComponent) in _mutation.AllMutations
+                     .OrderBy(pair => pair.Key.ToString()))
         {
             var traumaId = mutationId.ToString();
-            var canonicalKey = GeneCanonicalKeys.Get(traumaId);
+            var canonicalKey = GeneCanonicalKeys.Get(traumaId, mutationComponent.CanonicalKey);
             var discovered = _mutation.GetRoundData(mutationId)?.Discovered == true;
-            var canSequence = !discovered && HasSequence(scannedBody, mutationId);
-            var active = IsActive(scannedBody, mutationId);
+            var active = IsTraumaActive(scannedBody, mutationId);
 
             if (byCanonicalKey.TryGetValue(canonicalKey, out var wegaEntry))
             {
-                // Wega remains the visible/primary identity, while discovery/availability of
-                // the Trauma-backed gene remains tied to the real MutationData state.
+                // Equivalent systems share one visible row. A Wega structural gene is already
+                // identified by Wega, so attaching an undiscovered Trauma implementation must
+                // not make that known gene appear unknown.
                 wegaEntry.TraumaMutationId = traumaId;
                 wegaEntry.Origin = "Wega+Trauma";
-                wegaEntry.Discovered = discovered;
+                wegaEntry.Discovered |= discovered;
                 wegaEntry.Active |= active;
-                wegaEntry.Available = discovered;
-                wegaEntry.CanSequence = canSequence;
+                wegaEntry.Available = true;
+                wegaEntry.CanSequence = false;
                 continue;
             }
 
@@ -85,13 +85,13 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
             {
                 CanonicalKey = canonicalKey,
                 GeneId = traumaId,
-                GeneName = traumaId,
+                GeneName = GetTraumaName(traumaId),
                 Origin = "Trauma",
                 TraumaMutationId = traumaId,
                 Discovered = discovered,
                 Active = active,
                 Available = discovered,
-                CanSequence = canSequence,
+                CanSequence = !discovered && HasSequence(scannedBody, mutationId),
             };
 
             catalog.Add(entry);
@@ -99,6 +99,33 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
         }
 
         return catalog;
+    }
+
+    public GeneCatalogEntry? FindByCanonicalKey(EntityUid? body, string canonicalKey)
+        => BuildCatalog(body).FirstOrDefault(entry =>
+            string.Equals(entry.CanonicalKey, canonicalKey, StringComparison.OrdinalIgnoreCase));
+
+    private string GetWegaName(StructuralEnzymesPrototype prototype)
+    {
+        // Wega's prototype currently stores a localized effect message rather than a dedicated
+        // display-name key. Prefer a sibling *-name string when one exists, then fall back to ID.
+        if (!string.IsNullOrWhiteSpace(prototype.Message)
+            && prototype.Message.EndsWith("-message", StringComparison.Ordinal))
+        {
+            var nameKey = prototype.Message[..^"-message".Length] + "-name";
+            if (Loc.TryGetString(nameKey, out var name))
+                return name;
+        }
+
+        return prototype.ID;
+    }
+
+    private string GetTraumaName(string id)
+    {
+        if (_prototypeManager.TryIndex<EntityPrototype>(id, out var prototype))
+            return Loc.GetString(prototype.Name);
+
+        return id;
     }
 
     private bool HasSequence(EntityUid? scannedBody, EntProtoId<MutationComponent> mutationId)
@@ -117,7 +144,7 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
         }
     }
 
-    private bool IsActive(EntityUid? scannedBody, EntProtoId<MutationComponent> mutationId)
+    private bool IsTraumaActive(EntityUid? scannedBody, EntProtoId<MutationComponent> mutationId)
     {
         if (scannedBody is not { } body || _mutation.GetMutatable(body) is not { } mutatable)
             return false;
