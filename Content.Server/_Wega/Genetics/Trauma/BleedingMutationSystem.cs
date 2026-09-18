@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Server.Body.Systems;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Events;
 using Content.Trauma.Shared.Genetics.Mutations;
@@ -15,6 +16,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// </summary>
 public sealed partial class BleedingMutationSystem : EntitySystem
 {
+    [Dependency] private readonly BloodstreamSystem _bloodstream = default!;
     [Dependency] private readonly EntityQuery<BloodstreamComponent> _bloodstreamQuery = default!;
 
     public override void Initialize()
@@ -31,8 +33,9 @@ public sealed partial class BleedingMutationSystem : EntitySystem
         if (!_bloodstreamQuery.TryComp(args.Target, out var blood))
             return;
 
-        blood.BloodRefreshAmount *= ent.Comp.RefreshModifier;
-        DirtyField(args.Target, blood, nameof(BloodstreamComponent.BloodRefreshAmount));
+        _bloodstream.SetGeneticBloodRefreshAmount(
+            (args.Target, blood),
+            blood.BloodRefreshAmount * ent.Comp.RefreshModifier);
     }
 
     private void OnRemoved(Entity<BleedingMutationComponent> ent, ref MutationRemovedEvent args)
@@ -40,8 +43,9 @@ public sealed partial class BleedingMutationSystem : EntitySystem
         if (!_bloodstreamQuery.TryComp(args.Target, out var blood) || ent.Comp.RefreshModifier == 0f)
             return;
 
-        blood.BloodRefreshAmount /= ent.Comp.RefreshModifier;
-        DirtyField(args.Target, blood, nameof(BloodstreamComponent.BloodRefreshAmount));
+        _bloodstream.SetGeneticBloodRefreshAmount(
+            (args.Target, blood),
+            blood.BloodRefreshAmount / ent.Comp.RefreshModifier);
     }
 
     private void OnBleedModifier(Entity<BleedingMutationComponent> ent, ref BleedModifierEvent args)
