@@ -31,8 +31,8 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Build server
-        run: dotnet build Content.Server/Content.Server.csproj --configuration DebugOpt --no-restore -m:1
+      - name: Build solution
+        run: dotnet build SpaceStation14.slnx --configuration DebugOpt --no-restore -m:1
 
       - name: Smoke start server
         shell: bash
