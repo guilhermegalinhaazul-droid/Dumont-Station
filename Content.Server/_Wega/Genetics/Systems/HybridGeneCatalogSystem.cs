@@ -64,7 +64,8 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
         {
             var traumaId = mutationId.ToString();
             var canonicalKey = GeneCanonicalKeys.Get(traumaId, mutationComponent.CanonicalKey);
-            var discovered = _mutation.GetRoundData(mutationId)?.Discovered == true;
+            var mutationData = _mutation.GetRoundData(mutationId);
+            var discovered = mutationData?.Discovered == true;
             var active = IsTraumaActive(scannedBody, mutationId);
 
             if (byCanonicalKey.TryGetValue(canonicalKey, out var wegaEntry))
@@ -85,7 +86,9 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
             {
                 CanonicalKey = canonicalKey,
                 GeneId = traumaId,
-                GeneName = GetTraumaName(traumaId),
+                GeneName = discovered
+                    ? GetTraumaName(traumaId)
+                    : $"Gene não identificado #{mutationData?.Number ?? 0}",
                 Origin = "Trauma",
                 TraumaMutationId = traumaId,
                 Discovered = discovered,
