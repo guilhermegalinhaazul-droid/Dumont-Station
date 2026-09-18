@@ -6,6 +6,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Popups;
 using Content.Trauma.Shared.Genetics.Mutations;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Trauma.Shared.Genetics.Abilities;
