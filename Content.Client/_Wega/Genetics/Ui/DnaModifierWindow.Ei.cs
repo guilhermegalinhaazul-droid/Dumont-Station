@@ -5,6 +5,7 @@
 using Content.Client.Stylesheets;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._Wega.Genetics.Ui;
