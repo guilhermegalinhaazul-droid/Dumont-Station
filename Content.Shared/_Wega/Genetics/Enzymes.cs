@@ -38,8 +38,8 @@ public sealed class EnzymeInfo
     /// not stored here because it is global genetics knowledge, not organism state.
     /// </summary>
     public bool HasTraumaMutationState { get; set; }
-    public List<string>? TraumaActiveMutations { get; set; }
-    public List<string>? TraumaDormantMutations { get; set; }
+    public List<int>? TraumaActiveMutationNumbers { get; set; }
+    public List<int>? TraumaDormantMutationNumbers { get; set; }
 
     public object Clone()
     {
@@ -53,8 +53,8 @@ public sealed class EnzymeInfo
             Dna = Dna,
             SpeciesId = SpeciesId,
             HasTraumaMutationState = HasTraumaMutationState,
-            TraumaActiveMutations = TraumaActiveMutations?.ToList(),
-            TraumaDormantMutations = TraumaDormantMutations?.ToList()
+            TraumaActiveMutationNumbers = TraumaActiveMutationNumbers?.ToList(),
+            TraumaDormantMutationNumbers = TraumaDormantMutationNumbers?.ToList()
         };
     }
 }
