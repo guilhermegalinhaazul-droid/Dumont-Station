@@ -73,7 +73,8 @@ public sealed partial class DnaModifierSystem
 
             if (!TryResolveMutationIds(profile.TraumaActiveMutations, active)
                 || !TryResolveMutationIds(profile.TraumaDormantMutations, dormant)
-                || !ValidateMutationSet(active))
+                || !ValidateMutationSet(active)
+                || !TryOrderMutationsForLoad(active, out active))
             {
                 return false;
             }
@@ -155,6 +156,47 @@ public sealed partial class DnaModifierSystem
         }
 
         return true;
+    }
+
+    private bool TryOrderMutationsForLoad(
+        List<EntProtoId<MutationComponent>> active,
+        out List<EntProtoId<MutationComponent>> ordered)
+    {
+        ordered = new List<EntProtoId<MutationComponent>>();
+        var activeSet = active.ToHashSet();
+        var visiting = new HashSet<EntProtoId<MutationComponent>>();
+        var visited = new HashSet<EntProtoId<MutationComponent>>();
+
+        foreach (var id in active)
+        {
+            if (!Visit(id))
+                return false;
+        }
+
+        return true;
+
+        bool Visit(EntProtoId<MutationComponent> id)
+        {
+            if (visited.Contains(id))
+                return true;
+
+            if (!visiting.Add(id)
+                || !_eiMutation.AllMutations.TryGetValue(id, out var mutation))
+            {
+                return false;
+            }
+
+            foreach (var required in mutation.Required)
+            {
+                if (!activeSet.Contains(required) || !Visit(required))
+                    return false;
+            }
+
+            visiting.Remove(id);
+            visited.Add(id);
+            ordered.Add(id);
+            return true;
+        }
     }
 
     private bool ValidateMutationSet(List<EntProtoId<MutationComponent>> active)
