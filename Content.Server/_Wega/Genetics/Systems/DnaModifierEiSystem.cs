@@ -77,7 +77,7 @@ public sealed class DnaModifierEiSystem : EntitySystem
             return;
         }
 
-        if (!_dnaModifier.ApplyGeneticProfile((receiver, receiverDna), profile, sessionArgs.SenderSession.AttachedEntity))
+        if (!_dnaModifier.ApplyGeneticProfile((receiver, receiverDna), profile))
             return;
 
         // Preserve the existing Wega direct-subject injection cost.
