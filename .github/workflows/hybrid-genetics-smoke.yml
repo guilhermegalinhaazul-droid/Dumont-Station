@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - hybrid-genetics-final
+  pull_request:
+    branches:
+      - dumont
 
 jobs:
   smoke-server:
