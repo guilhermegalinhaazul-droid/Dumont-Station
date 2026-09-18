@@ -51,8 +51,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
+        Tabs.SetTabTitle(0, "Genes");
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
+        Tabs.SetTabVisible(1, false); // legacy hexadecimal S.E. editor remains internal only
         Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
         Tabs.SetTabTitle(3, "Combinar");
         Tabs.SetTabTitle(4, "EI");
@@ -185,28 +186,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
             InitilizeUniqueIdentifiers(state.Unique);
         }
 
-        // S.E.
-        if (state.Enzymes != null && !_initializedSe)
-        {
-            SePanel.Visible = true;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
-        else if (state.Enzymes == null && _initializedSe)
-        {
-            _initializedSe = false;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-        }
-        else if (state.Enzymes != null && _updateSe)
-        {
-            _updateSe = false;
-            SePanel.Visible = true;
-            _initializedSe = true;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
+        // Legacy S.E. hexadecimal controls are deliberately not built in the final hybrid UI.
+        // DnaModifierSystem continues to use the same hexadecimal representation internally.
+        SePanel.Visible = false;
 
         // Buffer & Disk
         if (!_initializedBuffer)
@@ -285,7 +267,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             {
                 Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
                 MinWidth = 150,
-                StyleClasses = gene.Active ? { StyleNano.StyleClassLabelGreen } : { StyleNano.StyleClassLabelSecondaryColor }
+                StyleClasses = gene.Active ? { StyleNano.StyleClassPowerStateGood } : { StyleNano.StyleClassLabelSecondaryColor }
             };
 
             row.AddChild(name);
@@ -382,7 +364,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
     private void UpdateRadiationBoxVisibility(int tabIndex)
     {
-        RadiationBox.Visible = tabIndex == 0 || tabIndex == 1;
+        // The old radiation/hex editing controls are no longer part of the player-facing
+        // genetics workflow. The underlying Wega mutation chemistry remains untouched.
+        RadiationBox.Visible = false;
     }
 
     private void OnSpinBoxValueChanged(FloatSpinBox.FloatSpinBoxEventArgs args)
