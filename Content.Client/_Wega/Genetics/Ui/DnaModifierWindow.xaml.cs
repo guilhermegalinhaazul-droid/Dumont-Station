@@ -54,8 +54,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
-        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-rejuvenator"));
-        Tabs.SetTabTitle(4, "Combinar");
+        Tabs.SetTabTitle(3, "Combinar");
+        Tabs.SetTabTitle(4, "EI");
+        Tabs.SetTabTitle(5, Loc.GetString("dna-modifier-tab-rejuvenator"));
 
         Tabs.OnTabChanged += OnTabChanged;
 
@@ -99,6 +100,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
         ExportButton1.OnPressed += _ => OnExportOnDiskPressed(1);
         ExportButton2.OnPressed += _ => OnExportOnDiskPressed(2);
         ExportButton3.OnPressed += _ => OnExportOnDiskPressed(3);
+
+        InitializeEiUi();
     }
 
     private DnaModifierBoundUserInterfaceState? _lastUpdate;
@@ -238,6 +241,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             new DnaModifierConsoleClearDiskEvent(_console));
 
         UpdateDiskContainer(state.Enzyme);
+
+        UpdateEiState(state);
 
         // Rejuve
         RejuveContainer.RemoveAllChildren();
