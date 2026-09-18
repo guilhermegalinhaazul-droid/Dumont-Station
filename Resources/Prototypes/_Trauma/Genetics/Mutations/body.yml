@@ -242,6 +242,7 @@
   description: The user's muscles slightly expand. Commonly seen in top-ranking boxers.
   components:
   - type: Mutation
+    canonicalKey: strength
     instability: 5
     difficulty: 16
   - type: StrengthMutation
@@ -267,6 +268,7 @@
   description: The affected person does not conduct electricity.
   components:
   - type: Mutation
+    canonicalKey: insulated
     instability: 25
     difficulty: 16
   - type: ComponentMutation
