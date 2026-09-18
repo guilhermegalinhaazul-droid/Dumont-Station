@@ -649,8 +649,7 @@ namespace Content.Server.Genetics.System
             if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
-            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data)
-                || data.IsFullGeneticProfile)
+            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
                 return;
 
             PlayClickSound((clientEntity, console));
