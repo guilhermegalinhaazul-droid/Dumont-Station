@@ -96,8 +96,8 @@ public sealed partial class DnaModifierWindow
         }
 
         var wegaGenes = profile.Info?.Count ?? 0;
-        var activeTrauma = profile.TraumaActiveMutations?.Count ?? 0;
-        var dormantTrauma = profile.TraumaDormantMutations?.Count ?? 0;
+        var activeTrauma = profile.TraumaActiveMutationNumbers?.Count ?? 0;
+        var dormantTrauma = profile.TraumaDormantMutationNumbers?.Count ?? 0;
 
         root.AddChild(new Label
         {
