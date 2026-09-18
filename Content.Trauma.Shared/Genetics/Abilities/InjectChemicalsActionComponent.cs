@@ -11,7 +11,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// Adds reagents to the user's bloodstream, then after a comedown period adds different reagents.
 /// This must be added to an action entity, with <c>raiseOnAction: true</c>
 /// </summary>
-[RegisterComponent, NetworkedComponent, Access(typeof(InjectChemicalsActionSystem))]
+[RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentPause]
 public sealed partial class InjectChemicalsActionComponent : Component
 {
