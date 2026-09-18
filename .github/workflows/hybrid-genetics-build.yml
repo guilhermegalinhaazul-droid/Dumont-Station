@@ -6,6 +6,10 @@ on:
   push:
     branches:
       - hybrid-genetics-final
+  pull_request:
+    branches:
+      - dumont
+    types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
 
 jobs:
