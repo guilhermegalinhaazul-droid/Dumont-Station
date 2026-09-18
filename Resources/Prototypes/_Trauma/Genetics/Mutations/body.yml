@@ -211,15 +211,12 @@
   parent: BaseLightMutation
   id: MutationGlowy
   name: Glowy
-  description: You permanently emit a light with a random color and intensity.
+  description: You permanently emit a light.
   components:
   - type: Mutation
     instability: 5
     conflicts:
     - MutationAntiGlow
-  - type: RandomPointLight
-    minEnergy: 0.5
-    maxEnergy: 2.0
 
 - type: entity
   parent: BaseLightMutation
