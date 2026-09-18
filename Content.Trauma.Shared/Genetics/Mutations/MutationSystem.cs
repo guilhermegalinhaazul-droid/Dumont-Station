@@ -3,7 +3,7 @@
 using Content.Shared.Actions.Components;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
-using Content.Shared.Damage.Systems;
+using Content.Shared.Damage;
 using Content.Shared.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.GameTicking;
