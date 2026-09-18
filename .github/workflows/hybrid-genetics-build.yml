@@ -34,3 +34,16 @@ jobs:
 
       - name: Build server
         run: dotnet build Content.Server/Content.Server.csproj --configuration DebugOpt --no-restore -m:1
+
+      - name: Smoke start server
+        shell: bash
+        run: |
+          set +e
+          timeout 45s dotnet run --project Content.Server/Content.Server.csproj --configuration DebugOpt --no-build --no-restore > server-smoke.log 2>&1
+          code=$?
+          cat server-smoke.log
+          if [ "$code" -eq 124 ]; then
+            echo "Server stayed alive for the smoke-test window."
+            exit 0
+          fi
+          exit "$code"
