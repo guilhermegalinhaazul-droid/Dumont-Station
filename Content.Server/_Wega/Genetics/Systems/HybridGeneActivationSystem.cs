@@ -72,9 +72,9 @@ public sealed class HybridGeneActivationSystem : EntitySystem
         // Wega is the canonical implementation when an equivalent Wega gene exists.
         if (entry.WegaGeneId is { } wegaId)
         {
-            var ok = _dnaModifier.TrySetStructuralGeneActive(body, wegaId, true);
-            message = ok ? "Gene Wega ativado." : "A assimilação do gene Wega falhou ou o gene não pode ser ativado.";
-            return ok;
+            var wegaChanged = _dnaModifier.TrySetStructuralGeneActive(body, wegaId, true);
+            message = wegaChanged ? "Gene Wega ativado." : "A assimilação do gene Wega falhou ou o gene não pode ser ativado.";
+            return wegaChanged;
         }
 
         if (entry.TraumaMutationId is not { } traumaId
@@ -85,20 +85,21 @@ public sealed class HybridGeneActivationSystem : EntitySystem
             return false;
         }
 
-        if (mutation.Locked && !mutatable.Comp.Dormant.Contains(id))
+        var dormant = !_mutation.IsForeign(mutatable.Comp, id);
+        if (mutation.Locked && !dormant)
         {
             message = "Esta mutação é bloqueada e não pode ser ativada diretamente.";
             return false;
         }
 
-        var ok = mutatable.Comp.Dormant.Contains(id)
+        var mutationChanged = dormant
             ? _mutation.ActivateMutation(mutatable.AsNullable(), id, user: user, predicted: false)
             : _mutation.AddMutation(mutatable.AsNullable(), id, user: user, predicted: false);
 
-        message = ok
+        message = mutationChanged
             ? "Mutação ativada."
             : "A mutação não pôde ser ativada; verifique requisitos, conflitos e instabilidade.";
-        return ok;
+        return mutationChanged;
     }
 
     private bool Deactivate(EntityUid body, EntityUid user, GeneCatalogEntry entry, out string message)
