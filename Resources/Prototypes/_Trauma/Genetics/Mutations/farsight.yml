@@ -7,6 +7,7 @@
   description: The subject's eyes are able to see further than normal.
   components:
   - type: Mutation
+    canonicalKey: farsight
     instability: 10
     difficulty: 16
     rarity: Rare
