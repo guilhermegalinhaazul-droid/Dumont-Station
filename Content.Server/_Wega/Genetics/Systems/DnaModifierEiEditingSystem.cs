@@ -428,65 +428,76 @@ public sealed class DnaModifierEiEditingSystem : EntitySystem
         switch (region)
         {
             case EiAppearanceRegion.HairColor:
-                return SetTriple(value, ref data.HairColorR, ref data.HairColorG, ref data.HairColorB);
+                return SetTriple(value, data.HairColorR.Length, data.HairColorG.Length, data.HairColorB.Length,
+                    (a, b, c) => { data.HairColorR = a; data.HairColorG = b; data.HairColorB = c; });
             case EiAppearanceRegion.SecondaryHairColor:
-                return SetTriple(value, ref data.SecondaryHairColorR, ref data.SecondaryHairColorG, ref data.SecondaryHairColorB);
+                return SetTriple(value, data.SecondaryHairColorR.Length, data.SecondaryHairColorG.Length, data.SecondaryHairColorB.Length,
+                    (a, b, c) => { data.SecondaryHairColorR = a; data.SecondaryHairColorG = b; data.SecondaryHairColorB = c; });
             case EiAppearanceRegion.BeardColor:
-                return SetTriple(value, ref data.BeardColorR, ref data.BeardColorG, ref data.BeardColorB);
+                return SetTriple(value, data.BeardColorR.Length, data.BeardColorG.Length, data.BeardColorB.Length,
+                    (a, b, c) => { data.BeardColorR = a; data.BeardColorG = b; data.BeardColorB = c; });
             case EiAppearanceRegion.SkinTone:
-                return SetSingle(value, ref data.SkinTone);
+                return SetSingle(value, data.SkinTone.Length, v => data.SkinTone = v);
             case EiAppearanceRegion.FurColor:
-                return SetTriple(value, ref data.FurColorR, ref data.FurColorG, ref data.FurColorB);
+                return SetTriple(value, data.FurColorR.Length, data.FurColorG.Length, data.FurColorB.Length,
+                    (a, b, c) => { data.FurColorR = a; data.FurColorG = b; data.FurColorB = c; });
             case EiAppearanceRegion.HeadAccessoryColor:
-                return SetTriple(value, ref data.HeadAccessoryColorR, ref data.HeadAccessoryColorG, ref data.HeadAccessoryColorB);
+                return SetTriple(value, data.HeadAccessoryColorR.Length, data.HeadAccessoryColorG.Length, data.HeadAccessoryColorB.Length,
+                    (a, b, c) => { data.HeadAccessoryColorR = a; data.HeadAccessoryColorG = b; data.HeadAccessoryColorB = c; });
             case EiAppearanceRegion.HeadMarkingColor:
-                return SetTriple(value, ref data.HeadMarkingColorR, ref data.HeadMarkingColorG, ref data.HeadMarkingColorB);
+                return SetTriple(value, data.HeadMarkingColorR.Length, data.HeadMarkingColorG.Length, data.HeadMarkingColorB.Length,
+                    (a, b, c) => { data.HeadMarkingColorR = a; data.HeadMarkingColorG = b; data.HeadMarkingColorB = c; });
             case EiAppearanceRegion.BodyMarkingColor:
-                return SetTriple(value, ref data.BodyMarkingColorR, ref data.BodyMarkingColorG, ref data.BodyMarkingColorB);
+                return SetTriple(value, data.BodyMarkingColorR.Length, data.BodyMarkingColorG.Length, data.BodyMarkingColorB.Length,
+                    (a, b, c) => { data.BodyMarkingColorR = a; data.BodyMarkingColorG = b; data.BodyMarkingColorB = c; });
             case EiAppearanceRegion.TailMarkingColor:
-                return SetTriple(value, ref data.TailMarkingColorR, ref data.TailMarkingColorG, ref data.TailMarkingColorB);
+                return SetTriple(value, data.TailMarkingColorR.Length, data.TailMarkingColorG.Length, data.TailMarkingColorB.Length,
+                    (a, b, c) => { data.TailMarkingColorR = a; data.TailMarkingColorG = b; data.TailMarkingColorB = c; });
             case EiAppearanceRegion.EyeColor:
-                return SetTriple(value, ref data.EyeColorR, ref data.EyeColorG, ref data.EyeColorB);
+                return SetTriple(value, data.EyeColorR.Length, data.EyeColorG.Length, data.EyeColorB.Length,
+                    (a, b, c) => { data.EyeColorR = a; data.EyeColorG = b; data.EyeColorB = c; });
             case EiAppearanceRegion.Gender:
-                return SetSingle(value, ref data.Gender);
+                return SetSingle(value, data.Gender.Length, v => data.Gender = v);
             case EiAppearanceRegion.BeardStyle:
-                return SetSingle(value, ref data.BeardStyle);
+                return SetSingle(value, data.BeardStyle.Length, v => data.BeardStyle = v);
             case EiAppearanceRegion.HairStyle:
-                return SetSingle(value, ref data.HairStyle);
+                return SetSingle(value, data.HairStyle.Length, v => data.HairStyle = v);
             case EiAppearanceRegion.HeadAccessoryStyle:
-                return SetSingle(value, ref data.HeadAccessoryStyle);
+                return SetSingle(value, data.HeadAccessoryStyle.Length, v => data.HeadAccessoryStyle = v);
             case EiAppearanceRegion.HeadMarkingStyle:
-                return SetSingle(value, ref data.HeadMarkingStyle);
+                return SetSingle(value, data.HeadMarkingStyle.Length, v => data.HeadMarkingStyle = v);
             case EiAppearanceRegion.BodyMarkingStyle:
-                return SetSingle(value, ref data.BodyMarkingStyle);
+                return SetSingle(value, data.BodyMarkingStyle.Length, v => data.BodyMarkingStyle = v);
             case EiAppearanceRegion.TailMarkingStyle:
-                return SetSingle(value, ref data.TailMarkingStyle);
+                return SetSingle(value, data.TailMarkingStyle.Length, v => data.TailMarkingStyle = v);
             default:
                 return false;
         }
     }
 
-    private static bool SetSingle(string[] source, ref string[] target)
+    private static bool SetSingle(string[] source, int length, Action<string[]> assign)
     {
-        if (source.Length != target.Length)
+        if (source.Length != length)
             return false;
 
-        target = source.ToArray();
+        assign(source.ToArray());
         return true;
     }
 
-    private static bool SetTriple(string[] source, ref string[] first, ref string[] second, ref string[] third)
+    private static bool SetTriple(
+        string[] source,
+        int firstLength,
+        int secondLength,
+        int thirdLength,
+        Action<string[], string[], string[]> assign)
     {
-        var total = first.Length + second.Length + third.Length;
-        if (source.Length != total)
+        if (source.Length != firstLength + secondLength + thirdLength)
             return false;
 
-        var offset = 0;
-        first = source.Skip(offset).Take(first.Length).ToArray();
-        offset += first.Length;
-        second = source.Skip(offset).Take(second.Length).ToArray();
-        offset += second.Length;
-        third = source.Skip(offset).Take(third.Length).ToArray();
+        var first = source.Take(firstLength).ToArray();
+        var second = source.Skip(firstLength).Take(secondLength).ToArray();
+        var third = source.Skip(firstLength + secondLength).Take(thirdLength).ToArray();
+        assign(first, second, third);
         return true;
     }
 
