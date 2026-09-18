@@ -14,9 +14,6 @@
   - type: Mutation
     instability: 0
 
-# Trigger-only imported Trauma mutations are kept as catalog entries here.
-# Their trigger/effect components are disabled because this fork does not include
-# the corresponding Trauma trigger component set.
 - type: entity
   abstract: true
   parent: BaseMutation
@@ -30,3 +27,21 @@
   - type: Action
     itemIconStyle: BigAction
     raiseOnAction: true
+
+- type: entity
+  abstract: true
+  parent: BaseAction
+  id: BaseConjureAction
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+
+- type: entity
+  abstract: true
+  parent: BaseMutation
+  id: BaseLightMutation
+  components:
+  - type: PointLight
+    radius: 3
+    softness: 5
+    enabled: true
