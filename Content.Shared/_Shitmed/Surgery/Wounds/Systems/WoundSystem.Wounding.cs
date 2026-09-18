@@ -1205,7 +1205,7 @@ public sealed partial class WoundSystem
         }
     }
 
-    protected void InternalAddWoundableToParent(
+    private void InternalAddWoundableToParent(
         EntityUid parentEntity,
         EntityUid childEntity,
         WoundableComponent parentWoundable,
@@ -1240,7 +1240,7 @@ public sealed partial class WoundSystem
         Dirty(childEntity, childWoundable);
     }
 
-    protected void InternalRemoveWoundableFromParent(
+    private void InternalRemoveWoundableFromParent(
         EntityUid parentEntity,
         EntityUid childEntity,
         WoundableComponent parentWoundable,
