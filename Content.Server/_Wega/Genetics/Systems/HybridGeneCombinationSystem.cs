@@ -6,6 +6,7 @@ using System.Linq;
 using Content.Server.Medical.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Administration.Logs;
+using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
