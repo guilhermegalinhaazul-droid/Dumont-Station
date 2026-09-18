@@ -38,6 +38,7 @@ public sealed partial class DnaModifierSystem
 
         if (_eiMutation.IsMutatable(source.Owner))
         {
+            profile.HasTraumaMutationState = true;
             var mutationData = _eiMutation.GetMutatableData(source.Owner);
             profile.TraumaDormantMutations = mutationData.Dormant
                 .Select(id => id.ToString())
@@ -59,8 +60,7 @@ public sealed partial class DnaModifierSystem
         if (!profile.IsFullGeneticProfile)
             return false;
 
-        var hasTraumaState = profile.TraumaActiveMutations is { Count: > 0 }
-            || profile.TraumaDormantMutations is { Count: > 0 };
+        var hasTraumaState = profile.HasTraumaMutationState;
 
         List<EntProtoId<MutationComponent>> active = new();
         List<EntProtoId<MutationComponent>> dormant = new();
@@ -84,7 +84,19 @@ public sealed partial class DnaModifierSystem
             target.Comp.UniqueIdentifiers = CloneUniqueIdentifiers(profile.Identifier);
 
         if (profile.Info != null)
-            target.Comp.EnzymesPrototypes = CloneEnzymesPrototypes(profile.Info);
+        {
+            var receiverFormBlock = target.Comp.EnzymesPrototypes?
+                .FirstOrDefault(enzyme => enzyme.Order == 55);
+            var appliedInfo = CloneEnzymesPrototypes(profile.Info) ?? new List<EnzymesPrototypeInfo>();
+
+            // Order 55 controls Wega form changes and can replace/delete the receiver entity.
+            // EI transports portable genetic traits; it does not silently transform species.
+            appliedInfo.RemoveAll(enzyme => enzyme.Order == 55);
+            if (receiverFormBlock != null)
+                appliedInfo.Add((EnzymesPrototypeInfo)receiverFormBlock.Clone());
+
+            target.Comp.EnzymesPrototypes = appliedInfo;
+        }
 
         Dirty(target.Owner, target.Comp);
         ChangeDna(target);
