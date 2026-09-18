@@ -62,6 +62,13 @@ public sealed partial class DnaModifierWindow
         filter.SelectId(0);
         root.AddChild(filter);
 
+        var search = new LineEdit
+        {
+            PlaceHolder = "Pesquisar gene...",
+            HorizontalExpand = true,
+        };
+        root.AddChild(search);
+
         var geneList = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -69,12 +76,15 @@ public sealed partial class DnaModifierWindow
         };
         root.AddChild(geneList);
 
-        void RenderGenes(int filterId)
+        var currentFilter = 0;
+        var searchText = string.Empty;
+
+        void RenderGenes()
         {
             geneList.RemoveAllChildren();
             foreach (var gene in state.Catalog)
             {
-                var visible = filterId switch
+                var matchesFilter = currentFilter switch
                 {
                     1 => gene.Discovered,
                     2 => gene.Active,
@@ -82,7 +92,12 @@ public sealed partial class DnaModifierWindow
                     _ => true,
                 };
 
-                if (visible)
+                var matchesSearch = string.IsNullOrWhiteSpace(searchText)
+                    || gene.GeneName.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || gene.GeneId.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                    || gene.Origin.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+
+                if (matchesFilter && matchesSearch)
                     geneList.AddChild(CreateHybridGeneRow(gene));
             }
         }
@@ -90,9 +105,15 @@ public sealed partial class DnaModifierWindow
         filter.OnItemSelected += args =>
         {
             filter.SelectId(args.Id);
-            RenderGenes(args.Id);
+            currentFilter = args.Id;
+            RenderGenes();
         };
-        RenderGenes(0);
+        search.OnTextChanged += args =>
+        {
+            searchText = args.Text.Trim();
+            RenderGenes();
+        };
+        RenderGenes();
 
         if (state.MutationId != null
             && state.Bases != null
