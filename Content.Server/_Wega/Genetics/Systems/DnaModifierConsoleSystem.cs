@@ -654,7 +654,18 @@ namespace Content.Server.Genetics.System
                 return;
 
             PlayClickSound((clientEntity, console));
-            _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), data);
+
+            // A full EI must use the same authoritative profile pipeline as the EI tab.
+            // Legacy partial samples keep their original ChangeDna behavior.
+            if (data.IsFullGeneticProfile)
+            {
+                if (!_dnaModifier.ApplyGeneticProfile((scanBody.Value, dnaModifier), data))
+                    return;
+            }
+            else
+            {
+                _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), data);
+            }
 
             console.LastSubjectInjectTime = _timing.CurTime;
 
