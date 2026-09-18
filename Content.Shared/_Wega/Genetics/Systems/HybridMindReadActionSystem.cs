@@ -7,6 +7,7 @@ using Content.Shared.Mind;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Trauma.Shared.Genetics.Abilities;
+using Robust.Shared.Random;
 
 namespace Content.Trauma.Shared.Genetics.Abilities;
 
@@ -21,6 +22,7 @@ public sealed partial class MindReadActionSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly MobStateSystem _mob = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
     public override void Initialize()
     {
@@ -68,7 +70,7 @@ public sealed partial class MindReadActionSystem : EntitySystem
             user,
             user);
 
-        if (Random.Prob(ent.Comp.AlertProb))
+        if (_random.Prob(ent.Comp.AlertProb))
             _popup.PopupEntity(Loc.GetString("MutationMindReader-popup-alert"), target, target, PopupType.MediumCaution);
     }
 }
