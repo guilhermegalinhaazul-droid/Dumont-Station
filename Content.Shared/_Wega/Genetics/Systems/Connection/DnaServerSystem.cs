@@ -67,15 +67,16 @@ public sealed class DnaServerSystem : EntitySystem
             _ => null
         };
 
-        data.SampleName = sampleName;
+        var stored = (EnzymeInfo)data.Clone();
+        stored.SampleName = sampleName;
 
         if (buffer == null)
         {
             switch (bufferIndex)
             {
-                case 1: server.Comp.Buffer1 = data; break;
-                case 2: server.Comp.Buffer2 = data; break;
-                case 3: server.Comp.Buffer3 = data; break;
+                case 1: server.Comp.Buffer1 = stored; break;
+                case 2: server.Comp.Buffer2 = stored; break;
+                case 3: server.Comp.Buffer3 = stored; break;
                 default: return false;
             }
         }
@@ -99,11 +100,12 @@ public sealed class DnaServerSystem : EntitySystem
 
         if (buffer == null)
         {
+            var stored = (EnzymeInfo)data.Clone();
             switch (bufferIndex)
             {
-                case 1: server.Comp.Buffer1 = data; break;
-                case 2: server.Comp.Buffer2 = data; break;
-                case 3: server.Comp.Buffer3 = data; break;
+                case 1: server.Comp.Buffer1 = stored; break;
+                case 2: server.Comp.Buffer2 = stored; break;
+                case 3: server.Comp.Buffer3 = stored; break;
                 default: return false;
             }
         }
