@@ -22,10 +22,12 @@ public sealed partial class DnaModifierSystem
     /// </summary>
     public EnzymeInfo CaptureGeneticProfile(Entity<DnaModifierComponent> source)
     {
+        var identityName = Name(source.Owner);
         var profile = new EnzymeInfo
         {
             IsFullGeneticProfile = true,
-            GeneticIdentityName = Name(source.Owner),
+            SampleName = identityName,
+            GeneticIdentityName = identityName,
             Identifier = CloneUniqueIdentifiers(source.Comp.UniqueIdentifiers),
             Info = CloneEnzymesPrototypes(source.Comp.EnzymesPrototypes),
         };
