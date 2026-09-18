@@ -199,6 +199,25 @@
                         </BoxContainer>
                     </BoxContainer>
 
+                    <!-- Вкладка EI -->
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
+                        <Label Text="EI" StyleClasses="LabelBig"/>
+                        <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
+                        <BoxContainer Orientation="Vertical" Margin="4" SeparationOverride="6">
+                            <Label Text="Perfil genético atual:"/>
+                            <Label Name="EiCurrentProfileLabel" StyleClasses="LabelSecondaryColor"/>
+                            <Label Text="Copiar EI para buffer:"/>
+                            <BoxContainer Orientation="Horizontal">
+                                <Button Name="EiCopyBuffer1Button" Text="Buffer 1"/>
+                                <Button Name="EiCopyBuffer2Button" Text="Buffer 2"/>
+                                <Button Name="EiCopyBuffer3Button" Text="Buffer 3"/>
+                            </BoxContainer>
+                            <customControls:HSeparator StyleClasses="LowDivider" Margin="0 4 0 4"/>
+                            <Label Text="EI armazenados:"/>
+                            <BoxContainer Name="EiProfilesContainer" Orientation="Vertical" HorizontalExpand="True"/>
+                        </BoxContainer>
+                    </BoxContainer>
+
                     <!-- Вкладка Rejuvenators -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <BoxContainer Orientation="Horizontal" Margin="2">
