@@ -49,7 +49,7 @@ public sealed partial class DnaModifierWindow
         {
             var feedback = new Label { Text = _hybridGeneFeedback };
             feedback.StyleClasses.Add(_hybridGeneFeedbackSuccess
-                ? StyleNano.StyleClassLabelGreen
+                ? StyleNano.StyleClassPowerStateGood
                 : StyleNano.StyleClassLabelSecondaryColor);
             root.AddChild(feedback);
         }
@@ -129,7 +129,7 @@ public sealed partial class DnaModifierWindow
             MinWidth = 170,
         };
         status.StyleClasses.Add(gene.Active
-            ? StyleNano.StyleClassLabelGreen
+            ? StyleNano.StyleClassPowerStateGood
             : StyleNano.StyleClassLabelSecondaryColor);
         row.AddChild(status);
 
