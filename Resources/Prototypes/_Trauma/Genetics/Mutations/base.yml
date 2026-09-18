@@ -14,17 +14,13 @@
   - type: Mutation
     instability: 0
 
-# prevents a mutation from triggering if the mutated mob is dead
+# Trigger-only imported Trauma mutations are kept as catalog entries here.
+# Their trigger/effect components are disabled because this fork does not include
+# the corresponding Trauma trigger component set.
 - type: entity
   abstract: true
   parent: BaseMutation
   id: BaseTriggerMutation
-  components:
-  - type: GenericTriggerCondition
-    condition: !type:MutatedNestedCondition
-      condition: !type:MobStateCondition
-        inverted: true
-        mobstate: Dead
 
 - type: entity
   abstract: true
@@ -32,5 +28,5 @@
   id: BaseMutationAction
   components:
   - type: Action
-    itemIconStyle: BigAction # mutations don't have sprites, only show the action icon
-    raiseOnAction: true # don't want to shit up the body entity with a bunch of action related components
+    itemIconStyle: BigAction
+    raiseOnAction: true
