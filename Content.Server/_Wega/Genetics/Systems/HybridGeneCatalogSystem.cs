@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Linq;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
@@ -112,10 +113,11 @@ public sealed class HybridGeneCatalogSystem : EntitySystem
     {
         // Wega's prototype currently stores a localized effect message rather than a dedicated
         // display-name key. Prefer a sibling *-name string when one exists, then fall back to ID.
-        if (!string.IsNullOrWhiteSpace(prototype.Message)
-            && prototype.Message.EndsWith("-message", StringComparison.Ordinal))
+        var message = prototype.Message;
+        if (!string.IsNullOrWhiteSpace(message)
+            && message.EndsWith("-message", StringComparison.Ordinal))
         {
-            var nameKey = prototype.Message[..^"-message".Length] + "-name";
+            var nameKey = message[..^"-message".Length] + "-name";
             if (Loc.TryGetString(nameKey, out var name))
                 return name;
         }
