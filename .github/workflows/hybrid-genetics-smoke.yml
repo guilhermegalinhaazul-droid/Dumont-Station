@@ -41,6 +41,7 @@ jobs:
         shell: bash
         run: |
           set +e
+          echo "Starting full hybrid genetics server smoke test after full solution build."
           timeout 45s dotnet run --project Content.Server/Content.Server.csproj --configuration DebugOpt --no-build --no-restore > server-smoke.log 2>&1
           code=$?
           cat server-smoke.log
