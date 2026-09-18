@@ -16,6 +16,12 @@ namespace Content.Trauma.Shared.Genetics.Mutations;
 public sealed partial class MutationComponent : Component
 {
     /// <summary>
+    /// Optional shared key used to deduplicate an equivalent Wega structural gene.
+    /// </summary>
+    [DataField("canonicalKey")]
+    public string? CanonicalKey;
+
+    /// <summary>
     /// Instability added to the mutated entity by this mutation.
     /// </summary>
     [DataField(required: true)]
