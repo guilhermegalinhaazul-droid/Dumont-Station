@@ -20,7 +20,6 @@ namespace Content.Trauma.Shared.Genetics.Mutations;
 
 public sealed partial class MutationSystem : EntitySystem
 {
-    [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private MobStateSystem _mob = default!;
@@ -305,7 +304,9 @@ public sealed partial class MutationSystem : EntitySystem
     /// </summary>
     public EntProtoId<MutationComponent> GetID(EntityUid mutation)
     {
-        DebugTools.Assert(_query.HasComp(mutation), $"GetID called with non-mutation entity {ToPrettyString(mutation)}");
+        if (!_query.HasComp(mutation))
+            throw new InvalidOperationException($"GetID called with non-mutation entity {ToPrettyString(mutation)}");
+
         if (Prototype(mutation)?.ID is not {} id)
             throw new InvalidOperationException($"GetID called with non-prototyped entity {ToPrettyString(mutation)}");
         // it's assumed that if the entity has the component the prototype also has it.
@@ -652,8 +653,10 @@ public sealed partial class MutationSystem : EntitySystem
     /// </summary>
     public int? GetGeneticDamage(EntityUid mob)
     {
-        var damage = _damageable.GetAllDamage(mob);
-        return damage.DamageDict.TryGetValue(Cellular, out var value)
+        if (!TryComp<DamageableComponent>(mob, out var damageable))
+            return null;
+
+        return damageable.Damage.DamageDict.TryGetValue(Cellular, out var value)
             ? value.Int()
             : 0;
     }
