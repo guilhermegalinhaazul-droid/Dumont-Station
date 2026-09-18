@@ -20,6 +20,7 @@ public sealed class HybridGeneSequencingClientSystem : EntitySystem
         SubscribeNetworkEvent<DnaModifierHybridSequencingStateEvent>(OnState);
         SubscribeNetworkEvent<DnaModifierHybridCombinationStateEvent>(OnCombinationState);
         SubscribeNetworkEvent<DnaModifierHybridActivationResultEvent>(OnActivationResult);
+        SubscribeNetworkEvent<DnaModifierEiEditingStateEvent>(OnEiEditingState);
     }
 
     public void BindWindow(DnaModifierWindow window, NetEntity console)
@@ -50,6 +51,14 @@ public sealed class HybridGeneSequencingClientSystem : EntitySystem
             return;
 
         window.ApplyHybridSequencingState(args);
+    }
+
+    private void OnEiEditingState(DnaModifierEiEditingStateEvent args)
+    {
+        if (!_windows.TryGetValue(args.Console, out var window) || window.Disposed)
+            return;
+
+        window.ApplyEiEditingState(args);
     }
 
     private void OnActivationResult(DnaModifierHybridActivationResultEvent args)
