@@ -54,6 +54,18 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     <Folder Include="_Starlight\Spells\" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Hybrid Genetics: compile only the imported Trauma genetics engine into Content.Shared.
+         This avoids a circular/full project reference to Content.Trauma.Shared while keeping
+         the existing MutationSystem/prototype namespaces as the single implementation. -->
+    <Compile Include="..\Content.Trauma.Shared\Genetics\Mutations\*.cs"
+             Exclude="..\Content.Trauma.Shared\Genetics\Mutations\BodySystem.cs;..\Content.Trauma.Shared\Genetics\Mutations\CommonMutationSystem.cs;..\Content.Trauma.Shared\Genetics\Mutations\MutationRelaySystem.cs"
+             Link="_Wega\Genetics\Trauma\Mutations\%(Filename)%(Extension)" />
+    <Compile Include="..\Content.Trauma.Shared\Genetics\Abilities\*.cs"
+             Exclude="..\Content.Trauma.Shared\Genetics\Abilities\MindReadActionSystem.cs"
+             Link="_Wega\Genetics\Trauma\Abilities\%(Filename)%(Extension)" />
+    <Compile Include="..\Content.Trauma.Shared\Actions\ActionProjectileComponent.cs"
+             Link="_Wega\Genetics\Trauma\Actions\ActionProjectileComponent.cs" />
+
     <Compile Update="_Starlight\OnHit\CuffsOnHitComponent.cs" />
     <Compile Update="_Starlight\OnHit\InjectOnHitComponent.cs" />
     <Compile Update="_Starlight\Weapon\Components\GunComponent.cs">
