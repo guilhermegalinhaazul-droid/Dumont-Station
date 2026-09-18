@@ -74,10 +74,12 @@ public sealed partial class DnaModifierSystem
             if (!TryResolveMutationIds(profile.TraumaActiveMutations, active)
                 || !TryResolveMutationIds(profile.TraumaDormantMutations, dormant)
                 || !ValidateMutationSet(active)
-                || !TryOrderMutationsForLoad(active, out active))
+                || !TryOrderMutationsForLoad(active, out var orderedActive))
             {
                 return false;
             }
+
+            active = orderedActive;
         }
 
         // Deep-copy Wega state so later edits to the receiver cannot mutate the stored EI.
