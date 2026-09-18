@@ -9,7 +9,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// Mutation component for chemspike.
 /// Stores the transfer chemicals action.
 /// </summary>
-[RegisterComponent, NetworkedComponent, Access(typeof(ChemSpikeMutationSystem))]
+[RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentState]
 public sealed partial class ChemSpikeMutationComponent : Component
 {
