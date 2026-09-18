@@ -51,11 +51,13 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
+        Tabs.SetTabTitle(0, "Genes");
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
-        Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
-        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-rejuvenator"));
-        Tabs.SetTabTitle(4, "Combinar");
+        Tabs.SetTabVisible(1, false); // legacy hexadecimal S.E. editor remains internal only
+        Tabs.SetTabTitle(2, "Armazenamento");
+        Tabs.SetTabTitle(3, "Combinar");
+        Tabs.SetTabTitle(4, "EI");
+        Tabs.SetTabTitle(5, Loc.GetString("dna-modifier-tab-rejuvenator"));
 
         Tabs.OnTabChanged += OnTabChanged;
 
@@ -99,6 +101,19 @@ public sealed partial class DnaModifierWindow : FancyWindow
         ExportButton1.OnPressed += _ => OnExportOnDiskPressed(1);
         ExportButton2.OnPressed += _ => OnExportOnDiskPressed(2);
         ExportButton3.OnPressed += _ => OnExportOnDiskPressed(3);
+
+        // Bind persistent controls once. UpdateState runs periodically and must not accumulate handlers.
+        EjectButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleEjectEvent(_console));
+        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
+        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
+        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
+        ClearButtonDisk.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleClearDiskEvent(_console));
+        EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleEjectRejuveEvent(_console));
+
+        InitializeEiUi();
     }
 
     private DnaModifierBoundUserInterfaceState? _lastUpdate;
@@ -111,9 +126,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         UpdateCooldowns();
 
         // Upper state
-        EjectButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectEvent(_console));
-
         if (!string.IsNullOrWhiteSpace(state.ScannerBodyInfo))
         {
             NameLabel.Text = state.ScannerBodyInfo;
@@ -150,60 +162,15 @@ public sealed partial class DnaModifierWindow : FancyWindow
             ? _gameTiming.CurTime + state.SubjectInjectCooldownRemaining
             : null;
 
-        // U.I. gene catalog unified gate: show the integrated gene table inside the Wega UI panel
-        if (state.GeneCatalog != null)
-        {
-            UiPanel.Visible = true;
+        // The rich hybrid catalog/sequencer is rendered only from the authoritative
+        // HybridGeneSequencingSystem state. Do not overwrite it with the legacy BUI projection.
+        UiPanel.Visible = state.GeneCatalog != null;
+        if (state.GeneCatalog == null)
             UiContainer.RemoveAllChildren();
-            CreateGeneCatalogUi(state.GeneCatalog);
-            _initializedUi = true;
-            _activeButtonUi = null;
-        }
-        else if (state.Unique != null && !_initializedUi)
-        {
-            UiPanel.Visible = true;
-            UiContainer.RemoveAllChildren();
-            InitilizeUniqueIdentifiers(state.Unique);
-        }
-        else if (state.Unique == null && _initializedUi)
-        {
-            _updateUi = false;
-            _initializedUi = false;
-            _activeButtonUi = null;
-            UiContainer.RemoveAllChildren();
-        }
-        else if (state.Unique != null && _updateUi)
-        {
-            _updateUi = false;
-            UiPanel.Visible = true;
-            _initializedUi = true;
-            _activeButtonUi = null;
-            UiContainer.RemoveAllChildren();
-            InitilizeUniqueIdentifiers(state.Unique);
-        }
 
-        // S.E.
-        if (state.Enzymes != null && !_initializedSe)
-        {
-            SePanel.Visible = true;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
-        else if (state.Enzymes == null && _initializedSe)
-        {
-            _initializedSe = false;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-        }
-        else if (state.Enzymes != null && _updateSe)
-        {
-            _updateSe = false;
-            SePanel.Visible = true;
-            _initializedSe = true;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
+        // Legacy S.E. hexadecimal controls are deliberately not built in the final hybrid UI.
+        // DnaModifierSystem continues to use the same hexadecimal representation internally.
+        SePanel.Visible = false;
 
         // Buffer & Disk
         if (!_initializedBuffer)
@@ -229,66 +196,16 @@ public sealed partial class DnaModifierWindow : FancyWindow
         FromDisk2.Disabled = state.HasDisk ? false : true;
         FromDisk3.Disabled = state.HasDisk ? false : true;
 
-        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
-        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
-        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
-
-        ClearButtonDisk.Disabled = state.HasDisk ? false : true;
-        ClearButtonDisk.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleClearDiskEvent(_console));
+        ClearButtonDisk.Disabled = !state.HasDisk;
 
         UpdateDiskContainer(state.Enzyme);
+
+        UpdateEiState(state);
 
         // Rejuve
         RejuveContainer.RemoveAllChildren();
         CreateBeakerUI(RejuveContainer, state.InputContainerInfo);
-        EjectRejuveButton.Disabled = state.ScannerHasBeaker ? false : true;
-        EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectRejuveEvent(_console));
-    }
-
-    private void CreateGeneCatalogUi(List<GeneCatalogEntry> genes)
-    {
-        var root = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(0, 0, 0, 10)
-        };
-
-        var title = new Label
-        {
-            Text = "GENES",
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor }
-        };
-        root.AddChild(title);
-
-        foreach (var gene in genes)
-        {
-            var row = new BoxContainer
-            {
-                Orientation = BoxContainer.LayoutOrientation.Horizontal,
-                Margin = new Thickness(0, 2)
-            };
-
-            var name = new Label
-            {
-                Text = gene.GeneName,
-                MinWidth = 180
-            };
-
-            var status = new Label
-            {
-                Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
-                MinWidth = 150,
-                StyleClasses = gene.Active ? { StyleNano.StyleClassLabelGreen } : { StyleNano.StyleClassLabelSecondaryColor }
-            };
-
-            row.AddChild(name);
-            row.AddChild(status);
-            root.AddChild(row);
-        }
-
-        UiContainer.AddChild(root);
+        EjectRejuveButton.Disabled = !state.ScannerHasBeaker;
     }
 
     private void UpdateCooldowns()
@@ -377,7 +294,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
     private void UpdateRadiationBoxVisibility(int tabIndex)
     {
-        RadiationBox.Visible = tabIndex == 0 || tabIndex == 1;
+        // The old radiation/hex editing controls are no longer part of the player-facing
+        // genetics workflow. The underlying Wega mutation chemistry remains untouched.
+        RadiationBox.Visible = false;
     }
 
     private void OnSpinBoxValueChanged(FloatSpinBox.FloatSpinBoxEventArgs args)
@@ -472,7 +391,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         {
             Name = "InjectorButton",
             Text = Loc.GetString("dna-modifier-button-injector"),
-            Disabled = _injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown
+            Disabled = data.IsFullGeneticProfile || (_injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown)
         };
         injectorButton.OnPressed += _ => OnInjectorPressed(bufferIndex, injectorButton);
         buttonsContainer.AddChild(injectorButton);

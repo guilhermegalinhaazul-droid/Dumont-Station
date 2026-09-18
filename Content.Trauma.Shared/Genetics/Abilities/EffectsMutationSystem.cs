@@ -6,11 +6,12 @@ using Content.Trauma.Shared.Genetics.Mutations;
 namespace Content.Trauma.Shared.Genetics.Abilities;
 
 /// <summary>
-/// Handles running effects for <see cref="EffectsMutationComponent"/>.
+/// Handles running entity effects when a mutation is added or removed.
+/// Adapted to Dumont's current SharedEntityEffectSystem API.
 /// </summary>
 public sealed partial class EffectsMutationSystem : EntitySystem
 {
-    [Dependency] private SharedEntityEffectsSystem _effects = default!;
+    [Dependency] private readonly SharedEntityEffectSystem _effects = default!;
 
     [SubscribeLocalEvent]
     private void OnAdded(Entity<EffectsMutationComponent> ent, ref MutationAddedEvent args)
@@ -18,7 +19,7 @@ public sealed partial class EffectsMutationSystem : EntitySystem
         if (args.Automatic && ent.Comp.IgnoreAutomatic)
             return;
 
-        _effects.ApplyEffects(args.Target, ent.Comp.Added, user: args.User, predicted: args.Predicted);
+        Apply(args.Target, ent.Comp.Added);
     }
 
     [SubscribeLocalEvent]
@@ -27,6 +28,16 @@ public sealed partial class EffectsMutationSystem : EntitySystem
         if (args.Automatic && ent.Comp.IgnoreAutomatic)
             return;
 
-        _effects.ApplyEffects(args.Target, ent.Comp.Removed, user: args.User, predicted: args.Predicted);
+        Apply(args.Target, ent.Comp.Removed);
+    }
+
+    private void Apply(EntityUid target, EntityEffect[] effects)
+    {
+        var effectArgs = new EntityEffectBaseArgs(target, EntityManager);
+        foreach (var effect in effects)
+        {
+            if (effect.ShouldApply(effectArgs))
+                _effects.Effect(effect, effectArgs);
+        }
     }
 }

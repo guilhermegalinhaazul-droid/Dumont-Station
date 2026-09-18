@@ -1,0 +1,52 @@
+name: Hybrid Genetics Server Smoke
+
+on:
+  push:
+    branches:
+      - hybrid-genetics-final
+  pull_request:
+    branches:
+      - dumont
+
+jobs:
+  smoke-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup submodules
+        run: git submodule update --init --recursive
+
+      - name: Pull engine updates
+        uses: space-wizards/submodule-dependency@v0.1.5
+
+      - name: Update engine submodules
+        run: |
+          cd RobustToolbox/
+          git submodule update --init --recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.1.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build SpaceStation14.slnx --configuration DebugOpt --no-restore -m:1
+
+      - name: Smoke start server
+        shell: bash
+        run: |
+          set +e
+          echo "Starting full hybrid genetics server smoke test after full solution build."
+          timeout 45s dotnet run --project Content.Server/Content.Server.csproj --configuration DebugOpt --no-build --no-restore > server-smoke.log 2>&1
+          code=$?
+          cat server-smoke.log
+          if [ "$code" -eq 124 ]; then
+            echo "Server stayed alive for the smoke-test window."
+            exit 0
+          fi
+          exit "$code"

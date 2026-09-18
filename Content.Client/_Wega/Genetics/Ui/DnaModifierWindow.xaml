@@ -52,7 +52,7 @@
             </BoxContainer>
         </BoxContainer>
 
-        <BoxContainer Orientation="Vertical" VerticalExpand="False" Margin="10">
+        <BoxContainer Orientation="Vertical" VerticalExpand="False" Margin="10" Visible="False">
             <controls:StripeBack>
                 <Label Text="{Loc 'dna-modifier-label-sixteen'}" HorizontalAlignment="Center" StyleClasses="LabelSubText" Margin="0 4"/>
             </controls:StripeBack>
@@ -65,7 +65,7 @@
                 <TabContainer Name="Tabs" Margin="5 5 7 5">
                     <!-- Вкладка Modify U.I. -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
-                        <Label Text="{Loc 'dna-modifier-box-ui'}" StyleClasses="LabelBig"/>
+                        <Label Text="Genes" StyleClasses="LabelBig"/>
                         <PanelContainer Name="UiPanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>
                                 <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />
@@ -73,12 +73,14 @@
                             <BoxContainer Name="UiContainer"/>
                         </PanelContainer>
                         <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
-                        <BoxContainer Orientation="Horizontal">
+                        <!-- Legacy hexadecimal radiation controls remain instantiated only for
+                             backwards-compatible code paths; they are not player-facing. -->
+                        <BoxContainer Orientation="Horizontal" Visible="False">
                             <Label Text="{Loc 'dna-modifier-label-target'}"/>
                             <Control MinWidth="10"/>
                             <FloatSpinBox MinSize="100 0" Name="RadiationTarget" Value="1"/>
                         </BoxContainer>
-                        <BoxContainer Orientation="Horizontal">
+                        <BoxContainer Orientation="Horizontal" Visible="False">
                             <Button MinSize="80 0" Name="Releveration1Button" Text="{Loc 'dna-modifier-button-releveration'}"/>
                         </BoxContainer>
                     </BoxContainer>
@@ -100,7 +102,7 @@
 
                     <!-- Вкладка Transfer Buffers -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
-                        <Label Text="{Loc 'dna-modifier-box-transfer'}" StyleClasses="LabelBig"/>
+                        <Label Text="Armazenamento genético" StyleClasses="LabelBig"/>
                         <!-- First -->
                         <BoxContainer Orientation="Horizontal">
                             <Label Text="{Loc 'dna-modifier-label-buffer-1'}"/>
@@ -196,6 +198,25 @@
                         <BoxContainer Orientation="Vertical" Margin="4">
                             <Label Text="Combinar"/>
                             <Label Text="Integrar fluxo híbrido de genes Wega + Trauma/Goobstation sem duplicar sistemas."/>
+                        </BoxContainer>
+                    </BoxContainer>
+
+                    <!-- Вкладка EI -->
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
+                        <Label Text="EI" StyleClasses="LabelBig"/>
+                        <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
+                        <BoxContainer Orientation="Vertical" Margin="4" SeparationOverride="6">
+                            <Label Text="Perfil genético atual:"/>
+                            <Label Name="EiCurrentProfileLabel" StyleClasses="LabelSecondaryColor"/>
+                            <Label Text="Copiar EI para buffer:"/>
+                            <BoxContainer Orientation="Horizontal">
+                                <Button Name="EiCopyBuffer1Button" Text="Buffer 1"/>
+                                <Button Name="EiCopyBuffer2Button" Text="Buffer 2"/>
+                                <Button Name="EiCopyBuffer3Button" Text="Buffer 3"/>
+                            </BoxContainer>
+                            <customControls:HSeparator StyleClasses="LowDivider" Margin="0 4 0 4"/>
+                            <Label Text="EI armazenados:"/>
+                            <BoxContainer Name="EiProfilesContainer" Orientation="Vertical" HorizontalExpand="True"/>
                         </BoxContainer>
                     </BoxContainer>
 

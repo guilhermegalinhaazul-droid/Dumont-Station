@@ -9,6 +9,7 @@
 
 - type: structuralEnzymes
   id: GeneticsShockImmunityMinor
+  canonicalKey: insulated
   message: genetics-shock-immunity-message
   typeDeviation: Minor
   costInstability: 10
@@ -25,6 +26,7 @@
 
 - type: structuralEnzymes
   id: GeneticsStrongMinor
+  canonicalKey: strength
   message: genetics-strong-message
   typeDeviation: Minor
   costInstability: 15

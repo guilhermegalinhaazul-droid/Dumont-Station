@@ -13,12 +13,14 @@ public sealed partial class StatusEffectsMutationSystem : EntitySystem
     [SubscribeLocalEvent]
     private void OnAdded(Entity<StatusEffectsMutationComponent> ent, ref MutationAddedEvent args)
     {
-        _status.AddEffects(args.Target, ent.Comp.StatusEffects);
+        foreach (var effect in ent.Comp.StatusEffects)
+            _status.TrySetStatusEffectDuration(args.Target, effect);
     }
 
     [SubscribeLocalEvent]
     private void OnRemoved(Entity<StatusEffectsMutationComponent> ent, ref MutationRemovedEvent args)
     {
-        _status.RemoveEffects(args.Target, ent.Comp.StatusEffects);
+        foreach (var effect in ent.Comp.StatusEffects)
+            _status.TryRemoveStatusEffect(args.Target, effect);
     }
 }

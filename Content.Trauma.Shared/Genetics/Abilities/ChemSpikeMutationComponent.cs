@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Actions.Components;
-using Content.Shared.FixedPoint;
+using Content.Goobstation.Maths.FixedPoint;
 
 namespace Content.Trauma.Shared.Genetics.Abilities;
 
@@ -9,7 +9,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// Mutation component for chemspike.
 /// Stores the transfer chemicals action.
 /// </summary>
-[RegisterComponent, NetworkedComponent, Access(typeof(ChemSpikeMutationSystem))]
+[RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentState]
 public sealed partial class ChemSpikeMutationComponent : Component
 {

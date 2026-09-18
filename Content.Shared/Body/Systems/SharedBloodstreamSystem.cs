@@ -515,6 +515,15 @@ public abstract partial class SharedBloodstreamSystem : EntitySystem
         if (!Resolve(ent, ref ent.Comp, logMissing: false))
             return false;
 
+        // Hybrid genetics compatibility: allow active mutations to modify newly-added bleeding.
+        // Negative values are healing/reduction and should not be amplified by bleed-increasing mutations.
+        if (amount > 0)
+        {
+            var modifierEvent = new BleedModifierEvent(amount);
+            RaiseLocalEvent(ent.Owner, ref modifierEvent);
+            amount = modifierEvent.BleedAmount;
+        }
+
         // Goobstation start
         ent.Comp.BleedAmountNotFromWounds += amount;
 

@@ -24,7 +24,9 @@ public sealed partial class ScannedGenomeSystem : EntitySystem
             return;
 
         var comp = EnsureComp<ScannedGenomeComponent>(target);
-        DebugTools.Assert(comp.Sequences.Count == 0, $"Polymorphed {ToPrettyString(ent)} into a non-empty scanned genome entity {ToPrettyString(target)}, its sequences would be wiped!");
+        if (comp.Sequences.Count != 0)
+            Log.Warning($"Polymorphed {ToPrettyString(ent)} into non-empty scanned genome {ToPrettyString(target)}; replacing stale sequences.");
+
         TransferSequences(ent, (target, comp));
     }
 

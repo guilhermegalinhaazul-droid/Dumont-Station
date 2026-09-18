@@ -13,6 +13,12 @@ public sealed partial class StructuralEnzymesPrototype : IPrototype
     [DataField("message")]
     public string Message { get; set; } = default!;
 
+    /// <summary>
+    /// Optional shared key used to deduplicate an equivalent Trauma mutation.
+    /// </summary>
+    [DataField("canonicalKey")]
+    public string? CanonicalKey { get; set; }
+
     [DataField("addComponent")]
     public ComponentRegistry? AddComponent { get; private set; } = default!;
 

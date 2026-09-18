@@ -185,17 +185,14 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             var empty = new[] { "0", "0", "0" };
             var whiteColorArray = new[] { "F", "F", "F" }; 
 
-            // Цвет волос (блоки 1-3) и Вторичный цвет волос (блоки 4-6)
             if (markingSet.TryGetCategory(MarkingCategories.Hair, out var hairMarkings))
             {
-                // блоки 1-3
                 var hairColor = GetFirstMarkingColor(hairMarkings);
                 var hairColorArray = ConvertColorToHexArray(hairColor);
                 uniqueIdentifiers.HairColorR = new[] { hairColorArray[0], hairColorArray[1], hairColorArray[2] };
                 uniqueIdentifiers.HairColorG = new[] { hairColorArray[3], hairColorArray[4], hairColorArray[5] };
                 uniqueIdentifiers.HairColorB = new[] { hairColorArray[6], hairColorArray[7], hairColorArray[8] };
 
-                // блок 34
                 var markingId = hairMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -204,7 +201,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                     ? markingPrototype.HexValue
                     : empty;
 
-                // блоки 4-6
                 if (hairMarkings.Count > 1)
                 {
                     var secondaryHairColor = hairMarkings[1].MarkingColors.Count > 0
@@ -224,20 +220,16 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             }
             else
             {
-                // блоки 1-3
                 uniqueIdentifiers.HairColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.HairColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.HairColorB = GenerateRandomHexValues();
-                // блоки 4-6
                 uniqueIdentifiers.SecondaryHairColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.SecondaryHairColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.SecondaryHairColorB = GenerateRandomHexValues();
 
-                // блок 34
                 uniqueIdentifiers.HairStyle = empty;
             }
 
-            // Цвет бороды (блоки 7-9)
             if (markingSet.TryGetCategory(MarkingCategories.FacialHair, out var facialHairMarkings))
             {
                 var facialHairColor = GetFirstMarkingColor(facialHairMarkings);
@@ -246,7 +238,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.BeardColorG = new[] { facialHairColorArray[3], facialHairColorArray[4], facialHairColorArray[5] };
                 uniqueIdentifiers.BeardColorB = new[] { facialHairColorArray[6], facialHairColorArray[7], facialHairColorArray[8] };
 
-                // блок 33
                 var markingId = facialHairMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -260,12 +251,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.BeardColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.BeardColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.BeardColorB = GenerateRandomHexValues();
-
-                // блок 33
                 uniqueIdentifiers.BeardStyle = empty;
             }
 
-            // Тон кожи или цвет меха (блоки 13-16)
             if (speciesProto.SkinColoration == HumanoidSkinColor.HumanToned)
             {
                 uniqueIdentifiers.SkinTone = ConvertSkinToneToHexArray(humanoid.SkinColor);
@@ -291,7 +279,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.FurColorB = whiteColorArray;
             }
 
-            // Цвет головного аксессуара (блоки 17-19)
             if (markingSet.TryGetCategory(MarkingCategories.HeadTop, out var headTopMarkings))
             {
                 var headTopColor = GetFirstMarkingColor(headTopMarkings);
@@ -300,7 +287,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.HeadAccessoryColorG = new[] { headTopColorArray[3], headTopColorArray[4], headTopColorArray[5] };
                 uniqueIdentifiers.HeadAccessoryColorB = new[] { headTopColorArray[6], headTopColorArray[7], headTopColorArray[8] };
 
-                // блок 35
                 var markingId = headTopMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -314,12 +300,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.HeadAccessoryColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.HeadAccessoryColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.HeadAccessoryColorB = GenerateRandomHexValues();
-
-                // блок 35
                 uniqueIdentifiers.HeadAccessoryStyle = empty;
             }
 
-            // Цвет разметки головы (блоки 20-22)
             if (markingSet.TryGetCategory(MarkingCategories.Head, out var headMarkings))
             {
                 var headColor = GetFirstMarkingColor(headMarkings);
@@ -328,7 +311,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.HeadMarkingColorG = new[] { headColorArray[3], headColorArray[4], headColorArray[5] };
                 uniqueIdentifiers.HeadMarkingColorB = new[] { headColorArray[6], headColorArray[7], headColorArray[8] };
 
-                // блок 36
                 var markingId = headMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -342,12 +324,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.HeadMarkingColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.HeadMarkingColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.HeadMarkingColorB = GenerateRandomHexValues();
-
-                // блок 36
                 uniqueIdentifiers.HeadMarkingStyle = empty;
             }
 
-            // Цвет маркировки тела (блоки 23-25)
             if (markingSet.TryGetCategory(MarkingCategories.Chest, out var chestMarkings))
             {
                 var chestColor = GetFirstMarkingColor(chestMarkings);
@@ -356,7 +335,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.BodyMarkingColorG = new[] { chestColorArray[3], chestColorArray[4], chestColorArray[5] };
                 uniqueIdentifiers.BodyMarkingColorB = new[] { chestColorArray[6], chestColorArray[7], chestColorArray[8] };
 
-                // блок 37
                 var markingId = chestMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -370,12 +348,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.BodyMarkingColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.BodyMarkingColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.BodyMarkingColorB = GenerateRandomHexValues();
-
-                // блок 37
                 uniqueIdentifiers.BodyMarkingStyle = empty;
             }
 
-            // Цвет маркировки хвоста (блоки 26-28)
             if (markingSet.TryGetCategory(MarkingCategories.Tail, out var tailMarkings))
             {
                 var tailColor = GetFirstMarkingColor(tailMarkings);
@@ -384,7 +359,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.TailMarkingColorG = new[] { tailColorArray[3], tailColorArray[4], tailColorArray[5] };
                 uniqueIdentifiers.TailMarkingColorB = new[] { tailColorArray[6], tailColorArray[7], tailColorArray[8] };
 
-                // блок 38
                 var markingId = tailMarkings.FirstOrDefault()?.MarkingId;
                 var markingPrototype = markingPrototypes
                     .FirstOrDefault(m => m.MarkingPrototypeId == markingId);
@@ -398,23 +372,19 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 uniqueIdentifiers.TailMarkingColorR = GenerateRandomHexValues();
                 uniqueIdentifiers.TailMarkingColorG = GenerateRandomHexValues();
                 uniqueIdentifiers.TailMarkingColorB = GenerateRandomHexValues();
-
-                // блок 38
                 uniqueIdentifiers.TailMarkingStyle = empty;
             }
 
-            // Цвет глаз (блоки 29-31)
             var eyeColorArray = ConvertColorToHexArray(humanoid.EyeColor);
             uniqueIdentifiers.EyeColorR = new[] { eyeColorArray[0], eyeColorArray[1], eyeColorArray[2] };
             uniqueIdentifiers.EyeColorG = new[] { eyeColorArray[3], eyeColorArray[4], eyeColorArray[5] };
             uniqueIdentifiers.EyeColorB = new[] { eyeColorArray[6], eyeColorArray[7], eyeColorArray[8] };
 
-            // Пол (блок 32)
             uniqueIdentifiers.Gender = humanoid.Sex switch
             {
-                Sex.Female => GenerateTripleHexValues(0x0, 0x5, 0x0, 0x7, 0x0, 0x3), // <= 0x5 <= 0x7 <= 0x3
-                Sex.Male => GenerateTripleHexValues(0x0, 0x7, 0x0, 0x7, 0x0, 0x8), // < 0x8 <= 0x7 < 0x9
-                Sex.Unsexed => GenerateTripleHexValues(0x8, 0xF, 0x7, 0xF, 0x9, 0xF), // >= 0x8 >= 0x7 >= 0x9
+                Sex.Female => GenerateTripleHexValues(0x0, 0x5, 0x0, 0x7, 0x0, 0x3),
+                Sex.Male => GenerateTripleHexValues(0x0, 0x7, 0x0, 0x7, 0x0, 0x8),
+                Sex.Unsexed => GenerateTripleHexValues(0x8, 0xF, 0x7, 0xF, 0x9, 0xF),
                 _ => GenerateRandomHexValues()
             };
 
@@ -455,8 +425,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 EyeColorG = GenerateRandomHexValues(),
                 EyeColorB = GenerateRandomHexValues(),
                 Gender = _random.Next(0, 2) == 0
-                    ? GenerateRandomGenderHexValue(0x000, 0x23D) // Женщина
-                    : GenerateRandomGenderHexValue(0x23E, 0x320), // Мужчина
+                    ? GenerateRandomGenderHexValue(0x000, 0x23D)
+                    : GenerateRandomGenderHexValue(0x23E, 0x320),
                 HairStyle = GenerateRandomHexValues(),
                 BeardStyle = GenerateRandomHexValues(),
                 HeadAccessoryStyle = empty,
@@ -889,7 +859,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (!HasComp<HumanoidAppearanceComponent>(target))
                 return;
 
-            // Zero add an entity
             _buckle.TryUnbuckle(target, target, true);
             var child = _entManager.SpawnEntity(component.Lowest, Transform(target).Coordinates);
             if (TryComp<DamageableComponent>(child, out var damageParent)
@@ -900,7 +869,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             EnsureComp<DnaLowestComponent>(child).Parent = target;
 
-            // First undress
             if (_inventory.TryGetContainerSlotEnumerator(target, out var enumerator))
             {
                 while (enumerator.MoveNext(out var slot))
@@ -914,7 +882,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 _hands.TryDrop(target, held);
             }
 
-            // Second customization
             if (TryComp(target, out MetaDataComponent? targetMeta))
                 _metaData.SetEntityName(child, targetMeta.EntityName);
 
@@ -936,7 +903,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             _admin.Add(LogType.Action, LogImpact.High, $"{ToPrettyString(target):user} gene down up a step.");
 
-            // Third clearing
             EnsurePausedMap();
             if (PausedMap != null)
             {
@@ -953,7 +919,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (meta.EntityPrototype?.ID == component.Upper)
                 return;
 
-            // Minus one check parent
             if (TryComp<DnaLowestComponent>(target, out var dnaLowest) && dnaLowest.Parent != null)
             {
                 var parent = dnaLowest.Parent.Value;
@@ -1010,7 +975,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 return;
             }
 
-            // Zero add an entity
             _buckle.TryUnbuckle(target, target, true);
             var child = _entManager.SpawnEntity(component.Upper, Transform(target).Coordinates);
             if (TryComp<DamageableComponent>(child, out var damageParent)
@@ -1019,7 +983,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 _damage.TryChangeDamage(child, damage, true);
             }
 
-            // First undress
             if (_inventory.TryGetContainerSlotEnumerator(target, out var enumerator))
             {
                 while (enumerator.MoveNext(out var slot))
@@ -1033,7 +996,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 _hands.TryDrop(target, held);
             }
 
-            // Second customization
             if (TryComp(target, out MetaDataComponent? targetMeta))
                 _metaData.SetEntityName(child, targetMeta.EntityName);
 
@@ -1057,8 +1019,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             _admin.Add(LogType.Action, LogImpact.High, $"{ToPrettyString(target):user} gene went up a step.");
 
-            // Third clearing
-            _entManager.DeleteEntity(target); // Bye
+            _entManager.DeleteEntity(target);
 
             if (targetContainer != null)
             {
@@ -1098,6 +1059,35 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             default: return false;
         }
     }
+
+    /// <summary>
+    /// Returns whether a Wega structural gene is currently active on the entity, using the
+    /// same hex threshold and component-presence rules that drive TryChangeStructuralEnzymes.
+    /// </summary>
+    public bool IsStructuralEnzymeActive(EntityUid uid, string geneId)
+    {
+        if (!TryComp<DnaModifierComponent>(uid, out var dnaModifier)
+            || dnaModifier.EnzymesPrototypes == null)
+        {
+            return false;
+        }
+
+        var enzyme = dnaModifier.EnzymesPrototypes
+            .FirstOrDefault(candidate => candidate.EnzymesPrototypeId == geneId);
+        if (enzyme == null
+            || !_prototype.TryIndex<StructuralEnzymesPrototype>(geneId, out var prototype)
+            || prototype.AddComponent == null
+            || !CheckHexCodeCondition(enzyme.HexCode, prototype.TypeDeviation))
+        {
+            return false;
+        }
+
+        return prototype.AddComponent.Any(componentEntry =>
+        {
+            var componentType = componentEntry.Value.Component?.GetType();
+            return componentType != null && HasComp(uid, componentType);
+        });
+    }
     #endregion Modify S.E.
 
     #region Chemistry
@@ -1131,25 +1121,15 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        foreach (var enzyme in component.EnzymesPrototypes)
-        {
-            if (enzyme.Order == 55)
-            {
-                enzyme.HexCode = GenerateLastHexCode();
-                continue;
-            }
+        // Unstable mutagen/form mutation is not a disease-unlock mechanism. Disease genes
+        // continue to be controlled by the dedicated Wega disease/deviation/radiation paths.
+        // Preserve the existing form-block mutation without exposing or activating Disease IDs.
+        var formBlock = component.EnzymesPrototypes.FirstOrDefault(enzyme => enzyme.Order == 55);
+        if (formBlock == null)
+            return;
 
-            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(enzyme.EnzymesPrototypeId, out var enzymePrototype))
-                continue;
-
-            if (enzymePrototype.TypeDeviation == EnzymesType.Disease)
-            {
-                enzyme.HexCode = GetHexCodeDisease();
-            }
-        }
-
+        formBlock.HexCode = GenerateLastHexCode();
         TryChangeStructuralEnzymes((uid, component));
-
         Dirty(uid, component);
     }
     #endregion
