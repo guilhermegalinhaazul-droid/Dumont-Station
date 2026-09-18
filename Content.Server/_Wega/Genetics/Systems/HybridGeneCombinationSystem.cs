@@ -196,14 +196,14 @@ public sealed class HybridGeneCombinationSystem : EntitySystem
             return;
         }
 
-        _damage.ChangeDamage(body, console.Comp.CombineDamage);
+        _damage.TryChangeDamage(body, console.Comp.CombineDamage);
 
         // Match Trauma's console behavior: a combined result gets a sequence, but its
         // MutationData.Discovered flag is NOT changed here. It must still be sequenced normally.
         _scannedGenome.TryAddSequence(body, result);
 
         _adminLog.Add(
-            LogType.Genetics,
+            LogType.Action,
             LogImpact.Medium,
             $"{result} combined from {first} and {second} by {args.User:user} using Wega console {console.Owner}");
 
