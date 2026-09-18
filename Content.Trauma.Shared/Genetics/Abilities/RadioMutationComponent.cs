@@ -7,7 +7,7 @@ namespace Content.Trauma.Shared.Genetics.Abilities;
 /// <summary>
 /// Gives the mutated mob intrinsic radio channels.
 /// </summary>
-[RegisterComponent, NetworkedComponent, Access(typeof(RadioMutationSystem))]
+[RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentState]
 public sealed partial class RadioMutationComponent : Component
 {
