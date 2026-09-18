@@ -40,6 +40,7 @@
   description: The user of this genome can visually perceive the unique human thermal signature.
   components:
   - type: Mutation
+    canonicalKey: thermal-vision
     instability: 35
     difficulty: 18
     rarity: Mythical
