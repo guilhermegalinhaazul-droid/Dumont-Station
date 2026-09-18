@@ -8,7 +8,6 @@
   components:
   - type: Mutation
     instability: -30
-    # no free -70 chuddha
     conflicts:
     - MutationBlindness
   - type: ComponentMutation
@@ -16,8 +15,6 @@
     - type: PermanentBlindness
       blindness: 4
 
-# Blind makes you blind. Who knew?
-# The above comment was brought to you by /tg/station13
 - type: entity
   parent: BaseMutation
   id: MutationBlindness
@@ -44,7 +41,6 @@
     instability: 35
     difficulty: 18
     rarity: Mythical
-    # no conflict with blindness because thats some professor X shit
   - type: ComponentMutation
     added:
     - type: ThermalVision
@@ -61,8 +57,8 @@
     onPerformed: true
     effects:
     - !type:EyeDamage
-      amount: 1 # default is negative so this does damage
-      probability: 0.2 # eye damage is obscene compared to ss13 so average 0.2 vs 10 per use
+      amount: 1
+      probability: 0.2
 
 - type: entity
   parent: BaseMutation
@@ -78,7 +74,7 @@
     - type: BlockWriting
 
 - type: entity
-  parent: BaseMutationAdmeme # wizard and admeme only
+  parent: BaseMutationAdmeme
   id: MutationLaserEyes
   name: Laser Eyes
   description: Reflects concentrated light back from the eyes.
@@ -86,7 +82,6 @@
   - type: Mutation
     difficulty: 16
     rarity: Mythical
-  # TODO: move out of goob hulk
 
 - type: entity
   parent: BaseMutation
@@ -95,14 +90,12 @@
   description: Improves the subject's peripheral vision, letting them see things in the corner of their eyes better.
   components:
   - type: Mutation
-    instability: 20 # pretty good
+    instability: 20
     difficulty: 14
     rarity: Rare
     conflicts:
     - MutationBlindness
     - MutationWeakPerception
-  - type: ViewconeModifier
-    angleModifier: 1.3
 
 - type: entity
   parent: BaseMutation
@@ -117,5 +110,3 @@
     conflicts:
     - MutationBlindness
     - MutationEnhancedPerception
-  - type: ViewconeModifier
-    angleModifier: 0.5 # gotta thug it out
