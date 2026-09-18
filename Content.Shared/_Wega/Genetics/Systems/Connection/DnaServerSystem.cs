@@ -114,6 +114,24 @@ public sealed class DnaServerSystem : EntitySystem
         return true;
     }
 
+    public bool ReplaceBuffer(Entity<DnaServerComponent?> server, int bufferIndex, EnzymeInfo data)
+    {
+        if (!Resolve(server, ref server.Comp))
+            return false;
+
+        var stored = (EnzymeInfo)data.Clone();
+        switch (bufferIndex)
+        {
+            case 1: server.Comp.Buffer1 = stored; break;
+            case 2: server.Comp.Buffer2 = stored; break;
+            case 3: server.Comp.Buffer3 = stored; break;
+            default: return false;
+        }
+
+        Dirty(server.Owner, server.Comp);
+        return true;
+    }
+
     public bool ClearBuffer(Entity<DnaServerComponent?> server, int bufferIndex)
     {
         if (!Resolve(server, ref server.Comp))
