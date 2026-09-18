@@ -618,7 +618,8 @@ namespace Content.Server.Genetics.System
                 || !TryComp<DnaClientComponent>(clientEntity, out var client))
                 return;
 
-            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
+            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data)
+                || data.IsFullGeneticProfile)
                 return;
 
             _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
@@ -637,7 +638,9 @@ namespace Content.Server.Genetics.System
                 || !TryComp<DnaClientComponent>(clientEntity, out var client))
                 return;
 
-            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data) || data.Info == null)
+            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data)
+                || data.IsFullGeneticProfile
+                || data.Info == null)
                 return;
 
             var targetBlock = data.Info.FirstOrDefault(e => e.Order == args.CurrentBlock);
@@ -668,7 +671,8 @@ namespace Content.Server.Genetics.System
             if (!scanBody.HasValue || !TryComp<DnaModifierComponent>(scanBody.Value, out var dnaModifier))
                 return;
 
-            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
+            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data)
+                || data.IsFullGeneticProfile)
                 return;
 
             PlayClickSound((clientEntity, console));
