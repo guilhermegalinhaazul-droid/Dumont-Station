@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.Medical.Components;
+using Content.Server.Power.EntitySystems;
 using Content.Shared.Genetics;
+using Content.Shared.Genetics.UI;
 using Content.Trauma.Shared.Genetics.Mutations;
 using Robust.Shared.Player;
 
@@ -19,6 +21,8 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     [Dependency] private readonly HybridGeneCatalogSystem _catalog = default!;
     [Dependency] private readonly MutationSystem _mutation = default!;
     [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
+    [Dependency] private readonly PowerReceiverSystem _power = default!;
+    [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
 
     private readonly Dictionary<(EntityUid Console, ICommonSession Session), Selection> _selections = new();
 
@@ -35,13 +39,19 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
 
     private void OnCatalogRequest(DnaModifierHybridCatalogRequestEvent args, EntitySessionEventArgs sessionArgs)
     {
-        SendState(GetEntity(args.Console), sessionArgs.SenderSession);
+        var console = GetEntity(args.Console);
+        if (!IsAuthorized(console, sessionArgs.SenderSession))
+            return;
+
+        SendState(console, sessionArgs.SenderSession);
     }
 
     private void OnSelectGene(DnaModifierHybridSelectGeneEvent args, EntitySessionEventArgs sessionArgs)
     {
         var console = GetEntity(args.Console);
         var session = sessionArgs.SenderSession;
+        if (!IsAuthorized(console, session))
+            return;
         var key = (console, session);
 
         if (!TryGetScannedBody(console, out var body)
@@ -75,6 +85,8 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     {
         var console = GetEntity(args.Console);
         var session = sessionArgs.SenderSession;
+        if (!IsAuthorized(console, session))
+            return;
         if (args.Base.Length != 1 || !"XATGC".Contains(args.Base[0]))
             return;
 
@@ -104,6 +116,8 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     {
         var console = GetEntity(args.Console);
         var session = sessionArgs.SenderSession;
+        if (!IsAuthorized(console, session))
+            return;
         if (!TryGetSelection(console, session, out var selection, out var sequence))
         {
             SendState(console, session);
@@ -119,6 +133,8 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
     {
         var console = GetEntity(args.Console);
         var session = sessionArgs.SenderSession;
+        if (!IsAuthorized(console, session))
+            return;
         var key = (console, session);
 
         if (!TryGetSelection(console, session, out var selection, out var sequence)
@@ -180,6 +196,12 @@ public sealed class HybridGeneSequencingSystem : EntitySystem
         sequence = current;
         return true;
     }
+
+    private bool IsAuthorized(EntityUid console, ICommonSession session)
+        => _power.IsPowered(console)
+           && session.AttachedEntity is { } actor
+           && TryComp<DnaModifierConsoleComponent>(console, out _)
+           && _ui.IsUiOpen(console, DnaModifierUiKey.Key, actor);
 
     private bool TryGetScannedBody(EntityUid console, out EntityUid body)
     {
