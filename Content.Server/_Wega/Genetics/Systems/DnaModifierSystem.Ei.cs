@@ -55,7 +55,7 @@ public sealed partial class DnaModifierSystem
     /// Applies a stored EI to the receiver. The profile is server-owned data from a Wega
     /// buffer/disk; the client only chooses the buffer index.
     /// </summary>
-    public bool ApplyGeneticProfile(Entity<DnaModifierComponent> target, EnzymeInfo profile, EntityUid? user = null)
+    public bool ApplyGeneticProfile(Entity<DnaModifierComponent> target, EnzymeInfo profile)
     {
         if (!profile.IsFullGeneticProfile)
             return false;
