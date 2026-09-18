@@ -20,6 +20,7 @@ namespace Content.Server.Genetics.System;
 public sealed class DnaModifierEiEditingSystem : EntitySystem
 {
     [Dependency] private readonly DnaClientSystem _dnaClient = default!;
+    [Dependency] private readonly DnaModifierSystem _dnaModifier = default!;
     [Dependency] private readonly PowerReceiverSystem _power = default!;
     [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
 
@@ -423,57 +424,8 @@ public sealed class DnaModifierEiEditingSystem : EntitySystem
             _ => Array.Empty<string>(),
         };
 
-    private static bool TrySetRegion(UniqueIdentifiersData data, EiAppearanceRegion region, string[] value)
-    {
-        switch (region)
-        {
-            case EiAppearanceRegion.HairColor:
-                return SetTriple(value, data.HairColorR.Length, data.HairColorG.Length, data.HairColorB.Length,
-                    (a, b, c) => { data.HairColorR = a; data.HairColorG = b; data.HairColorB = c; });
-            case EiAppearanceRegion.SecondaryHairColor:
-                return SetTriple(value, data.SecondaryHairColorR.Length, data.SecondaryHairColorG.Length, data.SecondaryHairColorB.Length,
-                    (a, b, c) => { data.SecondaryHairColorR = a; data.SecondaryHairColorG = b; data.SecondaryHairColorB = c; });
-            case EiAppearanceRegion.BeardColor:
-                return SetTriple(value, data.BeardColorR.Length, data.BeardColorG.Length, data.BeardColorB.Length,
-                    (a, b, c) => { data.BeardColorR = a; data.BeardColorG = b; data.BeardColorB = c; });
-            case EiAppearanceRegion.SkinTone:
-                return SetSingle(value, data.SkinTone.Length, v => data.SkinTone = v);
-            case EiAppearanceRegion.FurColor:
-                return SetTriple(value, data.FurColorR.Length, data.FurColorG.Length, data.FurColorB.Length,
-                    (a, b, c) => { data.FurColorR = a; data.FurColorG = b; data.FurColorB = c; });
-            case EiAppearanceRegion.HeadAccessoryColor:
-                return SetTriple(value, data.HeadAccessoryColorR.Length, data.HeadAccessoryColorG.Length, data.HeadAccessoryColorB.Length,
-                    (a, b, c) => { data.HeadAccessoryColorR = a; data.HeadAccessoryColorG = b; data.HeadAccessoryColorB = c; });
-            case EiAppearanceRegion.HeadMarkingColor:
-                return SetTriple(value, data.HeadMarkingColorR.Length, data.HeadMarkingColorG.Length, data.HeadMarkingColorB.Length,
-                    (a, b, c) => { data.HeadMarkingColorR = a; data.HeadMarkingColorG = b; data.HeadMarkingColorB = c; });
-            case EiAppearanceRegion.BodyMarkingColor:
-                return SetTriple(value, data.BodyMarkingColorR.Length, data.BodyMarkingColorG.Length, data.BodyMarkingColorB.Length,
-                    (a, b, c) => { data.BodyMarkingColorR = a; data.BodyMarkingColorG = b; data.BodyMarkingColorB = c; });
-            case EiAppearanceRegion.TailMarkingColor:
-                return SetTriple(value, data.TailMarkingColorR.Length, data.TailMarkingColorG.Length, data.TailMarkingColorB.Length,
-                    (a, b, c) => { data.TailMarkingColorR = a; data.TailMarkingColorG = b; data.TailMarkingColorB = c; });
-            case EiAppearanceRegion.EyeColor:
-                return SetTriple(value, data.EyeColorR.Length, data.EyeColorG.Length, data.EyeColorB.Length,
-                    (a, b, c) => { data.EyeColorR = a; data.EyeColorG = b; data.EyeColorB = c; });
-            case EiAppearanceRegion.Gender:
-                return SetSingle(value, data.Gender.Length, v => data.Gender = v);
-            case EiAppearanceRegion.BeardStyle:
-                return SetSingle(value, data.BeardStyle.Length, v => data.BeardStyle = v);
-            case EiAppearanceRegion.HairStyle:
-                return SetSingle(value, data.HairStyle.Length, v => data.HairStyle = v);
-            case EiAppearanceRegion.HeadAccessoryStyle:
-                return SetSingle(value, data.HeadAccessoryStyle.Length, v => data.HeadAccessoryStyle = v);
-            case EiAppearanceRegion.HeadMarkingStyle:
-                return SetSingle(value, data.HeadMarkingStyle.Length, v => data.HeadMarkingStyle = v);
-            case EiAppearanceRegion.BodyMarkingStyle:
-                return SetSingle(value, data.BodyMarkingStyle.Length, v => data.BodyMarkingStyle = v);
-            case EiAppearanceRegion.TailMarkingStyle:
-                return SetSingle(value, data.TailMarkingStyle.Length, v => data.TailMarkingStyle = v);
-            default:
-                return false;
-        }
-    }
+    private bool TrySetRegion(UniqueIdentifiersData data, EiAppearanceRegion region, string[] value)
+        => _dnaModifier.TrySetUniqueIdentifierRegion(data, region, value);
 
     private static bool SetSingle(string[] source, int length, Action<string[]> assign)
     {
