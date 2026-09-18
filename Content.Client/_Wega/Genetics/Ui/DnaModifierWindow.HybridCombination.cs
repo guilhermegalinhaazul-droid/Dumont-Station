@@ -19,9 +19,10 @@ public sealed partial class DnaModifierWindow
         if (state.Console != _console)
             return;
 
-        // XAML order is UI, S.E., Transfer, Combine, Rejuvenator.
+        // XAML order is UI, S.E., Transfer, Combine, EI, Rejuvenator.
         Tabs.SetTabTitle(3, "Combinar");
-        Tabs.SetTabTitle(4, Loc.GetString("dna-modifier-tab-rejuvenator"));
+        Tabs.SetTabTitle(4, "EI");
+        Tabs.SetTabTitle(5, Loc.GetString("dna-modifier-tab-rejuvenator"));
 
         if (Tabs.GetChild(3) is not BoxContainer combineTab)
             return;
