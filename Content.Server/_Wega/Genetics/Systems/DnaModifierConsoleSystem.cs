@@ -62,6 +62,7 @@ namespace Content.Server.Genetics.System
         [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
         [Dependency] private readonly ScannedGenomeSystem _scannedGenome = default!;
+        [Dependency] private readonly HybridGeneCatalogSystem _hybridCatalog = default!;
 
         private static readonly EntProtoId Injector = "DnaInjector";
         private static readonly ProtoId<DamageTypePrototype> RadDamage = "Radiation";
@@ -241,7 +242,7 @@ namespace Content.Server.Genetics.System
             EnzymeInfo? enzyme = null;
             UniqueIdentifiersData? uniqueIdentifiers = null;
             List<EnzymesPrototypeInfo>? enzymesPrototypes = null;
-            List<GeneCatalogEntry>? geneCatalog = BuildHybridGeneCatalog(ent);
+            EntityUid? scanBody = null;
 
             var currentTime = _timing.CurTime;
             var injectorCooldown = ent.Comp.LastInjectorTime + ent.Comp.InjectorCooldown;
@@ -250,7 +251,7 @@ namespace Content.Server.Genetics.System
             var buffer = GetAllBuffers(ent);
             if (ent.Comp.GeneticScanner != null && TryComp<MedicalScannerComponent>(ent.Comp.GeneticScanner, out var scanner))
             {
-                EntityUid? scanBody = scanner.BodyContainer.ContainedEntity;
+                scanBody = scanner.BodyContainer.ContainedEntity;
                 inputContainer = _itemSlotsSystem.GetItemOrNull(ent.Comp.GeneticScanner.Value, SharedDnaModifier.InputSlotName);
 
                 if (_itemSlotsSystem.TryGetSlot(ent, SharedDnaModifier.DiskSlotName, out var diskSlot)
@@ -329,6 +330,8 @@ namespace Content.Server.Genetics.System
                 }
             }
 
+            var geneCatalog = _hybridCatalog.BuildCatalog(scanBody);
+
             return new DnaModifierBoundUserInterfaceState(
                 console,
                 uniqueIdentifiers,
@@ -349,31 +352,6 @@ namespace Content.Server.Genetics.System
                 currentTime < injectorCooldown ? injectorCooldown - currentTime : TimeSpan.Zero,
                 currentTime < subjectInjectCooldown ? subjectInjectCooldown - currentTime : TimeSpan.Zero
             );
-        }
-
-        private List<GeneCatalogEntry>? BuildHybridGeneCatalog(Entity<DnaModifierConsoleComponent> ent)
-        {
-            var catalog = new List<GeneCatalogEntry>();
-            var wegaIds = _prototypeManager.EnumeratePrototypes<StructuralEnzymesPrototype>()
-                .Select(p => p.ID)
-                .Distinct()
-                .OrderBy(id => id)
-                .ToList();
-
-            foreach (var id in wegaIds)
-            {
-                catalog.Add(new GeneCatalogEntry
-                {
-                    GeneId = id,
-                    GeneName = id,
-                    Origin = "Wega",
-                    Discovered = false,
-                    Active = false,
-                    Available = false,
-                });
-            }
-
-            return catalog;
         }
 
         private string GetStatus(MobState mobState)
