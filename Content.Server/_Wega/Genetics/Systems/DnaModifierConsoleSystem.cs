@@ -389,6 +389,7 @@ namespace Content.Server.Genetics.System
                 scannerInRange,
                 hasDisk,
                 buffer,
+                null,
                 currentTime < injectorCooldown ? injectorCooldown - currentTime : TimeSpan.Zero,
                 currentTime < subjectInjectCooldown ? subjectInjectCooldown - currentTime : TimeSpan.Zero
             );
