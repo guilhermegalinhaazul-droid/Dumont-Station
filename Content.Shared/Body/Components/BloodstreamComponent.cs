@@ -98,7 +98,7 @@ public sealed partial class BloodstreamComponent : Component
     /// <summary>
     /// How much reagent of blood should be restored each update interval?
     /// </summary>
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, Access(Other = AccessPermissions.ReadWriteExecute)]
     public FixedPoint2 BloodRefreshAmount = 1.0f;
 
     /// <summary>

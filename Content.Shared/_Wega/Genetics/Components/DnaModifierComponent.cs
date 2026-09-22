@@ -4,7 +4,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Genetics;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, Access(typeof(SharedDnaModifierSystem))]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, Access(typeof(SharedDnaModifierSystem), Other = AccessPermissions.ReadWriteExecute)]
 public sealed partial class DnaModifierComponent : Component
 {
     [ViewVariables(VVAccess.ReadOnly), DataField, AutoNetworkedField]

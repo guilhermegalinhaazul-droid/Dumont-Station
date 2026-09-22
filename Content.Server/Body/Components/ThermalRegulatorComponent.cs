@@ -32,7 +32,7 @@ public sealed partial class ThermalRegulatorComponent : Component
     /// <summary>
     /// Heat generated due to metabolism. It's generated via metabolism
     /// </summary>
-    [DataField]
+    [DataField, Access(Other = AccessPermissions.ReadWriteExecute)]
     public float MetabolismHeat;
 
     /// <summary>
@@ -44,20 +44,20 @@ public sealed partial class ThermalRegulatorComponent : Component
     /// <summary>
     /// Maximum heat regulated via sweat
     /// </summary>
-    [DataField]
+    [DataField, Access(Other = AccessPermissions.ReadWriteExecute)]
     public float SweatHeatRegulation;
 
     /// <summary>
     /// Maximum heat regulated via shivering
     /// </summary>
-    [DataField]
+    [DataField, Access(Other = AccessPermissions.ReadWriteExecute)]
     public float ShiveringHeatRegulation;
 
     /// <summary>
     /// Amount of heat regulation that represents thermal regulation processes not
     /// explicitly coded.
     /// </summary>
-    [DataField]
+    [DataField, Access(Other = AccessPermissions.ReadWriteExecute)]
     public float ImplicitHeatRegulation;
 
     /// <summary>

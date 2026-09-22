@@ -4,7 +4,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared.Genetics;
 
 [Serializable, NetSerializable]
-[Access(typeof(SharedDnaModifierSystem), typeof(EnzymeInfo), typeof(AppearanceGene))]
+[Access(typeof(SharedDnaModifierSystem), typeof(EnzymeInfo), typeof(AppearanceGene), Other = AccessPermissions.ReadWriteExecute)]
 public sealed class UniqueIdentifiersData
 {
     public string? EntityName { get; set; }

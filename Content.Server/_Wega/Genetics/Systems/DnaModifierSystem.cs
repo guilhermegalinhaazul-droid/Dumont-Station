@@ -647,12 +647,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     #region Modify U.I.
 
-    [Dependency] private readonly MetaDataSystem _geneticMetaData = default!;
-
     private void TryChangeUniqueIdentifiers(Entity<DnaModifierComponent> ent, HumanoidAppearanceComponent? humanoid = null)
     {
         if (ent.Comp.UniqueIdentifiers?.EntityName is { } entityName)
-            _geneticMetaData.SetEntityName(ent, entityName);
+            _metaData.SetEntityName(ent, entityName);
         if (!Resolve(ent, ref humanoid) || ent.Comp.UniqueIdentifiers == null)
             return;
 
