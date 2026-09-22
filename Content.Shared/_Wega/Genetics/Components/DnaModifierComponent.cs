@@ -13,6 +13,13 @@ public sealed partial class DnaModifierComponent : Component
     [ViewVariables(VVAccess.ReadOnly), DataField, AutoNetworkedField]
     public List<EnzymesPrototypeInfo>? EnzymesPrototypes { get; set; } = default!;
 
+    [ViewVariables(VVAccess.ReadOnly)]
+    public HashSet<string> AppliedGenes = new();
+    [ViewVariables(VVAccess.ReadOnly)]
+    public Dictionary<string, HashSet<Type>> GeneComponents = new();
+    [ViewVariables(VVAccess.ReadOnly)]
+    public Dictionary<string, List<EntityUid>> GeneActions = new();
+
     [ViewVariables(VVAccess.ReadOnly), DataField]
     public HashSet<Type> InitialAbilities { get; set; } = new();
 

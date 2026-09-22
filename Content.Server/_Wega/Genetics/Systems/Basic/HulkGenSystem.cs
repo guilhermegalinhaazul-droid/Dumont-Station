@@ -63,7 +63,7 @@ public sealed class HulkGenSystem : EntitySystem
         {
             if (enzymeInfo.EnzymesPrototypeId == HulkGen)
             {
-                enzymeInfo.HexCode = new[] { "3", "3", "3" };
+                enzymeInfo.Active = false;
                 _dnaModifier.ChangeDna((ent, dnaModifier), 1);
                 break;
             }

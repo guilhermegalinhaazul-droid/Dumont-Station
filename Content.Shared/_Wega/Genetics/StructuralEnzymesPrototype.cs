@@ -1,4 +1,6 @@
 using Content.Shared.Genetics.Systems;
+using Content.Shared.Damage;
+using System.Numerics;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
@@ -9,6 +11,29 @@ public sealed partial class StructuralEnzymesPrototype : IPrototype
 {
     [IdDataField]
     public string ID { get; set; } = string.Empty;
+
+    [DataField] public string Name = string.Empty;
+    [DataField] public string Abbreviation = string.Empty;
+    [DataField] public int Difficulty = 8;
+    [DataField] public HashSet<string> Replaces = new();
+    [DataField] public HashSet<string> Conflicts = new();
+    [DataField] public HashSet<string> Required = new();
+    [DataField] public HashSet<string> Removes = new();
+
+    // Trauma's data-driven passive mutation values, applied through the existing DNA system.
+    [DataField] public float MeleeMultiplier = 1f;
+    [DataField] public DamageModifierSet? DamageModifiers;
+    [DataField] public float MetabolismBonus;
+    [DataField] public float BloodRefreshMultiplier = 1f;
+    [DataField] public float BleedMultiplier = 1f;
+    [DataField] public Vector2 Scale = Vector2.One;
+    [DataField] public float ColdOffset;
+    [DataField] public float HeatOffset;
+    [DataField] public float Shivering = 1f;
+    [DataField] public float Sweating = 1f;
+    [DataField] public float MetabolismHeat = 1f;
+    [DataField] public float HeatRegulation = 1f;
+    [DataField] public List<EntProtoId> Actions = new();
 
     [DataField("message")]
     public string Message { get; set; } = default!;

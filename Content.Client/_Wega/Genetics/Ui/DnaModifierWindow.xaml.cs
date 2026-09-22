@@ -18,30 +18,20 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using System.Numerics;
+using System.Linq;
 
 namespace Content.Client._Wega.Genetics.Ui;
 
 [GenerateTypedNameReferences]
 public sealed partial class DnaModifierWindow : FancyWindow
 {
-    private static readonly TimeSpan SingleBlockRadiationCooldown = TimeSpan.FromSeconds(0.75);
-
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IEntityNetworkManager _entNetworkManager = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
-    private static TimeSpan? _releverationsButtonCooldown;
-    private static TimeSpan? _releveration1ButtonCooldown;
-    private static TimeSpan? _releveration2ButtonCooldown;
     private TimeSpan? _injectorCooldown;
     private TimeSpan? _subjectInjectCooldown;
-    private ModifyButton? _activeButtonUi = null;
-    private ModifyButton? _activeButtonSe = null;
-    private bool _initializedUi = false;
-    private bool _updateUi = false;
-    private bool _initializedSe = false;
-    private bool _updateSe = false;
     private bool _initializedBuffer = false;
     private bool _updateBuffer = false;
     private NetEntity _console;
@@ -55,30 +45,14 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
         Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-rejuvenator"));
-        Tabs.SetTabTitle(4, "Combinar");
 
-        Tabs.OnTabChanged += OnTabChanged;
-
-        RadiationTarget.OnValueChanged += OnSpinBoxValueChanged;
-        RadiationIntensity.OnValueChanged += OnSpinBoxValueChanged;
-        RadiationDuration.OnValueChanged += OnSpinBoxValueChanged;
-
-        UpdateRadiationBoxVisibility(Tabs.CurrentTab);
-        ReleverationsButton.OnPressed += _ =>
-        {
-            if (Tabs.CurrentTab == 0) _updateUi = true;
-            else if (Tabs.CurrentTab == 1) _updateSe = true;
-
-            _entNetworkManager.SendSystemNetworkMessage(
-                new DnaModifierConsoleReleverationsEvent(_console, Tabs.CurrentTab, RadiationIntensity.Value, RadiationDuration.Value));
-            _entNetworkManager.SendSystemNetworkMessage(new DnaModifierUpdateEvent(_console));
-
-            ReleverationsButton.Disabled = true;
-            _releverationsButtonCooldown = _gameTiming.CurTime + TimeSpan.FromSeconds(RadiationDuration.Value);
-        };
-
-        Releveration1Button.OnPressed += _ => OnButtonRadiationUiPressed();
-        Releveration2Button.OnPressed += _ => OnButtonRadiationSePressed();
+        InitializeSequencingUi();
+        EjectButton.OnPressed += _ => OnGeneticMessage?.Invoke(new DnaModifierConsoleEjectEvent(_console));
+        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
+        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
+        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
+        ClearButtonDisk.OnPressed += _ => OnGeneticMessage?.Invoke(new DnaModifierConsoleClearDiskEvent(_console));
+        EjectRejuveButton.OnPressed += _ => OnGeneticMessage?.Invoke(new DnaModifierConsoleEjectRejuveEvent(_console));
 
         SubjectUI1.OnPressed += _ => OnButtonServerSavedPressed(1, 1);
         SubjectUISE1.OnPressed += _ => OnButtonServerSavedPressed(1, 2);
@@ -108,11 +82,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         _console = state.Console;
         var console = _entManager.GetEntity(_console);
 
-        UpdateCooldowns();
 
         // Upper state
-        EjectButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectEvent(_console));
+
 
         if (!string.IsNullOrWhiteSpace(state.ScannerBodyInfo))
         {
@@ -150,60 +122,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             ? _gameTiming.CurTime + state.SubjectInjectCooldownRemaining
             : null;
 
-        // U.I. gene catalog unified gate: show the integrated gene table inside the Wega UI panel
-        if (state.GeneCatalog != null)
-        {
-            UiPanel.Visible = true;
-            UiContainer.RemoveAllChildren();
-            CreateGeneCatalogUi(state.GeneCatalog);
-            _initializedUi = true;
-            _activeButtonUi = null;
-        }
-        else if (state.Unique != null && !_initializedUi)
-        {
-            UiPanel.Visible = true;
-            UiContainer.RemoveAllChildren();
-            InitilizeUniqueIdentifiers(state.Unique);
-        }
-        else if (state.Unique == null && _initializedUi)
-        {
-            _updateUi = false;
-            _initializedUi = false;
-            _activeButtonUi = null;
-            UiContainer.RemoveAllChildren();
-        }
-        else if (state.Unique != null && _updateUi)
-        {
-            _updateUi = false;
-            UiPanel.Visible = true;
-            _initializedUi = true;
-            _activeButtonUi = null;
-            UiContainer.RemoveAllChildren();
-            InitilizeUniqueIdentifiers(state.Unique);
-        }
-
-        // S.E.
-        if (state.Enzymes != null && !_initializedSe)
-        {
-            SePanel.Visible = true;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
-        else if (state.Enzymes == null && _initializedSe)
-        {
-            _initializedSe = false;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-        }
-        else if (state.Enzymes != null && _updateSe)
-        {
-            _updateSe = false;
-            SePanel.Visible = true;
-            _initializedSe = true;
-            _activeButtonSe = null;
-            SeContainer.RemoveAllChildren();
-            InitilizeStructuralEnzymes(state.Enzymes);
-        }
+        UpdateSequencingUi(state);
 
         // Buffer & Disk
         if (!_initializedBuffer)
@@ -229,13 +148,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
         FromDisk2.Disabled = state.HasDisk ? false : true;
         FromDisk3.Disabled = state.HasDisk ? false : true;
 
-        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
-        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
-        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
-
         ClearButtonDisk.Disabled = state.HasDisk ? false : true;
-        ClearButtonDisk.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleClearDiskEvent(_console));
+
 
         UpdateDiskContainer(state.Enzyme);
 
@@ -243,95 +157,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RejuveContainer.RemoveAllChildren();
         CreateBeakerUI(RejuveContainer, state.InputContainerInfo);
         EjectRejuveButton.Disabled = state.ScannerHasBeaker ? false : true;
-        EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectRejuveEvent(_console));
-    }
 
-    private void CreateGeneCatalogUi(List<GeneCatalogEntry> genes)
-    {
-        var root = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(0, 0, 0, 10)
-        };
-
-        var title = new Label
-        {
-            Text = "GENES",
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor }
-        };
-        root.AddChild(title);
-
-        foreach (var gene in genes)
-        {
-            var row = new BoxContainer
-            {
-                Orientation = BoxContainer.LayoutOrientation.Horizontal,
-                Margin = new Thickness(0, 2)
-            };
-
-            var name = new Label
-            {
-                Text = gene.GeneName,
-                MinWidth = 180
-            };
-
-            var status = new Label
-            {
-                Text = gene.Active ? "[ativo]" : gene.Discovered ? "[descoberto]" : "[desconhecido]",
-                MinWidth = 150,
-                StyleClasses = gene.Active ? { StyleNano.StyleClassLabelGreen } : { StyleNano.StyleClassLabelSecondaryColor }
-            };
-
-            row.AddChild(name);
-            row.AddChild(status);
-            root.AddChild(row);
-        }
-
-        UiContainer.AddChild(root);
-    }
-
-    private void UpdateCooldowns()
-    {
-        var currentTime = _gameTiming.CurTime;
-        if (_releverationsButtonCooldown.HasValue)
-        {
-            if (currentTime >= _releverationsButtonCooldown)
-            {
-                ReleverationsButton.Disabled = false;
-                _releverationsButtonCooldown = null;
-            }
-            else
-            {
-                ReleverationsButton.Disabled = true;
-            }
-        }
-
-        if (_releveration1ButtonCooldown.HasValue)
-        {
-            if (currentTime >= _releveration1ButtonCooldown)
-            {
-                Releveration1Button.Disabled = false;
-                _releveration1ButtonCooldown = null;
-            }
-            else
-            {
-                Releveration1Button.Disabled = true;
-            }
-        }
-
-        if (_releveration2ButtonCooldown.HasValue)
-        {
-            if (currentTime >= _releveration2ButtonCooldown)
-            {
-                Releveration2Button.Disabled = false;
-                _releveration2ButtonCooldown = null;
-            }
-            else
-            {
-                Releveration2Button.Disabled = true;
-            }
-        }
     }
 
     private void UpdateHealthBarColor(float health)
@@ -368,28 +194,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         var foregroundStyleBoxOverride = (StyleBoxFlat)HealthBar.ForegroundStyleBoxOverride;
         foregroundStyleBoxOverride.BackgroundColor =
             Color.FromHsv(new Vector4(finalHue, saturation, value, alpha));
-    }
-
-    private void OnTabChanged(int tabIndex)
-    {
-        UpdateRadiationBoxVisibility(tabIndex);
-    }
-
-    private void UpdateRadiationBoxVisibility(int tabIndex)
-    {
-        RadiationBox.Visible = tabIndex == 0 || tabIndex == 1;
-    }
-
-    private void OnSpinBoxValueChanged(FloatSpinBox.FloatSpinBoxEventArgs args)
-    {
-        if (args.Value < 1)
-        {
-            args.Control.Value = 1;
-        }
-        else if (args.Value > 10)
-        {
-            args.Control.Value = 10;
-        }
     }
 
     private void InitializeBufferData(Dictionary<int, EnzymeInfo?> buffers)
@@ -485,10 +289,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
                 MinWidth = 40,
                 StyleClasses = { StyleNano.ButtonOpenRight }
             };
-            for (int i = 1; i <= 55; i++)
-            {
-                blockSelectButton.AddItem($"{i}", i);
-            }
+            foreach (var gene in data.Info!)
+                blockSelectButton.AddItem($"{gene.Order}", gene.Order);
             blockSelectButton.SelectId(1);
             blockSelectButton.OnItemSelected += args => blockSelectButton.SelectId(args.Id);
 
@@ -511,8 +313,23 @@ public sealed partial class DnaModifierWindow : FancyWindow
             Text = Loc.GetString("dna-modifier-button-subject-inject"),
             Disabled = _subjectInjectCooldown.HasValue && _gameTiming.CurTime < _subjectInjectCooldown
         };
-        subjectInjectButton.OnPressed += _ => OnSubjectInjectPressed(bufferIndex, subjectInjectButton);
+        subjectInjectButton.OnPressed += _ =>
+        {
+            OnSubjectInjectPressed(bufferIndex, subjectInjectButton);
+        };
         buttonsContainer.AddChild(subjectInjectButton);
+
+        if (data.Identifier != null)
+        {
+            var fields = new OptionButton();
+            var identifiers = AppearanceGene.Fields.ToList();
+            for (var i = 0; i < identifiers.Count; i++)
+                fields.AddItem(Loc.GetString("dna-eu-" + identifiers[i]), i);
+            fields.OnItemSelected += args => fields.SelectId(args.Id);
+            var applyField = new Button { Text = Loc.GetString("dna-eu-apply-block") };
+            applyField.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticBufferAppearanceMessage(bufferIndex, identifiers[fields.SelectedId]));
+            bufferContainer.AddChild(new BoxContainer { Children = { fields, applyField } });
+        }
 
         // Assemble container
         bufferContainer.AddChild(nameContainer);
@@ -578,38 +395,10 @@ public sealed partial class DnaModifierWindow : FancyWindow
         DiskContainer.AddChild(bufferContainer);
     }
 
-    private void OnButtonRadiationUiPressed()
-    {
-        if (_activeButtonUi != null)
-        {
-            _updateUi = true;
-            _entNetworkManager.SendSystemNetworkMessage(
-                new DnaModifierConsoleReleverationEvent(_console, 0, _activeButtonUi.Block, _activeButtonUi.Values, RadiationTarget.Value));
-            _entNetworkManager.SendSystemNetworkMessage(new DnaModifierUpdateEvent(_console));
-
-            Releveration1Button.Disabled = true;
-            _releveration1ButtonCooldown = _gameTiming.CurTime + SingleBlockRadiationCooldown;
-        }
-    }
-
-    private void OnButtonRadiationSePressed()
-    {
-        if (_activeButtonSe != null)
-        {
-            _updateSe = true;
-            _entNetworkManager.SendSystemNetworkMessage(
-                new DnaModifierConsoleReleverationEvent(_console, 1, _activeButtonSe.Block, _activeButtonSe.Values, 1));
-            _entNetworkManager.SendSystemNetworkMessage(new DnaModifierUpdateEvent(_console));
-
-            Releveration2Button.Disabled = true;
-            _releveration2ButtonCooldown = _gameTiming.CurTime + SingleBlockRadiationCooldown;
-        }
-    }
-
     private void OnButtonServerSavedPressed(int section, int type)
     {
         _updateBuffer = true;
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleSaveServerEvent(_console, section, type));
     }
 
@@ -617,7 +406,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
     {
         _updateBuffer = true;
         button.Disabled = true;
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleInjectorEvent(_console, index));
     }
 
@@ -625,7 +414,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
     {
         _updateBuffer = true;
         button.Disabled = true;
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierInjectBlockEvent(_console, bufferIndex, blockId));
     }
 
@@ -633,14 +422,14 @@ public sealed partial class DnaModifierWindow : FancyWindow
     {
         _updateBuffer = true;
         button.Disabled = true;
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleSubjectInjectEvent(_console, index));
     }
 
     private void OnClearBufferPressed(int index)
     {
         _updateBuffer = true;
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleClearBufferEvent(_console, index));
     }
 
@@ -651,267 +440,22 @@ public sealed partial class DnaModifierWindow : FancyWindow
         if (session?.AttachedEntity.HasValue == true)
         {
             var user = _entManager.GetNetEntity(session.AttachedEntity.Value);
-            _entNetworkManager.SendSystemNetworkMessage(
+            OnGeneticMessage?.Invoke(
                 new DnaModifierConsoleRenameBufferEvent(_console, user, index));
         }
     }
 
     private void OnExportOnDiskPressed(int index)
     {
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleExportOnDiskEvent(_console, index));
     }
 
     private void OnExportFromDiskPressed(int index)
     {
-        _entNetworkManager.SendSystemNetworkMessage(
+        OnGeneticMessage?.Invoke(
             new DnaModifierConsoleExportFromDiskEvent(_console, index));
     }
-
-    private sealed class ModifyButton : Button
-    {
-        public string Block { get; set; }
-        public int Values { get; set; }
-
-        public ModifyButton(string block, int values)
-        {
-            Block = block;
-            Values = values;
-        }
-    }
-
-    #region Initilize U.I.
-    private void InitilizeUniqueIdentifiers(UniqueIdentifiersData unique)
-    {
-        _initializedUi = true;
-        var blocks = new List<(string BlockName, string[] Values)>
-        {
-            ("1", unique.HairColorR),
-            ("2", unique.HairColorG),
-            ("3", unique.HairColorB),
-            ("4", unique.SecondaryHairColorR),
-            ("5", unique.SecondaryHairColorG),
-            ("6", unique.SecondaryHairColorB),
-            ("7", unique.BeardColorR),
-            ("8", unique.BeardColorG),
-            ("9", unique.BeardColorB),
-            ("13", unique.SkinTone),
-            ("14", unique.FurColorR),
-            ("15", unique.FurColorG),
-            ("16", unique.FurColorB),
-            ("17", unique.HeadAccessoryColorR),
-            ("18", unique.HeadAccessoryColorG),
-            ("19", unique.HeadAccessoryColorB),
-            ("20", unique.HeadMarkingColorR),
-            ("21", unique.HeadMarkingColorG),
-            ("22", unique.HeadMarkingColorB),
-            ("23", unique.BodyMarkingColorR),
-            ("24", unique.BodyMarkingColorG),
-            ("25", unique.BodyMarkingColorB),
-            ("26", unique.TailMarkingColorR),
-            ("27", unique.TailMarkingColorG),
-            ("28", unique.TailMarkingColorB),
-            ("29", unique.EyeColorR),
-            ("30", unique.EyeColorG),
-            ("31", unique.EyeColorB),
-            ("32", unique.Gender),
-            ("33", unique.BeardStyle),
-            ("34", unique.HairStyle),
-            ("35", unique.HeadAccessoryStyle),
-            ("36", unique.HeadMarkingStyle),
-            ("37", unique.BodyMarkingStyle),
-            ("38", unique.TailMarkingStyle)
-        };
-
-        var rowContainer = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(0, 0, 0, 10)
-        };
-
-        var currentRow = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal
-        };
-
-        for (int i = 0; i < blocks.Count; i++)
-        {
-            CreateUiButtonsForBlock(blocks[i].BlockName, blocks[i].Values, currentRow);
-            if ((i + 1) % 5 == 0 || i == blocks.Count - 1)
-            {
-                rowContainer.AddChild(currentRow);
-                currentRow = new BoxContainer
-                {
-                    Orientation = BoxContainer.LayoutOrientation.Horizontal
-                };
-            }
-        }
-
-        UiContainer.AddChild(rowContainer);
-    }
-
-    private void CreateUiButtonsForBlock(string blockName, string[] values, BoxContainer parentContainer)
-    {
-        var blockContainer = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(5, 0, 5, 0)
-        };
-
-        var blockLabel = new Label
-        {
-            Text = blockName,
-            MinWidth = 25,
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor }
-        };
-
-        blockContainer.AddChild(blockLabel);
-
-        for (int i = 0; i < values.Length; i++)
-        {
-            var value = values[i];
-            var button = new ModifyButton(blockName, i)
-            {
-                Text = value,
-                MinWidth = 40,
-                Margin = new Thickness(0, 2),
-                ToggleMode = true
-            };
-
-            button.OnPressed += _ => OnButtonUiPressed(button);
-
-            if (_activeButtonUi == null)
-            {
-                button.Pressed = true;
-                _activeButtonUi = button;
-            }
-
-            blockContainer.AddChild(button);
-        }
-
-        parentContainer.AddChild(blockContainer);
-    }
-
-    private void OnButtonUiPressed(ModifyButton pressedButton)
-    {
-        if (pressedButton == _activeButtonUi)
-        {
-            pressedButton.Pressed = true;
-            return;
-        }
-
-        if (_activeButtonUi != null)
-        {
-            _activeButtonUi.Pressed = false;
-        }
-
-        _activeButtonUi = pressedButton;
-        pressedButton.Pressed = true;
-    }
-    #endregion
-
-    #region Initilize S.E.
-    private void InitilizeStructuralEnzymes(List<EnzymesPrototypeInfo> enzymes)
-    {
-        _initializedSe = true;
-
-        var blocks = new List<(string BlockName, string[] Values)>();
-        for (int i = 0; i < enzymes.Count; i++)
-        {
-            var enzyme = enzymes[i];
-            var blockName = $"{i + 1}";
-            var values = enzyme.HexCode;
-
-            blocks.Add((blockName, values));
-        }
-
-        var rowContainer = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(0, 0, 0, 10)
-        };
-
-        var currentRow = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal
-        };
-
-        for (int i = 0; i < blocks.Count; i++)
-        {
-            CreateButtonsSeForBlock(blocks[i].BlockName, blocks[i].Values, currentRow);
-
-            if ((i + 1) % 5 == 0 || i == blocks.Count - 1)
-            {
-                rowContainer.AddChild(currentRow);
-                currentRow = new BoxContainer
-                {
-                    Orientation = BoxContainer.LayoutOrientation.Horizontal
-                };
-            }
-        }
-
-        SeContainer.AddChild(rowContainer);
-    }
-
-    private void CreateButtonsSeForBlock(string blockName, string[] values, BoxContainer parentContainer)
-    {
-        var blockContainer = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(5, 0, 5, 0)
-        };
-
-        var blockLabel = new Label
-        {
-            Text = blockName,
-            MinWidth = 25,
-            StyleClasses = { StyleNano.StyleClassLabelSecondaryColor }
-        };
-
-        blockContainer.AddChild(blockLabel);
-
-        for (int i = 0; i < values.Length; i++)
-        {
-            var value = values[i];
-            var button = new ModifyButton(blockName, i)
-            {
-                Text = value,
-                MinWidth = 40,
-                Margin = new Thickness(0, 2),
-                ToggleMode = true
-            };
-
-            button.OnPressed += _ => OnButtonSePressed(button);
-
-            if (_activeButtonSe == null)
-            {
-                button.Pressed = true;
-                _activeButtonSe = button;
-            }
-
-            blockContainer.AddChild(button);
-        }
-
-        parentContainer.AddChild(blockContainer);
-    }
-
-    private void OnButtonSePressed(ModifyButton pressedButton)
-    {
-        if (pressedButton == _activeButtonSe)
-        {
-            pressedButton.Pressed = true;
-            return;
-        }
-
-        if (_activeButtonSe != null)
-        {
-            _activeButtonSe.Pressed = false;
-        }
-
-        _activeButtonSe = pressedButton;
-        pressedButton.Pressed = true;
-    }
-    #endregion
 
     #region Initilize Disk
     private void EnableBufferBlock(int bufferIndex)
@@ -1089,7 +633,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             var reagentTransferButton = new ReagentButton(text, amount, reagent, styleClass);
             reagentTransferButton.OnPressed += args =>
             {
-                _entNetworkManager.SendSystemNetworkMessage(
+                OnGeneticMessage?.Invoke(
                     new DnaModifierConsoleReagentButtonEvent(_console, amount, reagent));
             };
             buttons.Add(reagentTransferButton);

@@ -10,6 +10,8 @@ namespace Content.Shared.Genetics.Systems
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
         [Dependency] private readonly IRobustRandom _random = default!;
 
+        public const string SpeciesGene = "Species";
+
         private List<EnzymesPrototypeInfo> _enzymesPrototypes = new List<EnzymesPrototypeInfo>();
         private bool _isInitialized = false;
 
@@ -43,38 +45,23 @@ namespace Content.Shared.Genetics.Systems
             var allEnzymesPrototypes = _prototypeManager.EnumeratePrototypes<StructuralEnzymesPrototype>().ToList();
             _random.Shuffle(allEnzymesPrototypes);
 
-            int maxBlocks = 54;
-            int blocksToAdd = Math.Min(allEnzymesPrototypes.Count, maxBlocks);
-
-            var allBlocks = new List<EnzymesPrototypeInfo>();
-            for (int i = 0; i < blocksToAdd; i++)
+            var replaced = allEnzymesPrototypes.SelectMany(p => p.Replaces).ToHashSet();
+            allEnzymesPrototypes.RemoveAll(p => replaced.Contains(p.ID));
+            foreach (var prototype in allEnzymesPrototypes)
             {
-                allBlocks.Add(new EnzymesPrototypeInfo
+                _enzymesPrototypes.Add(new EnzymesPrototypeInfo
                 {
-                    EnzymesPrototypeId = allEnzymesPrototypes[i].ID
+                    EnzymesPrototypeId = prototype.ID,
+                    Order = _enzymesPrototypes.Count + 1
                 });
             }
 
-            for (int i = blocksToAdd; i < maxBlocks; i++)
+            // Wega's former block 55: always last, independent of catalogue size.
+            _enzymesPrototypes.Add(new EnzymesPrototypeInfo
             {
-                allBlocks.Add(new EnzymesPrototypeInfo());
-            }
-
-            _random.Shuffle(allBlocks);
-
-            for (int i = 0; i < allBlocks.Count; i++)
-            {
-                allBlocks[i].Order = i + 1;
-                _enzymesPrototypes.Add(allBlocks[i]);
-            }
-
-            // Last block
-            var lastEmptyBlock = new EnzymesPrototypeInfo
-            {
-                Order = 55
-            };
-
-            _enzymesPrototypes.Add(lastEmptyBlock);
+                EnzymesPrototypeId = SpeciesGene,
+                Order = _enzymesPrototypes.Count + 1
+            });
 
             _isInitialized = true;
         }

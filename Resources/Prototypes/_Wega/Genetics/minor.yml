@@ -1,6 +1,8 @@
 # Minor / 8 0 2
 - type: structuralEnzymes
   id: GeneticsHeatResistanceMinor
+  name: Heat Resistance
+  abbreviation: Heat Resistance
   message: genetics-heat-resistance-message
   typeDeviation: Minor
   costInstability: 10
@@ -9,6 +11,8 @@
 
 - type: structuralEnzymes
   id: GeneticsShockImmunityMinor
+  name: Shock Immunity
+  abbreviation: Shock Immunity
   message: genetics-shock-immunity-message
   typeDeviation: Minor
   costInstability: 10
@@ -17,6 +21,8 @@
 
 - type: structuralEnzymes
   id: GeneticsSoberMinor
+  name: Sober
+  abbreviation: Sober
   message: genetics-sober-message
   typeDeviation: Minor
   costInstability: 5
@@ -25,6 +31,8 @@
 
 - type: structuralEnzymes
   id: GeneticsStrongMinor
+  name: Strong
+  abbreviation: Strong
   message: genetics-strong-message
   typeDeviation: Minor
   costInstability: 15

@@ -73,9 +73,9 @@ public sealed class DnaServerSystem : EntitySystem
         {
             switch (bufferIndex)
             {
-                case 1: server.Comp.Buffer1 = data; break;
-                case 2: server.Comp.Buffer2 = data; break;
-                case 3: server.Comp.Buffer3 = data; break;
+                case 1: server.Comp.Buffer1 = (EnzymeInfo) data.Clone(); break;
+                case 2: server.Comp.Buffer2 = (EnzymeInfo) data.Clone(); break;
+                case 3: server.Comp.Buffer3 = (EnzymeInfo) data.Clone(); break;
                 default: return false;
             }
         }
@@ -101,9 +101,9 @@ public sealed class DnaServerSystem : EntitySystem
         {
             switch (bufferIndex)
             {
-                case 1: server.Comp.Buffer1 = data; break;
-                case 2: server.Comp.Buffer2 = data; break;
-                case 3: server.Comp.Buffer3 = data; break;
+                case 1: server.Comp.Buffer1 = (EnzymeInfo) data.Clone(); break;
+                case 2: server.Comp.Buffer2 = (EnzymeInfo) data.Clone(); break;
+                case 3: server.Comp.Buffer3 = (EnzymeInfo) data.Clone(); break;
                 default: return false;
             }
         }

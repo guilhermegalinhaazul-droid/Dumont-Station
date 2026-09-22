@@ -5,6 +5,8 @@
 # Disease / 8 0 2
 - type: structuralEnzymes
   id: GeneticsPermanentBlindnessDisease
+  name: Permanent Blindness
+  abbreviation: Permanent Blindness
   message: genetics-permanent-blindness-message
   typeDeviation: Disease
   costInstability: -15
@@ -13,6 +15,8 @@
 
 - type: structuralEnzymes
   id: GeneticsAuldImperialDisease
+  name: Auld Imperial
+  abbreviation: Auld Imperial
   message: genetics-auld-imperial-message
   typeDeviation: Disease
   addComponent:
@@ -20,6 +24,8 @@
 
 - type: structuralEnzymes
   id: GeneticsClumsinessDisease
+  name: Clumsiness
+  abbreviation: Clumsiness
   message: genetics-clumsiness-message
   typeDeviation: Disease
   costInstability: -5
@@ -28,6 +34,8 @@
 
 - type: structuralEnzymes
   id: GeneticsColourblindnessDisease
+  name: Colourblindness
+  abbreviation: Colourblindness
   message: genetics-colourblindness-message
   typeDeviation: Disease
   costInstability: -10
@@ -36,6 +44,8 @@
 
 - type: structuralEnzymes
   id: GeneticsComicDisease
+  name: Comic
+  abbreviation: Comic
   message: genetics-comic-message
   typeDeviation: Disease
   addComponent:
@@ -43,6 +53,8 @@
 
 - type: structuralEnzymes
   id: GeneticsCoughingDisease
+  name: Coughing
+  abbreviation: Coughing
   message: genetics-coughing-message
   typeDeviation: Disease
   costInstability: -5
@@ -51,6 +63,8 @@
 
 - type: structuralEnzymes
   id: GeneticsDeafnessDisease
+  name: Deafness
+  abbreviation: Deafness
   message: genetics-deafness-message
   typeDeviation: Disease
   costInstability: -15
@@ -59,6 +73,8 @@
 
 - type: structuralEnzymes
   id: GeneticsDizzyDisease
+  name: Dizzy
+  abbreviation: Dizzy
   message: genetics-dizzy-message
   typeDeviation: Disease
   costInstability: -5
@@ -67,6 +83,8 @@
 
 - type: structuralEnzymes
   id: GeneticsEpilepsyDisease
+  name: Epilepsy
+  abbreviation: Epilepsy
   message: genetics-epilepsy-message
   typeDeviation: Disease
   costInstability: -10
@@ -75,6 +93,8 @@
 
 - type: structuralEnzymes
   id: GeneticsHornsDisease
+  name: Horns
+  abbreviation: Horns
   message: genetics-horns-message
   typeDeviation: Disease
   addComponent:
@@ -82,6 +102,8 @@
 
 - type: structuralEnzymes
   id: GeneticsIncendiaryMitochondriaDisease
+  name: Incendiary Mitochondria
+  abbreviation: Incendiary Mitochondria
   message: genetics-incendiary-mitochondria-message
   typeDeviation: Disease
   addComponent:
@@ -89,6 +111,8 @@
 
 - type: structuralEnzymes
   id: GeneticsLispDisease
+  name: Lisp
+  abbreviation: Lisp
   message: genetics-lisp-message
   typeDeviation: Disease
   addComponent:
@@ -96,6 +120,8 @@
 
 - type: structuralEnzymes
   id: GeneticsLoudDisease
+  name: Loud
+  abbreviation: Loud
   message: genetics-loud-message
   typeDeviation: Disease
   addComponent:
@@ -103,6 +129,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMutedDisease
+  name: Muted
+  abbreviation: Muted
   message: genetics-muted-message
   typeDeviation: Disease
   costInstability: -10
@@ -111,6 +139,8 @@
 
 - type: structuralEnzymes
   id: GeneticsBlindnessDisease
+  name: Blindness
+  abbreviation: Blindness
   message: genetics-blindness-message
   typeDeviation: Disease
   costInstability: -10
@@ -120,6 +150,8 @@
 
 - type: structuralEnzymes
   id: GeneticsStutteringDisease
+  name: Stuttering
+  abbreviation: Stuttering
   message: genetics-stuttering-message
   typeDeviation: Disease
   costInstability: -10
@@ -128,6 +160,8 @@
 
 - type: structuralEnzymes
   id: GeneticsObesityDisease
+  name: Obesity
+  abbreviation: Obesity
   message: genetics-obesity-message
   typeDeviation: Disease
   costInstability: -5
@@ -136,6 +170,8 @@
 
 - type: structuralEnzymes
   id: GeneticsRadiationSourceDisease
+  name: Radiation Source
+  abbreviation: Radiation Source
   message: genetics-radiation-message
   typeDeviation: Disease
   costInstability: -15
@@ -148,6 +184,8 @@
 
 - type: structuralEnzymes
   id: GeneticsSouthernDisease
+  name: Southern
+  abbreviation: Southern
   message: genetics-southern-message
   typeDeviation: Disease
   addComponent:
@@ -155,6 +193,8 @@
 
 - type: structuralEnzymes
   id: GeneticsTourettesSyndromeDisease
+  name: Tourettes Syndrome
+  abbreviation: Tourettes Syndrome
   message: genetics-tourettes-message
   typeDeviation: Disease
   costInstability: -10
@@ -163,6 +203,8 @@
 
 - type: structuralEnzymes
   id: GeneticsUnintelligibleDisease
+  name: Unintelligible
+  abbreviation: Unintelligible
   message: genetics-unintelligible-message
   typeDeviation: Disease
   costInstability: -5
@@ -171,6 +213,8 @@
 
 - type: structuralEnzymes
   id: GeneticsWeaknessDisease
+  name: Weakness
+  abbreviation: Weakness
   message: genetics-weakness-message
   typeDeviation: Disease
   costInstability: -10
@@ -179,6 +223,8 @@
 
 - type: structuralEnzymes
   id: GeneticsWingdingsDisease
+  name: Wingdings
+  abbreviation: Wingdings
   message: genetics-wingdings-message
   typeDeviation: Disease
   costInstability: -5
@@ -187,6 +233,8 @@
 
 - type: structuralEnzymes
   id: GeneticsAphasiaDisease
+  name: Aphasia
+  abbreviation: Aphasia
   message: genetics-aphasia-message
   typeDeviation: Disease
   costInstability: -5
@@ -195,6 +243,8 @@
 
 - type: structuralEnzymes
   id: GeneticsParalyzedDisease
+  name: Paralyzed
+  abbreviation: Paralyzed
   message: genetics-paralyzed-message
   typeDeviation: Disease
   costInstability: -15

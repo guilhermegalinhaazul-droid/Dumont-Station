@@ -1,6 +1,8 @@
 # Basic / D A C
 - type: structuralEnzymes
   id: GeneticsEmpatheticThoughtBasic
+  name: Empathetic Thought
+  abbreviation: Empathetic Thought
   message: genetics-empathetic-thought-message
   typeDeviation: Base
   costInstability: 5
@@ -9,6 +11,8 @@
 
 - type: structuralEnzymes
   id: GeneticsHulkBasic
+  name: Hulk
+  abbreviation: Hulk
   message: genetics-hulk-message
   typeDeviation: Base
   chanceAssimilation: 0.15
@@ -18,6 +22,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMatterEaterBasic
+  name: Matter Eater
+  abbreviation: Matter Eater
   message: genetics-matter-eater-message
   typeDeviation: Base
   costInstability: 10
@@ -26,6 +32,8 @@
 
 - type: structuralEnzymes
   id: GeneticsSmallHeightBasic
+  name: Small Height
+  abbreviation: Small Height
   message: genetics-small-height-message
   typeDeviation: Base
   addComponent:
@@ -33,6 +41,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNoBreathingBasic
+  name: No Breathing
+  abbreviation: No Breathing
   message: genetics-no-breathing-message
   typeDeviation: Base
   chanceAssimilation: 0.25
@@ -42,6 +52,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNoPrintsBasic
+  name: No Prints
+  abbreviation: No Prints
   message: genetics-no-prints-message
   typeDeviation: Base
   costInstability: 5
@@ -50,6 +62,8 @@
 
 - type: structuralEnzymes
   id: GeneticsPsyResistBasic
+  name: Psy Resist
+  abbreviation: Psy Resist
   message: genetics-psy-resist-message
   typeDeviation: Base
   addComponent:
@@ -57,6 +71,8 @@
 
 - type: structuralEnzymes
   id: GeneticsTelekinesisBasic
+  name: Telekinesis
+  abbreviation: Telekinesis
   message: genetics-telekinesis-message
   typeDeviation: Base
   chanceAssimilation: 0.15
@@ -66,6 +82,8 @@
 
 - type: structuralEnzymes
   id: GeneticsLongVisionBasic
+  name: Long Vision
+  abbreviation: Long Vision
   message: genetics-long-vision-message
   typeDeviation: Base
   costInstability: 10
@@ -74,6 +92,8 @@
 
 - type: structuralEnzymes
   id: GeneticsJumpBasic
+  name: Jump
+  abbreviation: Jump
   message: genetics-jump-message
   typeDeviation: Base
   costInstability: 5

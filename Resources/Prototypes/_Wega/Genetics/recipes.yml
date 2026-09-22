@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Recipes from Trauma Station.
+- type: geneticRecipe
+  id: Hulk
+  result: MutationHulk
+  required:
+  - MutationRadioactivity
+  - MutationStrength
+- type: geneticRecipe
+  id: Ork
+  result: MutationOrk
+  required:
+  - MutationHulk
+  - MutationClumsiness
+- type: geneticRecipe
+  id: ThermalAdaptation
+  result: MutationThermalAdaptation
+  required:
+  - MutationColdAdaptation
+  - MutationHeatAdaptation
+- type: geneticRecipe
+  id: ThermalWeakness
+  result: MutationThermalWeakness
+  required:
+  - MutationColdWeakness
+  - MutationHeatWeakness

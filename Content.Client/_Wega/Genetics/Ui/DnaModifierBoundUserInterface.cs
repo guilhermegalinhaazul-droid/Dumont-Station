@@ -26,6 +26,8 @@ public sealed class DnaModifierBoundUserInterface : BoundUserInterface
 
         _window = this.CreateWindow<DnaModifierWindow>();
 
+        _window.OnGeneticMessage += SendMessage;
+
         _window.EjectButtonDisk.OnPressed += _ => SendMessage(
             new ItemSlotButtonPressedEvent(SharedDnaModifier.DiskSlotName));
     }

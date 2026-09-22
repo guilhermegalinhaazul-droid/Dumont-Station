@@ -25,6 +25,11 @@ public sealed class GeneCatalogEntry
 [Serializable, NetSerializable]
 public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
 {
+    public List<GeneticGeneState> Genes = new();
+    public GeneticPuzzleState? Puzzle;
+    public List<string> AppearanceFields = new();
+    public Dictionary<string, List<string>> AppearanceOptions = new();
+    public string GeneticStatus = string.Empty;
     public readonly NetEntity Console;
     public readonly UniqueIdentifiersData? Unique;
     public readonly List<EnzymesPrototypeInfo>? Enzymes;

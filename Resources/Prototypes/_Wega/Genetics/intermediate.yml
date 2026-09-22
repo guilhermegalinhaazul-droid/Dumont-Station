@@ -1,6 +1,8 @@
 # Intermediate / B E A
 - type: structuralEnzymes
   id: GeneticsChameleonIntermediate
+  name: Chameleon
+  abbreviation: Chameleon
   message: genetics-chameleon-message
   typeDeviation: Intermediate
   chanceAssimilation: 0.15
@@ -10,6 +12,8 @@
 
 - type: structuralEnzymes
   id: GeneticsCloakOfDarknessIntermediate
+  name: Cloak Of Darkness
+  abbreviation: Cloak Of Darkness
   message: genetics-cloak-of-darkness-message
   typeDeviation: Intermediate
   chanceAssimilation: 0.25
@@ -19,6 +23,8 @@
 
 - type: structuralEnzymes
   id: GeneticsColdResistanceIntermediate
+  name: Cold Resistance
+  abbreviation: Cold Resistance
   message: genetics-cold-resistance-message
   typeDeviation: Intermediate
   costInstability: 10
@@ -27,6 +33,8 @@
 
 - type: structuralEnzymes
   id: GeneticsFlashImmunityIntermediate
+  name: Flash Immunity
+  abbreviation: Flash Immunity
   message: genetics-flash-immunity-message
   typeDeviation: Intermediate
   costInstability: 10
@@ -35,6 +43,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNightVisionIntermediate
+  name: Night Vision
+  abbreviation: Night Vision
   message: genetics-night-vision-message
   typeDeviation: Intermediate
   costInstability: 10
@@ -43,6 +53,8 @@
 
 - type: structuralEnzymes
   id: GeneticsPolymorphismIntermediate
+  name: Polymorphism
+  abbreviation: Polymorphism
   message: genetics-polymorphism-message
   typeDeviation: Intermediate
   costInstability: 10
@@ -51,6 +63,8 @@
 
 - type: structuralEnzymes
   id: GeneticsRegenerationIntermediate
+  name: Regeneration
+  abbreviation: Regeneration
   message: genetics-regenerate-message
   typeDeviation: Intermediate
   costInstability: 10
@@ -59,6 +73,8 @@
 
 - type: structuralEnzymes
   id: GeneticsSpeedUpIntermediate
+  name: Speed Up
+  abbreviation: Speed Up
   message: genetics-super-speed-message
   typeDeviation: Intermediate
   costInstability: 15
@@ -67,6 +83,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMindCommunicationIntermediate
+  name: Mind Communication
+  abbreviation: Mind Communication
   message: genetics-mind-communication-message
   typeDeviation: Intermediate
   costInstability: 5
@@ -75,6 +93,8 @@
 
 - type: structuralEnzymes
   id: GeneticsThermalVisionIntermediate
+  name: Thermal Vision
+  abbreviation: Thermal Vision
   message: genetics-thermal-vision-message
   typeDeviation: Intermediate
   chanceAssimilation: 0.25
@@ -84,6 +104,8 @@
 
 - type: structuralEnzymes
   id: GeneticsRemoteViewingIntermediate
+  name: Remote Viewing
+  abbreviation: Remote Viewing
   message: genetics-remote-viewing-message
   typeDeviation: Intermediate
   costInstability: 5
@@ -92,6 +114,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMorphismIntermediate
+  name: Morphism
+  abbreviation: Morphism
   message: genetics-morphism-message
   typeDeviation: Intermediate
   costInstability: 5
@@ -100,6 +124,8 @@
 
 - type: structuralEnzymes
   id: GeneticsCryokinesisIntermediate
+  name: Cryokinesis
+  abbreviation: Cryokinesis
   message: genetics-cryokinesis-message
   typeDeviation: Intermediate
   costInstability: 10

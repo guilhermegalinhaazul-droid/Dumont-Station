@@ -11,6 +11,7 @@
   - type: DnaClient
   - type: DnaServer
   - type: DnaModifierConsole
+  - type: ResearchClient
   - type: DeviceList
   - type: DeviceNetwork
     deviceNetId: Wired

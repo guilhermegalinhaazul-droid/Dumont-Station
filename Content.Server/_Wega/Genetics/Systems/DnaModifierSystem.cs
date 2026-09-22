@@ -60,6 +60,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         base.Initialize();
 
         InitializeInjector();
+        InitializeGeneTraits();
         InitializeMap();
 
         SubscribeLocalEvent<DnaModifierComponent, ComponentInit>(OnDnaModifierInit);
@@ -131,7 +132,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         foreach (var enzyme in enzymesToModify)
         {
-            enzyme.HexCode = GetHexCodeDisease();
+            enzyme.Active = true;
         }
 
         TryChangeStructuralEnzymes((uid, dnaModifier));
@@ -488,9 +489,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             {
                 EnzymesPrototypeId = enzymePrototype.EnzymesPrototypeId,
                 Order = enzymePrototype.Order,
-                HexCode = enzymePrototype.Order == 55
-                    ? (hasHumanoidAppearance ? GenerateLastHexCode() : GenerateHexCode())
-                    : GenerateHexCode()
+                Active = enzymePrototype.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene && hasHumanoidAppearance
             };
 
             uniqueEnzymesPrototypes.Add(uniqueEnzyme);
@@ -499,23 +498,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         component.EnzymesPrototypes = uniqueEnzymesPrototypes;
     }
 
-    private string[] GenerateHexCode()
-    {
-        var firstDigit = _random.Next(0, 3).ToString("X1");
-        var secondDigit = _random.Next(0, 16).ToString("X1");
-        var thirdDigit = _random.Next(0, 16).ToString("X1");
-
-        return new[] { firstDigit, secondDigit, thirdDigit };
-    }
-
-    private string[] GenerateLastHexCode()
-    {
-        var firstDigit = _random.Next(8, 16).ToString("X1");
-        var secondDigit = _random.Next(0, 16).ToString("X1");
-        var thirdDigit = _random.Next(0, 16).ToString("X1");
-
-        return new[] { firstDigit, secondDigit, thirdDigit };
-    }
     #endregion
 
     #region Instability
@@ -560,7 +542,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 continue;
 
             bool hasComponent = enzymePrototype.AddComponent != null && enzymePrototype.AddComponent
-                .Any(componentEntry =>
+                .All(componentEntry =>
                 {
                     var componentType = componentEntry.Value.Component?.GetType();
                     return componentType != null && HasComp(uid, componentType);
@@ -568,7 +550,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             if (hasComponent)
             {
-                enzyme.HexCode = GetHexCodeForType(enzymePrototype.TypeDeviation);
+                enzyme.Active = true;
+                component.AppliedGenes.Add(enzyme.EnzymesPrototypeId);
                 totalInstability += enzymePrototype.CostInstability;
 
                 if (enzymePrototype.TypeDeviation != EnzymesType.Disease
@@ -585,47 +568,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         }
 
         UpdateInstability(uid, component, totalInstability);
-    }
-
-    private string[] GetHexCodeForType(EnzymesType type)
-    {
-        int firstDigit;
-        switch (type)
-        {
-            case EnzymesType.Disease:
-            case EnzymesType.Minor:
-                firstDigit = 9;
-                break;
-
-            case EnzymesType.Intermediate:
-                firstDigit = 0xC;
-                break;
-
-            case EnzymesType.Base:
-                firstDigit = 0xE;
-                break;
-
-            default:
-                firstDigit = _random.Next(0, 16);
-                break;
-        }
-
-        return new[]
-        {
-            firstDigit.ToString("X1"),
-            _random.Next(0, 16).ToString("X1"),
-            _random.Next(0, 16).ToString("X1")
-        };
-    }
-
-    private string[] GetHexCodeDisease()
-    {
-        return new[]
-        {
-            _random.Next(9, 16).ToString("X1"),
-            _random.Next(0, 16).ToString("X1"),
-            _random.Next(2, 16).ToString("X1")
-        };
     }
 
     private void InstabilityStageOne(EntityUid uid)
@@ -668,8 +610,16 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     public void ChangeDna(Entity<DnaModifierComponent> ent, EnzymeInfo enzyme)
     {
-        if (enzyme.Identifier != null) ent.Comp.UniqueIdentifiers = enzyme.Identifier;
-        if (enzyme.Info != null) ent.Comp.EnzymesPrototypes = enzyme.Info;
+        if (enzyme.Identifier != null) ent.Comp.UniqueIdentifiers = enzyme.Identifier.Clone(enzyme.Identifier);
+        if (enzyme.Info != null && ent.Comp.EnzymesPrototypes != null)
+        {
+            foreach (var gene in enzyme.Info)
+            {
+                var current = ent.Comp.EnzymesPrototypes.FirstOrDefault(e => e.EnzymesPrototypeId == gene.EnzymesPrototypeId);
+                if (current != null)
+                    current.Active = gene.Active;
+            }
+        }
 
         Dirty(ent, ent.Comp);
 
@@ -697,8 +647,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     #region Modify U.I.
 
+    [Dependency] private readonly MetaDataSystem _geneticMetaData = default!;
+
     private void TryChangeUniqueIdentifiers(Entity<DnaModifierComponent> ent, HumanoidAppearanceComponent? humanoid = null)
     {
+        if (ent.Comp.UniqueIdentifiers?.EntityName is { } entityName)
+            _geneticMetaData.SetEntityName(ent, entityName);
         if (!Resolve(ent, ref humanoid) || ent.Comp.UniqueIdentifiers == null)
             return;
 
@@ -808,66 +762,52 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (ent.Comp.EnzymesPrototypes == null)
             return;
 
-        int totalInstability = ent.Comp.Instability;
-        var enzymes = ent.Comp.EnzymesPrototypes;
-        var messagesToShow = new List<string>();
-        foreach (var enzyme in enzymes)
+        var genes = ent.Comp.EnzymesPrototypes;
+        // Remove before adding, so upgrades sharing a component (Hulk -> Ork) get new settings.
+        foreach (var id in ent.Comp.AppliedGenes.ToArray())
         {
-            if (enzyme.Order == 55)
-            {
-                TryChangeLastBlock(ent, ent.Comp, enzyme);
+            if (genes.Any(g => g.EnzymesPrototypeId == id && g.Active))
                 continue;
-            }
-
-            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(enzyme.EnzymesPrototypeId, out var enzymePrototype))
-                continue;
-
-            bool meetsCondition = CheckHexCodeCondition(enzyme.HexCode, enzymePrototype.TypeDeviation);
-            if (enzymePrototype.AddComponent != null)
+            if (_prototype.TryIndex<StructuralEnzymesPrototype>(id, out var prototype))
+                ApplyGeneTraits(ent, prototype, false);
+            if (ent.Comp.GeneComponents.Remove(id, out var owned))
             {
-                if (meetsCondition)
+                foreach (var type in owned)
                 {
-                    bool hasAnyComponent = enzymePrototype.AddComponent
-                        .Any(componentEntry =>
-                        {
-                            var componentType = componentEntry.Value.Component?.GetType();
-                            return componentType != null && HasComp(ent, componentType);
-                        });
-
-                    if (!hasAnyComponent && _random.NextFloat() <= enzymePrototype.ChanceAssimilation)
-                    {
-                        EntityManager.AddComponents(ent, enzymePrototype.AddComponent, false);
-                        totalInstability += enzymePrototype.CostInstability;
-
-                        if (!string.IsNullOrEmpty(enzymePrototype.Message))
-                            messagesToShow.Add(enzymePrototype.Message);
-
-                        _admin.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent):user} acquires a gene type: '{enzymePrototype.ID}'.");
-                    }
-                }
-                else
-                {
-                    foreach (var componentEntry in enzymePrototype.AddComponent)
-                    {
-                        var componentType = componentEntry.Value.Component?.GetType();
-                        if (componentType != null && HasComp(ent, componentType)
-                            && !ent.Comp.InitialAbilities.Contains(componentType))
-                        {
-                            RemComp(ent, componentType);
-                            totalInstability -= enzymePrototype.CostInstability;
-
-                            _admin.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent):user} loses the gene type: '{enzymePrototype.ID}'.");
-                        }
-                    }
+                    var other = ent.Comp.GeneComponents.FirstOrDefault(pair => pair.Key != id &&
+                        _prototype.Index<StructuralEnzymesPrototype>(pair.Key).AddComponent?.Any(c => c.Value.Component.GetType() == type) == true);
+                    if (other.Value != null)
+                        other.Value.Add(type);
+                    else if (!ent.Comp.InitialAbilities.Contains(type))
+                        RemComp(ent, type);
                 }
             }
+            ent.Comp.AppliedGenes.Remove(id);
         }
-
-        UpdateInstability(ent, ent.Comp, totalInstability);
-        if (messagesToShow.Count > 0)
+        foreach (var gene in genes)
         {
-            _ = ShowMessagesWithDelay(ent, messagesToShow);
+            var id = gene.EnzymesPrototypeId;
+            if (!gene.Active || id == StructuralEnzymesIndexerSystem.SpeciesGene || ent.Comp.AppliedGenes.Contains(id) ||
+                !_prototype.TryIndex<StructuralEnzymesPrototype>(id, out var prototype))
+                continue;
+            var owned = new HashSet<Type>();
+            if (prototype.AddComponent != null)
+            {
+                foreach (var entry in prototype.AddComponent)
+                    if (!HasComp(ent, entry.Value.Component.GetType()))
+                        owned.Add(entry.Value.Component.GetType());
+                EntityManager.AddComponents(ent, prototype.AddComponent, false);
+            }
+            ent.Comp.GeneComponents[id] = owned;
+            ent.Comp.AppliedGenes.Add(id);
+            ApplyGeneTraits(ent, prototype, true);
+            _admin.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent):user} acquires gene '{id}'.");
         }
+        var instability = ent.Comp.AppliedGenes.Sum(id => _prototype.Index<StructuralEnzymesPrototype>(id).CostInstability);
+        UpdateInstability(ent, ent.Comp, instability);
+        var species = genes.FirstOrDefault(g => g.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene);
+        if (species != null)
+            TryChangeLastBlock(ent, ent.Comp, species);
     }
 
     private void TryChangeLastBlock(EntityUid target, DnaModifierComponent component, EnzymesPrototypeInfo enzyme)
@@ -880,8 +820,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         _container.TryGetContainingContainer(target, out var targetContainer);
 
-        int hexValue = Convert.ToInt32(enzyme.HexCode[0], 16);
-        if (hexValue < 8)
+        if (!enzyme.Active)
         {
             if (meta.EntityPrototype?.ID == component.Lowest)
                 return;
@@ -925,8 +864,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 EnsureComp<DnaComponent>(child).DNA = targetDna.DNA;
 
             var childDnaModifier = EnsureComp<DnaModifierComponent>(child);
-            childDnaModifier.UniqueIdentifiers = component.UniqueIdentifiers;
-            childDnaModifier.EnzymesPrototypes = component.EnzymesPrototypes?.ToList();
+            childDnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(component.UniqueIdentifiers);
+            childDnaModifier.EnzymesPrototypes = component.EnzymesPrototypes?.Select(e => (EnzymesPrototypeInfo)e.Clone()).ToList();
             childDnaModifier.Instability = component.Instability;
             childDnaModifier.Upper = component.Upper;
             childDnaModifier.Lowest = component.Lowest;
@@ -1079,25 +1018,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         }
     }
 
-    private bool CheckHexCodeCondition(string[] hexCode, EnzymesType type)
-    {
-        int[] values = hexCode.Select(hex => Convert.ToInt32(hex, 16)).ToArray();
-
-        switch (type)
-        {
-            case EnzymesType.Disease:
-            case EnzymesType.Minor:
-                return values[0] > 8 || (values[0] == 8 && values[1] >= 0 && values[2] >= 2);
-
-            case EnzymesType.Intermediate:
-                return values[0] > 0xB || (values[0] == 0xB && values[1] >= 0xE && values[2] >= 0xA);
-
-            case EnzymesType.Base:
-                return values[0] > 0xD || (values[0] == 0xD && values[1] >= 0xA && values[2] >= 0xC);
-
-            default: return false;
-        }
-    }
     #endregion Modify S.E.
 
     #region Chemistry
@@ -1113,11 +1033,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             if (enzymePrototype.TypeDeviation == EnzymesType.Disease)
             {
-                int[] values = enzyme.HexCode.Select(hex => Convert.ToInt32(hex, 16)).ToArray();
-                if (values[0] >= 8 && values[1] >= 0 && values[2] >= 2)
-                {
-                    enzyme.HexCode = GenerateHexCode();
-                }
+                enzyme.Active = false;
             }
         }
 
@@ -1133,9 +1049,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         foreach (var enzyme in component.EnzymesPrototypes)
         {
-            if (enzyme.Order == 55)
+            if (enzyme.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene)
             {
-                enzyme.HexCode = GenerateLastHexCode();
+                enzyme.Active = true;
                 continue;
             }
 
@@ -1144,7 +1060,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             if (enzymePrototype.TypeDeviation == EnzymesType.Disease)
             {
-                enzyme.HexCode = GetHexCodeDisease();
+                enzyme.Active = true;
             }
         }
 
@@ -1187,7 +1103,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             foreach (var enzyme in enzymesToModify)
             {
-                enzyme.HexCode = GetHexCodeDisease();
+                enzyme.Active = true;
             }
 
             TryChangeStructuralEnzymes((uid, component));

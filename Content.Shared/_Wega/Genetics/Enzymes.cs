@@ -25,7 +25,7 @@ public sealed class EnzymeInfo
 public sealed class EnzymesPrototypeInfo
 {
     public string EnzymesPrototypeId { get; set; } = string.Empty;
-    public string[] HexCode { get; set; } = new[] { "0", "0", "0" };
+    public bool Active { get; set; }
     public int Order { get; set; } = default!;
 
     public object Clone()
@@ -33,7 +33,7 @@ public sealed class EnzymesPrototypeInfo
         return new EnzymesPrototypeInfo
         {
             EnzymesPrototypeId = EnzymesPrototypeId,
-            HexCode = (string[])HexCode.Clone(),
+            Active = Active,
             Order = Order
         };
     }

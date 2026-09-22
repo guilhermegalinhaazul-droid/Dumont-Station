@@ -7,6 +7,7 @@ namespace Content.Shared.Genetics;
 [Access(typeof(SharedDnaModifierSystem), typeof(EnzymeInfo))]
 public sealed class UniqueIdentifiersData
 {
+    public string? EntityName { get; set; }
     public string ID { get; set; } = string.Empty;
     public string[] HairColorR { get; set; } = Array.Empty<string>();
     public string[] HairColorG { get; set; } = Array.Empty<string>();
@@ -49,6 +50,7 @@ public sealed class UniqueIdentifiersData
         var newData = new UniqueIdentifiersData()
         {
             ID = data.ID,
+            EntityName = data.EntityName,
             HairColorR = (string[])data.HairColorR.Clone(),
             HairColorG = (string[])data.HairColorG.Clone(),
             HairColorB = (string[])data.HairColorB.Clone(),

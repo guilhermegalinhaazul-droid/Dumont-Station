@@ -18,12 +18,12 @@ dna-modifier-label-ue = Enzimas Únicas:
 
 dna-modifier-label-sixteen = 0 1 2 3 4 5 6 7 8 9 A B C D E F
 
-dna-modifier-tab-ui = Modificação IU
-dna-modifier-box-ui = Modificação de Identificadores Únicos
+dna-modifier-tab-ui = Enzimas Únicas
+dna-modifier-box-ui = Enzimas Únicas
 dna-modifier-label-target = Bloco Selecionado:
 dna-modifier-button-releveration = Irradiar Bloco Selecionado
 
-dna-modifier-tab-se = Modificação EE
+dna-modifier-tab-se = Enzimas Estruturais
 dna-modifier-box-se = Modificação de Enzimas Estruturais
 
 dna-modifier-tab-transfer = Buffer de Dados
@@ -34,8 +34,8 @@ dna-modifier-label-buffer-3 = Célula de Buffer #3
 dna-modifier-button-clear = Limpar
 dna-modifier-button-rename = Renomear
 dna-modifier-button-export = Exportar
-dna-modifier-button-subject-ui = IU do Sujeito
-dna-modifier-button-subject-ui-se = IU & EE do Sujeito
+dna-modifier-button-subject-ui = EU do Sujeito
+dna-modifier-button-subject-ui-se = EU & EE do Sujeito
 dna-modifier-button-subject-se = EE do Sujeito
 
 dna-modifier-button-no-buffer = Buffer de Dados Vazio

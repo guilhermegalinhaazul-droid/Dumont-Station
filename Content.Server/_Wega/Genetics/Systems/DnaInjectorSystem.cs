@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared.Genetics.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.DoAfter;
@@ -81,23 +82,16 @@ public sealed partial class DnaModifierSystem
 
         if (ent.Comp.UniqueIdentifiers != null)
         {
-            dnaModifier.UniqueIdentifiers = ent.Comp.UniqueIdentifiers;
+            dnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(ent.Comp.UniqueIdentifiers);
         }
 
         if (ent.Comp.EnzymesPrototypes != null)
         {
-            if (ent.Comp.EnzymesPrototypes.Count > 1)
+            foreach (var incoming in ent.Comp.EnzymesPrototypes)
             {
-                dnaModifier.EnzymesPrototypes = ent.Comp.EnzymesPrototypes;
-            }
-            else if (ent.Comp.EnzymesPrototypes.Count == 1 && dnaModifier.EnzymesPrototypes != null)
-            {
-                var newCode = ent.Comp.EnzymesPrototypes[0];
-                var existingCode = dnaModifier.EnzymesPrototypes.FirstOrDefault(x => x.Order == newCode.Order);
-                if (existingCode != null)
-                {
-                    existingCode.HexCode = newCode.HexCode;
-                }
+                var existing = dnaModifier.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == incoming.EnzymesPrototypeId);
+                if (existing != null)
+                    existing.Active = incoming.Active;
             }
         }
 
@@ -130,9 +124,7 @@ public sealed partial class DnaModifierSystem
             {
                 EnzymesPrototypeId = enzymePrototype.EnzymesPrototypeId,
                 Order = enzymePrototype.Order,
-                HexCode = enzymePrototype.Order == 55
-                    ? GenerateLastHexCode()
-                    : GenerateHexCode()
+                Active = enzymePrototype.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene
             };
 
             uniqueEnzymesPrototypes.Add(uniqueEnzyme);
