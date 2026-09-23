@@ -13,6 +13,33 @@ public static class GeneticSequence
     public const int StructuralPairs = 16;
     public const int AppearancePairs = 10;
     public static readonly char[] Bases = { 'A', 'T', 'G', 'C' };
+
+    /// <summary>
+    /// Converts the legacy 32-character forensic DNA identifier into the
+    /// nitrogen-base alphabet used by the genetics console. The identifier
+    /// remains unchanged; this is only its stable display representation.
+    /// </summary>
+    public static string ToNitrogenBases(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        if (value.All(c => Array.IndexOf(Bases, char.ToUpperInvariant(c)) >= 0))
+            return value.ToUpperInvariant();
+
+        var result = new char[value.Length];
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = char.ToUpperInvariant(value[i]);
+            result[i] = c is >= '0' and <= '9'
+                ? Bases[(c - '0') % Bases.Length]
+                : c is >= 'A' and <= 'F'
+                    ? Bases[(c - 'A' + 10) % Bases.Length]
+                    : 'N';
+        }
+
+        return new string(result);
+    }
     public static char Matching(char value) => value switch
     {
         'A' => 'T', 'T' => 'A', 'G' => 'C', 'C' => 'G', _ => 'X'

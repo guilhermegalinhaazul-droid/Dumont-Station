@@ -340,7 +340,7 @@ namespace Content.Server.Genetics.System
                     }
 
                     if (TryComp<DnaComponent>(scanBody.Value, out var dna))
-                        scannerBodyDna = dna.DNA ?? string.Empty;
+                        scannerBodyDna = GeneticSequence.ToNitrogenBases(dna.DNA ?? string.Empty);
 
                     if (TryComp<DamageableComponent>(scanBody.Value, out var damage))
                     {
