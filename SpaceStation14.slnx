@@ -44,8 +44,6 @@
   <Project Path="Content.Replay/Content.Replay.csproj" />
   <Project Path="Content.Server.Database/Content.Server.Database.csproj" />
   <Project Path="Content.Server/Content.Server.csproj" />
-  <Project Path="Content.Trauma.Client/Content.Trauma.Client.csproj" />
-  <Project Path="Content.Trauma.Shared/Content.Trauma.Shared.csproj" />
   <Project Path="Content.Shared.Database/Content.Shared.Database.csproj" />
   <Project Path="Content.Shared/Content.Shared.csproj" />
   <Project Path="Content.Tests/Content.Tests.csproj" />
