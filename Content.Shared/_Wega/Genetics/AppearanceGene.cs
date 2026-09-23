@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Linq;
+
 namespace Content.Shared.Genetics;
 
 /// <summary>Lists and accesses appearance fields without reflection.</summary>
