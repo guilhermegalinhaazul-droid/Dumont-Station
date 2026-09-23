@@ -4,8 +4,8 @@
 
 - type: structuralEnzymes
   id: MutationColdAdaptation
-  name: Cold Adaptation
-  abbreviation: Cold Adaptation
+  name: Adaptação ao Frio
+  abbreviation: Adaptação ao Frio
   difficulty: 16
   typeDeviation: Base
   costInstability: 25
@@ -18,8 +18,8 @@
   - type: SpecialLowTempImmunity
 - type: structuralEnzymes
   id: MutationHeatAdaptation
-  name: Heat Adaptation
-  abbreviation: Heat Adaptation
+  name: Adaptação ao Calor
+  abbreviation: Adaptação ao Calor
   difficulty: 16
   typeDeviation: Base
   costInstability: 25
@@ -34,8 +34,8 @@
   - type: AshStormImmune
 - type: structuralEnzymes
   id: MutationThermalAdaptation
-  name: Thermal Adaptation
-  abbreviation: Thermal Adaptation
+  name: Adaptação Térmica
+  abbreviation: Adaptação Térmica
   difficulty: 20
   typeDeviation: Base
   costInstability: 35
@@ -49,8 +49,8 @@
   - type: SpecialHighTempImmunity
 - type: structuralEnzymes
   id: MutationPressureAdaptation
-  name: Pressure Adaptation
-  abbreviation: Pressure Adaptation
+  name: Adaptação à Pressão
+  abbreviation: Adaptação à Pressão
   difficulty: 16
   typeDeviation: Base
   costInstability: 25
@@ -89,8 +89,8 @@
     skinColor: '#828163'
 - type: structuralEnzymes
   id: MutationChameleon
-  name: Chameleon
-  abbreviation: Chameleon
+  name: Camaleão
+  abbreviation: Camaleão
   difficulty: 16
   typeDeviation: Base
   costInstability: 35
@@ -106,8 +106,8 @@
     passiveVisibilityRate: -0.5
 - type: structuralEnzymes
   id: MutationInsulated
-  name: Insulated
-  abbreviation: Insulated
+  name: Isolado
+  abbreviation: Isolado
   difficulty: 16
   typeDeviation: Base
   costInstability: 25
@@ -117,8 +117,8 @@
   - type: Insulated
 - type: structuralEnzymes
   id: MutationBlindness
-  name: Blindness
-  abbreviation: Blindness
+  name: Cegueira
+  abbreviation: Cegueira
   difficulty: 8
   typeDeviation: Disease
   costInstability: -40
@@ -130,8 +130,8 @@
   - type: PermanentBlindness
 - type: structuralEnzymes
   id: MutationNearSightedness
-  name: Near Sightedness
-  abbreviation: Near Sightedness
+  name: Miopia
+  abbreviation: Miopia
   difficulty: 8
   typeDeviation: Disease
   costInstability: -30
@@ -144,8 +144,8 @@
     blindness: 4
 - type: structuralEnzymes
   id: MutationNervousness
-  name: Nervousness
-  abbreviation: Nervousness
+  name: Nervosismo
+  abbreviation: Nervosismo
   difficulty: 8
   typeDeviation: Base
   costInstability: 0
@@ -155,8 +155,8 @@
   - type: StutteringAccent
 - type: structuralEnzymes
   id: MutationDeafness
-  name: Deafness
-  abbreviation: Deafness
+  name: Surdez
+  abbreviation: Surdez
   difficulty: 8
   typeDeviation: Disease
   costInstability: -40
@@ -166,8 +166,8 @@
   - type: Deafness
 - type: structuralEnzymes
   id: MutationDogNose
-  name: Transcendent Olfaction
-  abbreviation: Transcendent Olfaction
+  name: Olfato Transcendente
+  abbreviation: Olfato Transcendente
   difficulty: 12
   typeDeviation: Base
   costInstability: 25
@@ -175,8 +175,8 @@
   - type: ScentTracker
 - type: structuralEnzymes
   id: MutationClever
-  name: Clever
-  abbreviation: Clever
+  name: Astuto
+  abbreviation: Astuto
   difficulty: 8
   typeDeviation: Base
   costInstability: 25
@@ -184,8 +184,8 @@
   - type: ComplexInteraction
 - type: structuralEnzymes
   id: MutationSpatialInstability
-  name: Spatial Instability
-  abbreviation: Spatial Instability
+  name: Instabilidade Espacial
+  abbreviation: Instabilidade Espacial
   difficulty: 18
   typeDeviation: Disease
   costInstability: -30
@@ -198,8 +198,8 @@
     effect: PuddleSparkle
 - type: structuralEnzymes
   id: MutationDwarfism
-  name: Dwarfism
-  abbreviation: Dwarfism
+  name: Nanismo
+  abbreviation: Nanismo
   difficulty: 16
   typeDeviation: Base
   costInstability: 10
@@ -211,8 +211,8 @@
   scale: 1, 0.8
 - type: structuralEnzymes
   id: MutationAcromegaly
-  name: Acromegaly
-  abbreviation: Acromegaly
+  name: Acromegalia
+  abbreviation: Acromegalia
   difficulty: 16
   typeDeviation: Disease
   costInstability: -30
@@ -221,8 +221,8 @@
   scale: 1, 1.25
 - type: structuralEnzymes
   id: MutationGigantism
-  name: Gigantism
-  abbreviation: Gigantism
+  name: Gigantismo
+  abbreviation: Gigantismo
   difficulty: 12
   typeDeviation: Base
   costInstability: 0
@@ -233,8 +233,8 @@
   scale: 1.2, 1.2
 - type: structuralEnzymes
   id: MutationStrength
-  name: Strength
-  abbreviation: Strength
+  name: Força
+  abbreviation: Força
   difficulty: 16
   typeDeviation: Base
   costInstability: 5
@@ -243,16 +243,16 @@
   meleeMultiplier: 1.2
 - type: structuralEnzymes
   id: MutationStimmed
-  name: Stimmed
-  abbreviation: Stimmed
+  name: Estimulado
+  abbreviation: Estimulado
   difficulty: 16
   typeDeviation: Base
   costInstability: 5
   metabolismBonus: 0.25
 - type: structuralEnzymes
   id: MutationColdWeakness
-  name: Cold Weakness
-  abbreviation: Cold Weakness
+  name: Fraqueza ao Frio
+  abbreviation: Fraqueza ao Frio
   difficulty: 12
   typeDeviation: Disease
   costInstability: -15
@@ -266,8 +266,8 @@
       Cold: 1.5
 - type: structuralEnzymes
   id: MutationHeatWeakness
-  name: Heat Weakness
-  abbreviation: Heat Weakness
+  name: Fraqueza ao Calor
+  abbreviation: Fraqueza ao Calor
   difficulty: 12
   typeDeviation: Disease
   costInstability: -15
@@ -281,8 +281,8 @@
       Heat: 1.2
 - type: structuralEnzymes
   id: MutationThermalWeakness
-  name: Homeostatic Shutdown
-  abbreviation: Homeostatic Shutdown
+  name: Colapso Homeostático
+  abbreviation: Colapso Homeostático
   difficulty: 12
   typeDeviation: Disease
   costInstability: -40
@@ -301,8 +301,8 @@
       Heat: 1.3
 - type: structuralEnzymes
   id: MutationClumsiness
-  name: Clumsiness
-  abbreviation: Clumsiness
+  name: Desajeitado
+  abbreviation: Desajeitado
   difficulty: 8
   typeDeviation: Disease
   costInstability: -40
@@ -312,8 +312,8 @@
   - type: Clumsy
 - type: structuralEnzymes
   id: MutationMute
-  name: Mute
-  abbreviation: Mute
+  name: Mudo
+  abbreviation: Mudo
   difficulty: 8
   typeDeviation: Disease
   costInstability: -40
@@ -325,8 +325,8 @@
   - type: Muted
 - type: structuralEnzymes
   id: MutationRadioactivity
-  name: Radioactivity
-  abbreviation: Radioactivity
+  name: Radioatividade
+  abbreviation: Radioatividade
   difficulty: 8
   typeDeviation: Disease
   costInstability: -40
@@ -342,8 +342,8 @@
     softness: 5
 - type: structuralEnzymes
   id: MutationGlowy
-  name: Glowy
-  abbreviation: Glowy
+  name: Luminoso
+  abbreviation: Luminoso
   difficulty: 8
   typeDeviation: Base
   costInstability: 5
@@ -359,8 +359,8 @@
     maxEnergy: 2.0
 - type: structuralEnzymes
   id: MutationAntiGlow
-  name: Anti-Glow
-  abbreviation: Anti-Glow
+  name: Anti-Luminoso
+  abbreviation: Anti-Luminoso
   difficulty: 8
   typeDeviation: Base
   costInstability: 10
@@ -374,8 +374,8 @@
     enabled: true
 - type: structuralEnzymes
   id: MutationAntenna
-  name: Antenna
-  abbreviation: Antenna
+  name: Antena
+  abbreviation: Antena
   difficulty: 8
   typeDeviation: Base
   costInstability: 10
@@ -389,8 +389,8 @@
     - Common
 - type: structuralEnzymes
   id: MutationWebbingProduction
-  name: Webbing Production
-  abbreviation: Webbing Production
+  name: Produção de Teias
+  abbreviation: Produção de Teias
   difficulty: 8
   typeDeviation: Base
   costInstability: 25
@@ -415,8 +415,8 @@
   - type: MedievalAccent
 - type: structuralEnzymes
   id: MutationPigLatin
-  name: Pig Latin
-  abbreviation: Pig Latin
+  name: Latim Suíno
+  abbreviation: Latim Suíno
   difficulty: 8
   typeDeviation: Base
   costInstability: 0

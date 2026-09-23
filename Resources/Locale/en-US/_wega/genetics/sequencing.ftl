@@ -54,3 +54,4 @@ dna-eu-HeadMarkingStyle = Head Marking Style
 dna-eu-BodyMarkingStyle = Body Marking Style
 dna-eu-TailMarkingStyle = Tail Marking Style
 dna-eu-EntityName = Entity Name
+dna-sequence-research-reward = Gene discovered: research received { $points } science points.

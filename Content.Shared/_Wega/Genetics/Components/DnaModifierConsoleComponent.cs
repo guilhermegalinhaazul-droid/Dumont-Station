@@ -35,6 +35,9 @@ public sealed partial class DnaModifierConsoleComponent : Component
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public TimeSpan SubjectInjectCooldown = TimeSpan.FromSeconds(30);
 
+    [ViewVariables]
+    public TimeSpan LastGeneToggleTime;
+
     [DataField("clickSound"), ViewVariables(VVAccess.ReadWrite)]
     public SoundSpecifier ClickSound = new SoundPathSpecifier("/Audio/Machines/machine_switch.ogg");
 }

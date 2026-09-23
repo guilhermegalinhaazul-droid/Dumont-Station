@@ -21,7 +21,6 @@ public sealed partial class DnaModifierWindow
 
     private void InitializeSequencingUi()
     {
-        Tabs.SetTabTitle(4, Loc.GetString("dna-tab-combine"));
         UiContainer.Orientation = BoxContainer.LayoutOrientation.Vertical;
         UiContainer.AddChild(_uniqueGenes);
         UiContainer.AddChild(_appearanceEditor);
@@ -216,17 +215,17 @@ public sealed partial class DnaModifierWindow
         public GeneNameButton(string name)
         {
             _fullName = name;
-            Text = name.Length > 10 ? name[..10] : name;
-            SetWidth = 90;
+            Text = name.Length > 18 ? name[..18] : name;
+            SetWidth = 150;
         }
         protected override void FrameUpdate(FrameEventArgs args)
         {
             base.FrameUpdate(args);
-            if (_fullName.Length <= 10) return;
+            if (_fullName.Length <= 18) return;
             _elapsed += args.DeltaSeconds;
-            var text = _fullName + "          ";
-            var offset = (int) (_elapsed * 3) % text.Length;
-            Text = (text + text).Substring(offset, 10);
+            var text = _fullName + "              ";
+            var offset = (int) (_elapsed * 1.2f) % text.Length;
+            Text = (text + text).Substring(offset, 18);
         }
     }
 }

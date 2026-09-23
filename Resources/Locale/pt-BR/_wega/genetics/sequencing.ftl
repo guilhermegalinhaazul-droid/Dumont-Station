@@ -54,3 +54,4 @@ dna-eu-HeadMarkingStyle = Marcação da cabeça
 dna-eu-BodyMarkingStyle = Marcação do corpo
 dna-eu-TailMarkingStyle = Estilo da cauda
 dna-eu-EntityName = Nome da entidade
+dna-sequence-research-reward = Gene descoberto: a pesquisa recebeu { $points } pontos científicos.

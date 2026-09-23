@@ -180,16 +180,6 @@
 
                     </BoxContainer>
 
-                    <!-- Вкладка Combinar -->
-                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
-                        <Label Text="Combinar" StyleClasses="LabelBig"/>
-                        <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
-                        <BoxContainer Orientation="Vertical" Margin="4">
-                            <Label Text="Combinar"/>
-                            <Label Text="Integrar fluxo híbrido de genes Wega + Trauma/Goobstation sem duplicar sistemas."/>
-                        </BoxContainer>
-                    </BoxContainer>
-
                     <!-- Вкладка Rejuvenators -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <BoxContainer Orientation="Horizontal" Margin="2">
@@ -205,7 +195,7 @@
                             <BoxContainer Name="RejuveContainer" Orientation="Vertical" Margin="4" HorizontalExpand="True"/>
                         </PanelContainer>
                     </BoxContainer>
-                    <BoxContainer Name="CombineContainer" Orientation="Vertical" Margin="5" SeparationOverride="10"/>
+                    <BoxContainer Name="CombineContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10"/>
                 </TabContainer>
             </ScrollContainer>
         </BoxContainer>

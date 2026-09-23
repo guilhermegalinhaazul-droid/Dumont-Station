@@ -142,8 +142,11 @@ public sealed partial class DnaModifierConsoleSystem
 
     private void OnToggleGene(EntityUid uid, DnaModifierConsoleComponent component, GeneticToggleMessage args)
     {
+        if (_timing.CurTime < component.LastGeneToggleTime + TimeSpan.FromSeconds(5))
+            return;
         if (!TrySubject(uid, component, out var subject) || FindGene(subject, args.Number) is not { } gene || !IsDiscovered(gene.EnzymesPrototypeId))
             return;
+        component.LastGeneToggleTime = _timing.CurTime;
         _dnaModifier.SetGeneActive(subject, gene, !_dnaModifier.IsGeneActive(subject, gene));
         UpdateUserInterface(uid, component);
     }
@@ -182,7 +185,11 @@ public sealed partial class DnaModifierConsoleSystem
         else if (pending.Gene is { } id && _discoveredGenes.Add(id))
         {
             if (TryComp<ResearchClientComponent>(uid, out var client) && client.Server is { } server)
-                _research.ModifyServerPoints(server, Difficulty(id) * 500);
+            {
+                var points = Difficulty(id) * 500;
+                _research.ModifyServerPoints(server, points);
+                _popup.PopupEntity(Loc.GetString("dna-sequence-research-reward", ("points", points)), uid, pending.User);
+            }
             var gene = subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == id);
             if (gene != null)
                 _dnaModifier.SetGeneActive(subject, gene, true);

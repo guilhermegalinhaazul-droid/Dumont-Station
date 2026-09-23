@@ -1,8 +1,8 @@
 # Basic / D A C
 - type: structuralEnzymes
   id: GeneticsEmpatheticThoughtBasic
-  name: Empathetic Thought
-  abbreviation: Empathetic Thought
+  name: Pensamento Empático
+  abbreviation: Pensamento Empático
   message: genetics-empathetic-thought-message
   typeDeviation: Base
   costInstability: 5
@@ -22,8 +22,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMatterEaterBasic
-  name: Matter Eater
-  abbreviation: Matter Eater
+  name: Comedor de Matéria
+  abbreviation: Comedor de Matéria
   message: genetics-matter-eater-message
   typeDeviation: Base
   costInstability: 10
@@ -32,8 +32,8 @@
 
 - type: structuralEnzymes
   id: GeneticsSmallHeightBasic
-  name: Small Height
-  abbreviation: Small Height
+  name: Baixa Estatura
+  abbreviation: Baixa Estatura
   message: genetics-small-height-message
   typeDeviation: Base
   addComponent:
@@ -41,8 +41,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNoBreathingBasic
-  name: No Breathing
-  abbreviation: No Breathing
+  name: Sem Respiração
+  abbreviation: Sem Respiração
   message: genetics-no-breathing-message
   typeDeviation: Base
   chanceAssimilation: 0.25
@@ -52,8 +52,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNoPrintsBasic
-  name: No Prints
-  abbreviation: No Prints
+  name: Sem Impressões
+  abbreviation: Sem Impressões
   message: genetics-no-prints-message
   typeDeviation: Base
   costInstability: 5
@@ -62,8 +62,8 @@
 
 - type: structuralEnzymes
   id: GeneticsPsyResistBasic
-  name: Psy Resist
-  abbreviation: Psy Resist
+  name: Resistência Psíquica
+  abbreviation: Resistência Psíquica
   message: genetics-psy-resist-message
   typeDeviation: Base
   addComponent:
@@ -71,8 +71,8 @@
 
 - type: structuralEnzymes
   id: GeneticsTelekinesisBasic
-  name: Telekinesis
-  abbreviation: Telekinesis
+  name: Telecinese
+  abbreviation: Telecinese
   message: genetics-telekinesis-message
   typeDeviation: Base
   chanceAssimilation: 0.15
@@ -82,8 +82,8 @@
 
 - type: structuralEnzymes
   id: GeneticsLongVisionBasic
-  name: Long Vision
-  abbreviation: Long Vision
+  name: Visão Longa
+  abbreviation: Visão Longa
   message: genetics-long-vision-message
   typeDeviation: Base
   costInstability: 10
@@ -92,8 +92,8 @@
 
 - type: structuralEnzymes
   id: GeneticsJumpBasic
-  name: Jump
-  abbreviation: Jump
+  name: Salto
+  abbreviation: Salto
   message: genetics-jump-message
   typeDeviation: Base
   costInstability: 5
