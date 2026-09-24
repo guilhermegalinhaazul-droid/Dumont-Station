@@ -8,6 +8,7 @@ namespace Content.Client._Wega.Genetics.Ui;
 public sealed class PortableDnaScannerWindow : FancyWindow
 {
     private readonly Label _subject = new();
+    private readonly Label _unique = new();
     private readonly Label _dna = new();
     private readonly BoxContainer _genes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly Button _save = new() { Text = Loc.GetString("dna-portable-save") };
@@ -25,6 +26,8 @@ public sealed class PortableDnaScannerWindow : FancyWindow
         var root = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 8 };
         root.AddChild(new Label { Text = Loc.GetString("dna-portable-subject") });
         root.AddChild(_subject);
+        root.AddChild(new Label { Text = Loc.GetString("dna-portable-unique") });
+        root.AddChild(_unique);
         root.AddChild(new Label { Text = Loc.GetString("dna-portable-bases") });
         root.AddChild(_dna);
         root.AddChild(new Label { Text = Loc.GetString("dna-portable-enzymes") });
@@ -41,6 +44,10 @@ public sealed class PortableDnaScannerWindow : FancyWindow
     public void UpdateState(PortableDnaScannerState state)
     {
         _subject.Text = string.IsNullOrWhiteSpace(state.SubjectName) ? Loc.GetString("dna-portable-no-sample") : state.SubjectName;
+        var unique = state.Sample?.Identifier;
+        _unique.Text = unique == null
+            ? Loc.GetString("dna-portable-no-data")
+            : $"ID: {unique.ID}\n{unique.EntityName ?? state.SubjectName}";
         _dna.Text = string.IsNullOrWhiteSpace(state.SubjectDna) ? Loc.GetString("dna-portable-no-data") : state.SubjectDna;
         _genes.RemoveAllChildren();
         foreach (var gene in state.Sample?.Info ?? new List<EnzymesPrototypeInfo>())

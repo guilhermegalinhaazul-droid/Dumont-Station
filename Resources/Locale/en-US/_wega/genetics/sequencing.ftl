@@ -5,6 +5,7 @@ dna-gene-off = OFF
 dna-tab-combine = Combine
 dna-portable-title = Portable DNA Analyzer
 dna-portable-subject = Scanned entity:
+dna-portable-unique = Unique enzymes (UE):
 dna-portable-bases = Nitrogen bases:
 dna-portable-enzymes = UE/SE sample:
 dna-portable-save = Save to disk

@@ -72,6 +72,7 @@ dna-modifier-no-data = Sem Dados
 
 dna-portable-title = Analisador Portátil de DNA
 dna-portable-subject = Entidade escaneada:
+dna-portable-unique = Enzimas únicas (EU):
 dna-portable-bases = Bases nitrogenadas:
 dna-portable-enzymes = Amostra EU/EE:
 dna-portable-save = Salvar no disco
