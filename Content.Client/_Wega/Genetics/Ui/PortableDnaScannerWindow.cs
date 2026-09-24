@@ -11,16 +11,15 @@ public sealed class PortableDnaScannerWindow : FancyWindow
     private readonly Label _unique = new();
     private readonly Label _dna = new();
     private readonly BoxContainer _genes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
-    private readonly Button _save = new() { Text = Loc.GetString("dna-portable-save") };
+    private readonly BoxContainer _saveButtons = new() { Orientation = BoxContainer.LayoutOrientation.Horizontal };
     private readonly Button _clear = new() { Text = Loc.GetString("dna-portable-clear") };
-    public event Action? OnSave;
+    public event Action<PortableDnaSampleKind>? OnSave;
     public event Action? OnClear;
 
     public PortableDnaScannerWindow()
     {
         Title = Loc.GetString("dna-portable-title");
         MinSize = new Vector2(680, 480);
-        _save.OnPressed += _ => OnSave?.Invoke();
         _clear.OnPressed += _ => OnClear?.Invoke();
 
         var root = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 8 };
@@ -35,7 +34,19 @@ public sealed class PortableDnaScannerWindow : FancyWindow
         scroll.AddChild(_genes);
         root.AddChild(scroll);
         var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-        buttons.AddChild(_save);
+        foreach (var kind in Enum.GetValues<PortableDnaSampleKind>())
+        {
+            var save = new Button { Text = Loc.GetString(kind switch
+            {
+                PortableDnaSampleKind.Unique => "dna-portable-save-unique",
+                PortableDnaSampleKind.Structural => "dna-portable-save-structural",
+                _ => "dna-portable-save-both"
+            }) };
+            var selected = kind;
+            save.OnPressed += _ => OnSave?.Invoke(selected);
+            _saveButtons.AddChild(save);
+        }
+        buttons.AddChild(_saveButtons);
         buttons.AddChild(_clear);
         root.AddChild(buttons);
         AddChild(root);
@@ -52,6 +63,10 @@ public sealed class PortableDnaScannerWindow : FancyWindow
         _genes.RemoveAllChildren();
         foreach (var gene in state.Sample?.Info ?? new List<EnzymesPrototypeInfo>())
             _genes.AddChild(new Label { Text = $"{gene.Order}: {gene.EnzymesPrototypeId} — {(gene.Active ? Loc.GetString("dna-portable-active") : Loc.GetString("dna-portable-inactive"))}" });
-        _save.Disabled = state.Sample == null || !state.HasDisk;
+        foreach (var child in _saveButtons.Children)
+        {
+            if (child is Button button)
+                button.Disabled = state.Sample == null || !state.HasDisk;
+        }
     }
 }

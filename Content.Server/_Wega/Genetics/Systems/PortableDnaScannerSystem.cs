@@ -58,7 +58,12 @@ public sealed class PortableDnaScannerSystem : EntitySystem
         if (ent.Comp.Sample == null || !_slots.TryGetSlot(ent.Owner, SharedDnaModifier.DiskSlotName, out var slot) || slot.Item is not { } disk)
             return;
 
-        _dnaModifier.TrySaveInDisk(disk, ent.Comp.Sample);
+        var sample = (EnzymeInfo) ent.Comp.Sample.Clone();
+        if (args.Kind == PortableDnaSampleKind.Unique)
+            sample.Info = null;
+        else if (args.Kind == PortableDnaSampleKind.Structural)
+            sample.Identifier = null;
+        _dnaModifier.TrySaveInDisk(disk, sample);
         UpdateUi(ent);
     }
 

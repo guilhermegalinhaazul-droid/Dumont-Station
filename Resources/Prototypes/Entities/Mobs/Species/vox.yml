@@ -392,7 +392,7 @@
   # Corvax-Wega-Genetics-start
   - type: DnaModifier
     upper: MobVox
-    lowest: MobStokkey
+    lowest: MobStokkeyVox
   # Corvax-Wega-Genetics-end
   - type: TailDuoEmote # Funky Change
 
