@@ -1,5 +1,31 @@
 - type: entity
   parent: BaseItem
+  id: PortableDnaScanner
+  name: portable DNA scanner
+  description: "A handheld analyzer that stores genetic samples on DNA modifier disks."
+  components:
+  - type: Sprite
+    sprite: Objects/Devices/health_analyzer.rsi
+    state: genetic
+  - type: PortableDnaScanner
+  - type: ActivatableUI
+    key: enum.PortableDnaScannerUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.PortableDnaScannerUiKey.Key:
+        type: PortableDnaScannerBoundUserInterface
+  - type: ContainerContainer
+    containers:
+      diskSlot: !type:ContainerSlot
+  - type: ItemSlots
+    slots:
+      diskSlot:
+        whitelist:
+          components:
+          - DnaModifierDisk
+
+- type: entity
+  parent: BaseItem
   id: BaseDnaInjector
   name: DNA injector
   description: "Don't be afraid of injections! They just change the structure of your DNA!"
