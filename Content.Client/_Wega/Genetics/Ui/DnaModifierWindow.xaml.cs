@@ -41,11 +41,26 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
+        // The combine view belongs between the data buffers and structural
+        // enzymes, matching the laboratory workflow.
+        var structuralTab = Tabs.GetChild(1);
+        var combineTab = Tabs.GetChild(2);
+        var transferTab = Tabs.GetChild(3);
+        var rejuvenatorTab = Tabs.GetChild(4);
+        Tabs.RemoveChild(structuralTab);
+        Tabs.RemoveChild(combineTab);
+        Tabs.RemoveChild(transferTab);
+        Tabs.RemoveChild(rejuvenatorTab);
+        Tabs.AddChild(transferTab);
+        Tabs.AddChild(combineTab);
+        Tabs.AddChild(structuralTab);
+        Tabs.AddChild(rejuvenatorTab);
+
         Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
-        Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
-        Tabs.SetTabTitle(2, Loc.GetString("dna-modifier-tab-transfer"));
-        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-rejuvenator"));
-        Tabs.SetTabTitle(4, Loc.GetString("dna-tab-combine"));
+        Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-transfer"));
+        Tabs.SetTabTitle(2, Loc.GetString("dna-tab-combine"));
+        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-se"));
+        Tabs.SetTabTitle(4, Loc.GetString("dna-modifier-tab-rejuvenator"));
 
         InitializeSequencingUi();
         EjectButton.OnPressed += _ => OnGeneticMessage?.Invoke(new DnaModifierConsoleEjectEvent(_console));
@@ -93,6 +108,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
             StatusLabel.Text = state.ScannerBodyStatus;
             SpeciesLabel.Text = string.IsNullOrWhiteSpace(state.ScannerSpecies) ? Loc.GetString("dna-modifier-no-data") : state.ScannerSpecies;
             EjectButton.Disabled = false;
+            AppearancePreview.Visible = state.ScannerBody is not null;
+            if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity))
+                SetScannerPreview(bodyEntity);
         }
         else
         {
@@ -100,6 +118,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             StatusLabel.Text = Loc.GetString("dna-modifier-no-data");
             SpeciesLabel.Text = Loc.GetString("dna-modifier-no-data");
             EjectButton.Disabled = true;
+            AppearancePreview.Visible = false;
+            ClearScannerPreview();
 
             DisabledSubjectDiskBlock(null);
         }

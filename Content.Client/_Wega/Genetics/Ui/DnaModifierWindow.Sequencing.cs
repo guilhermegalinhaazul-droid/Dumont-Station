@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 using System.Linq;
 using System.Numerics;
+using Content.Client.Humanoid;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
+using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
+using Content.Shared.Humanoid.Prototypes;
+using Robust.Shared.Map;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
 
@@ -20,6 +24,28 @@ public sealed partial class DnaModifierWindow
     private string _geneSignature = string.Empty;
     private string _appearanceSignature = string.Empty;
     private int? _puzzleToken;
+    private EntityUid? _appearancePreview;
+    private EntityUid? _appearancePreviewSource;
+
+    private void SetScannerPreview(EntityUid source)
+    {
+        if (_appearancePreview is { } preview && _entManager.EntityExists(preview))
+        {
+            SubjectPreview.SetEntity(preview);
+            return;
+        }
+
+        SubjectPreview.SetEntity(source);
+    }
+
+    private void ClearScannerPreview()
+    {
+        if (_appearancePreview is { } preview && _entManager.EntityExists(preview))
+            _entManager.DeleteEntity(preview);
+
+        _appearancePreview = null;
+        _appearancePreviewSource = null;
+    }
 
     private void InitializeSequencingUi()
     {
@@ -148,11 +174,118 @@ public sealed partial class DnaModifierWindow
             }
 
             var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
-            apply.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, selected()));
+            apply.OnPressed += _ =>
+            {
+                var value = selected();
+                PreviewAppearance(field, value);
+                OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, value));
+            };
             row.AddChild(apply);
             group.AddChild(row);
         }
         parent.AddChild(group);
+    }
+
+    private void PreviewAppearance(string field, string value)
+    {
+        if (_lastUpdate?.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out var source) ||
+            !_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
+            return;
+
+        if (_appearancePreview is not { } preview || !_entManager.EntityExists(preview) ||
+            _appearancePreviewSource != source)
+        {
+            if (preview.IsValid() && _entManager.EntityExists(preview))
+                _entManager.DeleteEntity(preview);
+
+            var prototype = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
+            preview = _entManager.SpawnEntity(prototype.DollPrototype, MapCoordinates.Nullspace);
+            _appearancePreview = preview;
+            _appearancePreviewSource = source;
+        }
+
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var appearance) ||
+            !_entManager.TryGetComponent<SpriteComponent>(preview, out var sprite))
+            return;
+
+        appearance.Species = sourceAppearance.Species;
+        appearance.Sex = sourceAppearance.Sex;
+        appearance.Gender = sourceAppearance.Gender;
+        appearance.SkinColor = sourceAppearance.SkinColor;
+        appearance.EyeColor = sourceAppearance.EyeColor;
+        appearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
+
+        if (field.EndsWith("Style") && value.Length > 0 && _prototypeManager.TryIndex<MarkingPrototype>(value, out var marking))
+        {
+            var category = field switch
+            {
+                nameof(UniqueIdentifiersData.HairStyle) => MarkingCategories.Hair,
+                nameof(UniqueIdentifiersData.BeardStyle) => MarkingCategories.FacialHair,
+                nameof(UniqueIdentifiersData.HeadAccessoryStyle) => MarkingCategories.HeadTop,
+                nameof(UniqueIdentifiersData.HeadMarkingStyle) => MarkingCategories.Head,
+                nameof(UniqueIdentifiersData.BodyMarkingStyle) => MarkingCategories.Chest,
+                nameof(UniqueIdentifiersData.TailMarkingStyle) => MarkingCategories.Tail,
+                _ => MarkingCategories.Special
+            };
+            appearance.MarkingSet.RemoveCategory(category);
+            appearance.MarkingSet.AddBack(category, marking.AsMarking());
+        }
+        else if (field == nameof(UniqueIdentifiersData.Gender) && int.TryParse(value, out var gender))
+        {
+            appearance.Gender = (Gender) Math.Clamp(gender, 0, 2);
+            appearance.Sex = gender == 0 ? Sex.Female : gender == 1 ? Sex.Male : Sex.Unsexed;
+        }
+
+        ApplyColorPreview(state: _lastUpdate, appearance, field, value);
+
+        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, appearance, sprite));
+        SetScannerPreview(source);
+    }
+
+    private static void ApplyColorPreview(DnaModifierBoundUserInterfaceState? state,
+        HumanoidAppearanceComponent appearance, string field, string value)
+    {
+        if (state?.Unique is null || !int.TryParse(value, out var channel))
+            return;
+
+        channel = Math.Clamp(channel, 0, 255);
+        if (field is nameof(UniqueIdentifiersData.EyeColorR) or nameof(UniqueIdentifiersData.EyeColorG)
+            or nameof(UniqueIdentifiersData.EyeColorB))
+        {
+            var color = appearance.EyeColor;
+            var r = field.EndsWith("R") ? channel : color.RByte;
+            var g = field.EndsWith("G") ? channel : color.GByte;
+            var b = field.EndsWith("B") ? channel : color.BByte;
+            appearance.EyeColor = new Color(r, g, b);
+            return;
+        }
+
+        var category = field switch
+        {
+            nameof(UniqueIdentifiersData.HairColorR) or nameof(UniqueIdentifiersData.HairColorG) or nameof(UniqueIdentifiersData.HairColorB)
+                => MarkingCategories.Hair,
+            nameof(UniqueIdentifiersData.BeardColorR) or nameof(UniqueIdentifiersData.BeardColorG) or nameof(UniqueIdentifiersData.BeardColorB)
+                => MarkingCategories.FacialHair,
+            nameof(UniqueIdentifiersData.HeadAccessoryColorR) or nameof(UniqueIdentifiersData.HeadAccessoryColorG) or nameof(UniqueIdentifiersData.HeadAccessoryColorB)
+                => MarkingCategories.HeadTop,
+            nameof(UniqueIdentifiersData.HeadMarkingColorR) or nameof(UniqueIdentifiersData.HeadMarkingColorG) or nameof(UniqueIdentifiersData.HeadMarkingColorB)
+                => MarkingCategories.Head,
+            nameof(UniqueIdentifiersData.BodyMarkingColorR) or nameof(UniqueIdentifiersData.BodyMarkingColorG) or nameof(UniqueIdentifiersData.BodyMarkingColorB)
+                => MarkingCategories.Chest,
+            nameof(UniqueIdentifiersData.TailMarkingColorR) or nameof(UniqueIdentifiersData.TailMarkingColorG) or nameof(UniqueIdentifiersData.TailMarkingColorB)
+                => MarkingCategories.Tail,
+            _ => (MarkingCategories?) null
+        };
+        if (category is not { } markingCategory || !appearance.MarkingSet.TryGetCategory(markingCategory, out var markings)
+            || markings.Count == 0)
+            return;
+
+        var marking = markings[0];
+        var existing = marking.MarkingColors.FirstOrDefault();
+        var r = field.EndsWith("R") ? channel : existing.RByte;
+        var g = field.EndsWith("G") ? channel : existing.GByte;
+        var b = field.EndsWith("B") ? channel : existing.BByte;
+        marking.SetColor(0, new Color(r, g, b));
     }
 
     private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)
