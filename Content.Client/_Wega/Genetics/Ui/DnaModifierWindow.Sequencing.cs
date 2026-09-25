@@ -3,7 +3,6 @@ using System.Linq;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
 using Robust.Client.UserInterface.Controls;
-using Robust.Shared.Timing;
 
 namespace Content.Client._Wega.Genetics.Ui;
 
@@ -40,11 +39,11 @@ public sealed partial class DnaModifierWindow
         {
             _geneSignature = signature;
             _structuralGenes.RemoveAllChildren();
-            var grid = new GridContainer { Columns = 5 };
+            var grid = new GridContainer { Columns = 5, HorizontalExpand = true };
             foreach (var gene in state.Genes)
             {
-                var row = new BoxContainer { Margin = new Thickness(3) };
-                row.AddChild(new Label { Text = gene.Number.ToString(), MinWidth = 24 });
+                var row = new BoxContainer { Margin = new Thickness(1) };
+                row.AddChild(new Label { Text = gene.Number.ToString(), MinWidth = 18 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
@@ -52,7 +51,8 @@ public sealed partial class DnaModifierWindow
                 {
                     Text = Loc.GetString(gene.Active ? "dna-gene-on" : "dna-gene-off"),
                     Disabled = !gene.Discovered,
-                    ModulateSelfOverride = gene.Active ? Color.FromHex("#40C56C") : Color.FromHex("#E05A5A")
+                    ModulateSelfOverride = gene.Active ? Color.FromHex("#40C56C") : Color.FromHex("#E05A5A"),
+                    MinWidth = 48
                 };
                 toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
                 row.AddChild(toggle);
@@ -67,19 +67,11 @@ public sealed partial class DnaModifierWindow
             _appearanceSignature = appearanceSignature;
             _uniqueGenes.RemoveAllChildren();
             _appearanceEditor.RemoveAllChildren();
-            var grid = new GridContainer { Columns = 5 };
-            for (var i = 0; i < state.AppearanceFields.Count; i++)
+            foreach (var group in state.AppearanceFields.GroupBy(AppearanceCategory))
             {
-                var field = state.AppearanceFields[i];
-                var label = Loc.GetString("dna-eu-" + field);
-                var row = new BoxContainer { Margin = new Thickness(3) };
-                row.AddChild(new Label { Text = (i + 1).ToString(), MinWidth = 24 });
-                var select = new GeneNameButton(label) { ToolTip = label };
-                select.OnPressed += _ => ShowAppearanceEditor(field, state);
-                row.AddChild(select);
-                grid.AddChild(row);
+                _uniqueGenes.AddChild(new Label { Text = Loc.GetString("dna-eu-category-" + group.Key), StyleClasses = { "LabelSubText" } });
+                BuildAppearanceGroup(_appearanceEditor, group, state);
             }
-            _uniqueGenes.AddChild(grid);
         }
         if (_puzzleToken == state.Puzzle?.Token)
             return; // Periodic UI updates must not erase the player's answers.
@@ -90,8 +82,80 @@ public sealed partial class DnaModifierWindow
         {
             var parent = puzzle.Appearance ? _appearancePuzzle : _structuralPuzzle;
             parent.AddChild(BuildPuzzle(puzzle));
-            Tabs.CurrentTab = puzzle.Appearance ? 0 : 1;
+            Tabs.CurrentTab = puzzle.Appearance ? 0 : 3;
         }
+    }
+
+    private void BuildAppearanceGroup(BoxContainer parent, IEnumerable<string> fields,
+        DnaModifierBoundUserInterfaceState state)
+    {
+        var group = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        foreach (var field in fields)
+        {
+            var label = Loc.GetString("dna-eu-" + field);
+            var row = new BoxContainer { Margin = new Thickness(1), SeparationOverride = 6 };
+            row.AddChild(new Label { Text = label, MinWidth = 220, ToolTip = label });
+
+            Func<string> selected;
+            if (state.AppearanceOptions.TryGetValue(field, out var markings))
+            {
+                var options = new OptionButton { MinWidth = 220 };
+                for (var i = 0; i < markings.Count; i++)
+                {
+                    var id = markings[i];
+                    options.AddItem(id.Length == 0 ? Loc.GetString("dna-eu-none") : id, i);
+                }
+                selected = () => markings[Math.Clamp(options.SelectedId, 0, markings.Count - 1)];
+                row.AddChild(options);
+            }
+            else if (field == nameof(UniqueIdentifiersData.Gender))
+            {
+                var options = new OptionButton { MinWidth = 220 };
+                options.AddItem(Loc.GetString("dna-eu-female"), 0);
+                options.AddItem(Loc.GetString("dna-eu-male"), 1);
+                options.AddItem(Loc.GetString("dna-eu-neuter"), 2);
+                selected = () => options.SelectedId.ToString();
+                row.AddChild(options);
+            }
+            else if (field == AppearanceGene.Name)
+            {
+                var input = new LineEdit { MinWidth = 220 };
+                input.Text = state.ScannerBodyInfo ?? string.Empty;
+                selected = () => input.Text;
+                row.AddChild(input);
+            }
+            else
+            {
+                var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : 255;
+                var slider = new Slider { MinValue = 0, MaxValue = max, Step = 1, SetWidth = 220 };
+                var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
+                slider.Value = int.Parse(value.Text);
+                slider.OnValueChanged += args => value.Text = ((int) args.Value).ToString();
+                selected = () => ((int) slider.Value).ToString();
+                row.AddChild(slider);
+                row.AddChild(value);
+            }
+
+            var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
+            apply.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, selected()));
+            row.AddChild(apply);
+            group.AddChild(row);
+        }
+        parent.AddChild(group);
+    }
+
+    private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)
+    {
+        if (state.Unique is null || AppearanceGene.Get(state.Unique, field) is not { Length: > 0 } value)
+            return 0;
+
+        var encoded = string.Concat(value);
+        if (field == nameof(UniqueIdentifiersData.SkinTone))
+            return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
+
+        return Math.Clamp(int.TryParse(encoded, System.Globalization.NumberStyles.HexNumber, null, out var hexValue)
+            ? hexValue
+            : 0, 0, max);
     }
 
     private void ShowAppearanceEditor(string field, DnaModifierBoundUserInterfaceState state)
@@ -136,6 +200,19 @@ public sealed partial class DnaModifierWindow
         _appearanceEditor.AddChild(row);
     }
 
+    private static string AppearanceCategory(string field)
+    {
+        if (field == AppearanceGene.Name || field == nameof(UniqueIdentifiersData.Gender))
+            return "identity";
+        if (field.EndsWith("Style"))
+            return "markings";
+        if (field.Contains("Hair") || field.Contains("Beard"))
+            return "hair";
+        if (field.Contains("Eye") || field.Contains("Skin") || field.Contains("Fur"))
+            return "colors";
+        return "details";
+    }
+
     // Trauma's two strands, fixed known bases, cycling unknown bases, submit and reset.
     private BoxContainer BuildPuzzle(GeneticPuzzleState puzzle)
     {
@@ -154,8 +231,14 @@ public sealed partial class DnaModifierWindow
                 const string bases = "XACGT";
                 answer[index] = bases[(bases.IndexOf(answer[index]) + direction + bases.Length) % bases.Length];
                 button.Text = answer[index].ToString();
-                button.ModulateSelfOverride = answer[index] is 'A' or 'T' ? Color.FromHex("#1b9638") :
-                    answer[index] is 'C' or 'G' ? Color.FromHex("#1c71b1") : Color.White;
+                button.ModulateSelfOverride = answer[index] switch
+                {
+                    'A' => Color.FromHex("#e45757"),
+                    'T' => Color.FromHex("#4f9be8"),
+                    'C' => Color.FromHex("#e0b84f"),
+                    'G' => Color.FromHex("#55c77a"),
+                    _ => Color.White
+                };
                 submit.Disabled = answer.Contains('X');
             }
             button.OnPressed += _ => Cycle(1);
@@ -210,22 +293,11 @@ public sealed partial class DnaModifierWindow
 
     private sealed class GeneNameButton : Button
     {
-        private readonly string _fullName;
-        private float _elapsed;
         public GeneNameButton(string name)
         {
-            _fullName = name;
-            Text = name.Length > 18 ? name[..18] : name;
-            SetWidth = 150;
-        }
-        protected override void FrameUpdate(FrameEventArgs args)
-        {
-            base.FrameUpdate(args);
-            if (_fullName.Length <= 18) return;
-            _elapsed += args.DeltaSeconds;
-            var text = _fullName + "              ";
-            var offset = (int) (_elapsed * 1.2f) % text.Length;
-            Text = (text + text).Substring(offset, 18);
+            Text = name;
+            SetWidth = 220;
+            ToolTip = name;
         }
     }
 }

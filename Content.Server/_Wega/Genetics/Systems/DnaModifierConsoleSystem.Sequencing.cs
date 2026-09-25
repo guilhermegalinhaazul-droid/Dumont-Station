@@ -2,6 +2,7 @@
 // Sequencing, round discovery and recipes adapted from Trauma Station genetics.
 using System.Linq;
 using Content.Server.Medical.Components;
+using Content.Server.Radio.EntitySystems;
 using Content.Server.Research.Systems;
 using Content.Shared.Damage;
 using Content.Shared.GameTicking;
@@ -19,6 +20,7 @@ public sealed partial class DnaModifierConsoleSystem
     [Dependency] private readonly StructuralEnzymesIndexerSystem _geneIndex = default!;
     [Dependency] private readonly MarkingPrototypesIndexerSystem _appearanceIndex = default!;
     [Dependency] private readonly ResearchSystem _research = default!;
+    [Dependency] private readonly RadioSystem _radio = default!;
 
     // Answers and undiscovered identities stay on the server.
     private readonly Dictionary<string, string> _geneAnswers = new();
@@ -78,7 +80,12 @@ public sealed partial class DnaModifierConsoleSystem
         => subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.Order == number);
 
     private bool IsDiscovered(string id) => _discoveredGenes.Contains(id);
-    private int Difficulty(string id) => _prototypeManager.TryIndex<StructuralEnzymesPrototype>(id, out var proto) ? proto.Difficulty : 8;
+    // Keep the puzzle readable while still requiring the player to solve it.
+    // Prototype values remain useful for research rewards, but never hide
+    // more than four positions from a newly discovered gene.
+    private int Difficulty(string id) => _prototypeManager.TryIndex<StructuralEnzymesPrototype>(id, out var proto)
+        ? Math.Clamp(proto.Difficulty, 1, 4)
+        : 2;
     private string GeneName(string id)
     {
         if (id == StructuralEnzymesIndexerSystem.SpeciesGene)
@@ -180,6 +187,12 @@ public sealed partial class DnaModifierConsoleSystem
             if (pending.Structural != null)
                 _dnaModifier.ChangeDna(subject, new EnzymeInfo { Info = pending.Structural });
             component.LastSubjectInjectTime = _timing.CurTime;
+            // Editing a live subject's appearance is intentionally harmful.
+            // The cost is applied once per successfully solved appearance puzzle.
+            _damage.TryChangeDamage(subject, new DamageSpecifier
+            {
+                DamageDict = { { "Poison", 2.5 }, { "Genetic", 0.2 } }
+            }, ignoreResistances: true, canBeCancelled: false, ignoreBlockers: true, canMiss: false);
             Dirty(subject);
         }
         else if (pending.Gene is { } id && _discoveredGenes.Add(id))
@@ -189,6 +202,9 @@ public sealed partial class DnaModifierConsoleSystem
                 var points = Difficulty(id) * 500;
                 _research.ModifyServerPoints(server, points);
                 _popup.PopupEntity(Loc.GetString("dna-sequence-research-reward", ("points", points)), uid, pending.User);
+                _radio.SendRadioMessage(uid,
+                    Loc.GetString("dna-sequence-research-radio", ("gene", GeneName(id)), ("points", points)),
+                    "Science", uid, escapeMarkup: false);
             }
             var gene = subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == id);
             if (gene != null)
