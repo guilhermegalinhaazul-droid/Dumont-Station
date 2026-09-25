@@ -95,12 +95,22 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                     calculatedInstability += gene.CostInstability;
             }
 
+            // Reconcile the component every tick. A stale DnaInstabilityComponent
+            // can survive a DNA reset/deserialization even when the stored total
+            // instability already equals the recalculated value. In that case the
+            // old stage would still apply damage and popups to an otherwise stable
+            // entity.
             if (calculatedInstability != dnaModifier.Instability)
-            {
                 UpdateInstability(uid, dnaModifier, calculatedInstability);
-                if (calculatedInstability <= 20)
-                    continue;
+
+            var stage = GeneticsInstabilityRules.Stage(calculatedInstability);
+            if (stage == 0)
+            {
+                RemComp<DnaInstabilityComponent>(uid);
+                continue;
             }
+
+            instabilityComponent.Stage = stage;
 
             if (instabilityComponent.NextTimeTick <= 0)
             {
@@ -527,7 +537,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     private void UpdateInstability(EntityUid uid, DnaModifierComponent component, int totalInstability)
     {
         component.Instability = totalInstability;
-        if (totalInstability <= 20)
+        if (GeneticsInstabilityRules.Stage(totalInstability) == 0)
         {
             if (HasComp<DnaInstabilityComponent>(uid))
                 RemComp<DnaInstabilityComponent>(uid);
@@ -535,20 +545,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         }
 
         var instabilityComp = EnsureComp<DnaInstabilityComponent>(uid);
-        switch (totalInstability)
-        {
-            case > 20 and <= 35:
-                instabilityComp.Stage = 1;
-                break;
-
-            case > 35 and <= 65:
-                instabilityComp.Stage = 2;
-                break;
-
-            case > 65:
-                instabilityComp.Stage = 3;
-                break;
-        }
+        instabilityComp.Stage = GeneticsInstabilityRules.Stage(totalInstability);
 
         Dirty(uid, component);
     }
@@ -558,39 +555,23 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        int totalInstability = component.Instability;
-        foreach (var enzyme in component.EnzymesPrototypes)
+        // AppliedGenes is runtime state. Remove entries left by the old
+        // component-inference implementation or by a replaced DNA body.
+        component.AppliedGenes.RemoveWhere(id => !component.GeneComponents.ContainsKey(id));
+
+        // A gene is active only when it was explicitly applied to the DNA.
+        // Inferring genes from ordinary components made every mob appear to
+        // have all of the genes whose effects it happened to share.
+        var costs = new List<int>();
+        foreach (var geneId in component.AppliedGenes)
         {
-            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(enzyme.EnzymesPrototypeId, out var enzymePrototype))
+            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(geneId, out var enzymePrototype))
                 continue;
 
-            bool hasComponent = enzymePrototype.AddComponent != null && enzymePrototype.AddComponent
-                .All(componentEntry =>
-                {
-                    var componentType = componentEntry.Value.Component?.GetType();
-                    return componentType != null && HasComp(uid, componentType);
-                });
-
-            if (hasComponent)
-            {
-                enzyme.Active = true;
-                component.AppliedGenes.Add(enzyme.EnzymesPrototypeId);
-                totalInstability += enzymePrototype.CostInstability;
-
-                if (enzymePrototype.TypeDeviation != EnzymesType.Disease
-                    && enzymePrototype.AddComponent != null)
-                {
-                    foreach (var componentEntry in enzymePrototype.AddComponent)
-                    {
-                        var componentType = componentEntry.Value.Component?.GetType();
-                        if (componentType != null && HasComp(uid, componentType))
-                            component.InitialAbilities.Add(componentType);
-                    }
-                }
-            }
+            costs.Add(enzymePrototype.CostInstability);
         }
 
-        UpdateInstability(uid, component, totalInstability);
+        UpdateInstability(uid, component, GeneticsInstabilityRules.Sum(costs));
     }
 
     private void InstabilityStageOne(EntityUid uid)
