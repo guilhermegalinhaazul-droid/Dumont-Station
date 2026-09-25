@@ -61,7 +61,7 @@ namespace Content.Server.Genetics.System
         [Dependency] private readonly SharedTransformSystem _transform = default!;
         [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-        [Dependency] private readonly PopupSystem _popup = default!;
+        [Dependency] private readonly SharedPopupSystem _popup = default!;
 
         private static readonly EntProtoId Injector = "DnaInjector";
         private static readonly ProtoId<DamageTypePrototype> RadDamage = "Radiation";
