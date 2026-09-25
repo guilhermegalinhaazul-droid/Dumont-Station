@@ -34,6 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Trauma projects remain excluded until their standalone dependencies are restored. -->
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>..\bin\Content.Server\</OutputPath>
