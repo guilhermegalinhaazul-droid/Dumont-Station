@@ -68,11 +68,16 @@
                     <!-- Вкладка Modify U.I. -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <Label Text="{Loc 'dna-modifier-box-ui'}" StyleClasses="LabelBig"/>
+                        <PanelContainer Name="AppearancePreview" Visible="False" MinSize="120 120" MaxSize="120 120" HorizontalAlignment="Center">
+                            <SpriteView Name="SubjectPreview" SetSize="112 112" Scale="2 2" OverrideDirection="South"/>
+                        </PanelContainer>
                         <PanelContainer Name="UiPanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>
                                 <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />
                             </PanelContainer.PanelOverride>
-                            <BoxContainer Name="UiContainer"/>
+                            <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                                <BoxContainer Name="UiContainer"/>
+                            </ScrollContainer>
                         </PanelContainer>
                         <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
                     </BoxContainer>
@@ -88,6 +93,9 @@
                         </PanelContainer>
                         <customControls:HSeparator StyleClasses="LowDivider" Margin="0 0 0 10"/>
                     </BoxContainer>
+
+                    <!-- Combinar genes -->
+                    <BoxContainer Name="CombineContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10"/>
 
                     <!-- Вкладка Transfer Buffers -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
@@ -195,7 +203,6 @@
                             <BoxContainer Name="RejuveContainer" Orientation="Vertical" Margin="4" HorizontalExpand="True"/>
                         </PanelContainer>
                     </BoxContainer>
-                    <BoxContainer Name="CombineContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10"/>
                 </TabContainer>
             </ScrollContainer>
         </BoxContainer>

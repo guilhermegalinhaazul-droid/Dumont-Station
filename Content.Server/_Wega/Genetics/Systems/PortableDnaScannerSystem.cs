@@ -24,6 +24,7 @@ public sealed class PortableDnaScannerSystem : EntitySystem
         Subs.BuiEvents<PortableDnaScannerComponent>(PortableDnaScannerUiKey.Key, subs =>
         {
             subs.Event<PortableDnaScannerSaveMessage>(OnSave);
+            subs.Event<PortableDnaScannerLoadMessage>(OnLoad);
             subs.Event<PortableDnaScannerClearMessage>(OnClear);
         });
     }
@@ -71,6 +72,19 @@ public sealed class PortableDnaScannerSystem : EntitySystem
     {
         ent.Comp.ScannedEntity = null;
         ent.Comp.Sample = null;
+        ent.Comp.SampleDna = string.Empty;
+        Dirty(ent);
+        UpdateUi(ent);
+    }
+
+    private void OnLoad(Entity<PortableDnaScannerComponent> ent, ref PortableDnaScannerLoadMessage args)
+    {
+        if (!_slots.TryGetSlot(ent.Owner, SharedDnaModifier.DiskSlotName, out var slot) || slot.Item is not { } disk
+            || !_dnaModifier.TryGetDataFromDisk(disk, out var data))
+            return;
+
+        ent.Comp.ScannedEntity = null;
+        ent.Comp.Sample = (EnzymeInfo) data.Clone();
         ent.Comp.SampleDna = string.Empty;
         Dirty(ent);
         UpdateUi(ent);

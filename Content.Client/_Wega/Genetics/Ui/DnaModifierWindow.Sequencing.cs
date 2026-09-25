@@ -7,6 +7,7 @@ using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
+using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
@@ -170,7 +171,7 @@ public sealed partial class DnaModifierWindow
             else
             {
                 var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : 255;
-                var slider = new Slider { MinValue = 0, MaxValue = max, Step = 1, SetWidth = 220 };
+                var slider = new Slider { MinValue = 0, MaxValue = max, SetWidth = 220 };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
                 slider.OnValueChanged += args =>
@@ -198,12 +199,16 @@ public sealed partial class DnaModifierWindow
 
     private void PreviewAppearance(string field, string value)
     {
-        if (_lastUpdate?.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out var source) ||
-            !_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
+        if (_lastUpdate?.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out EntityUid? source) || source is not { } sourceEntity ||
+            !_entManager.TryGetComponent<HumanoidAppearanceComponent>(sourceEntity, out var sourceAppearance))
             return;
 
-        if (_appearancePreview is not { } preview || !_entManager.EntityExists(preview) ||
-            _appearancePreviewSource != source)
+        EntityUid preview = default;
+
+        if (_appearancePreview is { } existingPreview)
+            preview = existingPreview;
+
+        if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != sourceEntity)
         {
             if (preview.IsValid() && _entManager.EntityExists(preview))
                 _entManager.DeleteEntity(preview);
@@ -211,7 +216,7 @@ public sealed partial class DnaModifierWindow
             var prototype = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
             preview = _entManager.SpawnEntity(prototype.DollPrototype, MapCoordinates.Nullspace);
             _appearancePreview = preview;
-            _appearancePreviewSource = source;
+            _appearancePreviewSource = sourceEntity;
         }
 
         if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var appearance) ||
@@ -249,7 +254,7 @@ public sealed partial class DnaModifierWindow
         ApplyColorPreview(state: _lastUpdate, appearance, field, value);
 
         _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, appearance, sprite));
-        SetScannerPreview(source);
+        SetScannerPreview(sourceEntity);
     }
 
     private static void ApplyColorPreview(DnaModifierBoundUserInterfaceState? state,
@@ -263,10 +268,10 @@ public sealed partial class DnaModifierWindow
             or nameof(UniqueIdentifiersData.EyeColorB))
         {
             var color = appearance.EyeColor;
-            var r = field.EndsWith("R") ? channel : color.RByte;
-            var g = field.EndsWith("G") ? channel : color.GByte;
-            var b = field.EndsWith("B") ? channel : color.BByte;
-            appearance.EyeColor = new Color(r, g, b);
+            var eyeR = field.EndsWith("R") ? channel : color.RByte;
+            var eyeG = field.EndsWith("G") ? channel : color.GByte;
+            var eyeB = field.EndsWith("B") ? channel : color.BByte;
+            appearance.EyeColor = new Color(eyeR, eyeG, eyeB);
             return;
         }
 
@@ -292,10 +297,10 @@ public sealed partial class DnaModifierWindow
 
         var marking = markings[0];
         var existing = marking.MarkingColors.FirstOrDefault();
-        var r = field.EndsWith("R") ? channel : existing.RByte;
-        var g = field.EndsWith("G") ? channel : existing.GByte;
-        var b = field.EndsWith("B") ? channel : existing.BByte;
-        marking.SetColor(0, new Color(r, g, b));
+        var markingR = field.EndsWith("R") ? channel : existing.RByte;
+        var markingG = field.EndsWith("G") ? channel : existing.GByte;
+        var markingB = field.EndsWith("B") ? channel : existing.BByte;
+        marking.SetColor(0, new Color(markingR, markingG, markingB));
     }
 
     private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)

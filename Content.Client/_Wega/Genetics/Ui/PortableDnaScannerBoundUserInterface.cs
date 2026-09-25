@@ -12,6 +12,7 @@ public sealed class PortableDnaScannerBoundUserInterface(EntityUid owner, Enum k
         base.Open();
         _window = new PortableDnaScannerWindow();
         _window.OnSave += kind => SendPredictedMessage(new PortableDnaScannerSaveMessage(kind));
+        _window.OnLoad += () => SendPredictedMessage(new PortableDnaScannerLoadMessage());
         _window.OnClear += () => SendPredictedMessage(new PortableDnaScannerClearMessage());
         _window.OpenCentered();
     }

@@ -10,8 +10,8 @@ namespace Content.Shared.Genetics;
 
 public static class GeneticSequence
 {
-    public const int StructuralPairs = 16;
-    public const int AppearancePairs = 10;
+    public const int StructuralPairs = 12;
+    public const int AppearancePairs = 12;
     public static readonly char[] Bases = { 'A', 'T', 'G', 'C' };
 
     /// <summary>

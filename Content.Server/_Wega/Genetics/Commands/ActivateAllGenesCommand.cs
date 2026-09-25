@@ -14,35 +14,46 @@ public sealed class ActivateAllGenesCommand : IConsoleCommand
     [Dependency] private readonly IEntityManager _entityManager = default!;
 
     public string Command => "genetics_activate_all";
-    public string Description => "Activates every available genetic gene on an entity.";
-    public string Help => "genetics_activate_all <entity uid>";
+    public string Description => "Ativa todos os genes disponíveis de uma entidade.";
+    public string Help => "genetics_activate_all [UID da entidade]";
 
     public CompletionResult GetCompletion(IConsoleShell shell, string[] args)
     {
-        return CompletionResult.Empty;
+        return args.Length == 1
+            ? CompletionResult.FromHintOptions(
+                CompletionHelper.Components<DnaModifierComponent>(args[0]),
+                "<entidade com DNA>")
+            : CompletionResult.Empty;
     }
 
     public void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (args.Length != 1)
+        if (args.Length > 1)
         {
-            shell.WriteError("Usage: genetics_activate_all <entity uid>");
+            shell.WriteError("Uso: genetics_activate_all [UID da entidade]");
             return;
         }
 
-        if (!_entityManager.TryParseNetEntity(args[0], out EntityUid? target) || !_entityManager.EntityExists(target))
+        EntityUid? target = shell.Player?.AttachedEntity;
+        if (args.Length == 1 && (!_entityManager.TryParseNetEntity(args[0], out target) || !_entityManager.EntityExists(target)))
         {
-            shell.WriteError($"Entity '{args[0]}' was not found.");
+            shell.WriteError($"A entidade '{args[0]}' não foi encontrada.");
+            return;
+        }
+
+        if (target is not { Valid: true })
+        {
+            shell.WriteError("Nenhuma entidade selecionada. Informe um UID.");
             return;
         }
 
         if (!_entityManager.TryGetComponent<DnaModifierComponent>(target.Value, out var dna))
         {
-            shell.WriteError("The target has no DNA modifier component.");
+            shell.WriteError("A entidade não possui componente de DNA.");
             return;
         }
 
         var activated = _entityManager.System<DnaModifierSystem>().ActivateAllGenes((target.Value, dna));
-        shell.WriteLine($"Activated {activated} genetic gene(s) on {target.Value}.");
+        shell.WriteLine($"{activated} gene(s) ativado(s) em {target.Value}.");
     }
 }

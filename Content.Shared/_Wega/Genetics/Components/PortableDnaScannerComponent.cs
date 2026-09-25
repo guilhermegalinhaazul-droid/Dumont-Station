@@ -37,6 +37,9 @@ public sealed class PortableDnaScannerState : BoundUserInterfaceState
 public sealed class PortableDnaScannerClearMessage : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
+public sealed class PortableDnaScannerLoadMessage : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
 public sealed class PortableDnaScannerSaveMessage(PortableDnaSampleKind kind) : BoundUserInterfaceMessage
 {
     public readonly PortableDnaSampleKind Kind = kind;

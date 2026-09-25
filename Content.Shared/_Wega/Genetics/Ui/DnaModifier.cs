@@ -31,6 +31,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
     public Dictionary<string, List<string>> AppearanceOptions = new();
     public string GeneticStatus = string.Empty;
     public readonly NetEntity Console;
+    public readonly NetEntity? ScannerBody;
     public readonly UniqueIdentifiersData? Unique;
     public readonly List<EnzymesPrototypeInfo>? Enzymes;
     public readonly EnzymeInfo? Enzyme;
@@ -68,9 +69,11 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
         Dictionary<int, EnzymeInfo?> buffers,
         List<GeneCatalogEntry>? geneCatalog,
         TimeSpan injectorCooldownRemaining,
-        TimeSpan subjectInjectCooldownRemaining)
+        TimeSpan subjectInjectCooldownRemaining,
+        NetEntity? scannerBody = null)
     {
         Console = console;
+        ScannerBody = scannerBody;
         Unique = unique;
         Enzymes = enzymes;
         Enzyme = enzyme;

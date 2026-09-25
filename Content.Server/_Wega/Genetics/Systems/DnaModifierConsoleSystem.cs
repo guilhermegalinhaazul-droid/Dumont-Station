@@ -300,9 +300,10 @@ namespace Content.Server.Genetics.System
             var subjectInjectCooldown = ent.Comp.LastSubjectInjectTime + ent.Comp.SubjectInjectCooldown;
 
             var buffer = GetAllBuffers(ent);
+            EntityUid? scanBody = null;
             if (ent.Comp.GeneticScanner != null && TryComp<MedicalScannerComponent>(ent.Comp.GeneticScanner, out var scanner))
             {
-                EntityUid? scanBody = scanner.BodyContainer.ContainedEntity;
+                scanBody = scanner.BodyContainer.ContainedEntity;
                 inputContainer = _itemSlotsSystem.GetItemOrNull(ent.Comp.GeneticScanner.Value, SharedDnaModifier.InputSlotName);
 
                 if (_itemSlotsSystem.TryGetSlot(ent, SharedDnaModifier.DiskSlotName, out var diskSlot)
@@ -393,7 +394,8 @@ namespace Content.Server.Genetics.System
                 buffer,
                 null,
                 currentTime < injectorCooldown ? injectorCooldown - currentTime : TimeSpan.Zero,
-                currentTime < subjectInjectCooldown ? subjectInjectCooldown - currentTime : TimeSpan.Zero
+                currentTime < subjectInjectCooldown ? subjectInjectCooldown - currentTime : TimeSpan.Zero,
+                scanBody is { } bodyEntity ? GetNetEntity(bodyEntity) : null
             );
             PopulateSequencingState(ent, state);
             return state;
@@ -671,8 +673,10 @@ namespace Content.Server.Genetics.System
                 return;
 
             var targetBlock = data.Info.FirstOrDefault(e => e.Order == args.CurrentBlock);
-            if (targetBlock == null || !IsDiscovered(targetBlock.EnzymesPrototypeId) ||
-                _timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
+            // A block copied into a buffer is already an explicit laboratory
+            // selection. Requiring the round-wide discovery set here made the
+            // block injector silently do nothing for saved samples.
+            if (targetBlock == null || _timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
                 return;
 
             var singleBlockInfo = new List<EnzymesPrototypeInfo> { targetBlock };
