@@ -73,7 +73,7 @@ public sealed partial class DnaModifierWindow
             {
                 var row = new BoxContainer { Margin = new Thickness(1) };
                 row.AddChild(new Label { Text = gene.Number.ToString(), MinWidth = 18 });
-                var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name };
+                var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 110 };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button
@@ -81,7 +81,8 @@ public sealed partial class DnaModifierWindow
                     Text = Loc.GetString(gene.Active ? "dna-gene-on" : "dna-gene-off"),
                     Disabled = !gene.Discovered,
                     ModulateSelfOverride = gene.Active ? Color.FromHex("#40C56C") : Color.FromHex("#E05A5A"),
-                    MinWidth = 48
+                    MinWidth = 40,
+                    SetWidth = 40
                 };
                 toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
                 row.AddChild(toggle);
@@ -449,7 +450,8 @@ public sealed partial class DnaModifierWindow
         public GeneNameButton(string name)
         {
             Text = name;
-            SetWidth = 220;
+            SetWidth = 110;
+            MaxWidth = 110;
             ToolTip = name;
         }
     }
