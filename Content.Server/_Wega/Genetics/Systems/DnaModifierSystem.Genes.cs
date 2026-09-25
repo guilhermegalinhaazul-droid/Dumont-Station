@@ -7,6 +7,41 @@ namespace Content.Server.Genetics.System;
 
 public sealed partial class DnaModifierSystem
 {
+    public void ClearAppliedGenes(Entity<DnaModifierComponent> subject)
+    {
+        if (subject.Comp.EnzymesPrototypes == null)
+            return;
+
+        foreach (var gene in subject.Comp.EnzymesPrototypes)
+        {
+            if (gene.EnzymesPrototypeId != StructuralEnzymesIndexerSystem.SpeciesGene)
+                gene.Active = false;
+        }
+
+        TryChangeStructuralEnzymes(subject);
+        Dirty(subject);
+    }
+
+    public int ActivateAllGenes(Entity<DnaModifierComponent> subject)
+    {
+        if (subject.Comp.EnzymesPrototypes == null)
+            return 0;
+
+        var activated = 0;
+        foreach (var gene in subject.Comp.EnzymesPrototypes)
+        {
+            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene || gene.Active)
+                continue;
+
+            gene.Active = true;
+            activated++;
+        }
+
+        TryChangeStructuralEnzymes(subject);
+        Dirty(subject);
+        return activated;
+    }
+
     public bool IsGeneActive(Entity<DnaModifierComponent> subject, EnzymesPrototypeInfo gene)
     {
         if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene)

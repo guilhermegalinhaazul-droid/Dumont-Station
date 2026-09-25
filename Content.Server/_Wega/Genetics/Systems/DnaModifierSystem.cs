@@ -79,12 +79,35 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         var instabilityQuery = EntityQueryEnumerator<DnaInstabilityComponent>();
         while (instabilityQuery.MoveNext(out var uid, out var instabilityComponent))
         {
+            // Instability is only meaningful while at least one non-species gene
+            // is actually applied. Remove stale components left by DNA changes,
+            // cloning, or deserialization before producing any symptoms.
+            if (!TryComp<DnaModifierComponent>(uid, out var dnaModifier) || dnaModifier.AppliedGenes.Count == 0)
+            {
+                RemComp<DnaInstabilityComponent>(uid);
+                continue;
+            }
+
+            var calculatedInstability = 0;
+            foreach (var geneId in dnaModifier.AppliedGenes)
+            {
+                if (_prototype.TryIndex<StructuralEnzymesPrototype>(geneId, out var gene))
+                    calculatedInstability += gene.CostInstability;
+            }
+
+            if (calculatedInstability != dnaModifier.Instability)
+            {
+                UpdateInstability(uid, dnaModifier, calculatedInstability);
+                if (calculatedInstability <= 20)
+                    continue;
+            }
+
             if (instabilityComponent.NextTimeTick <= 0)
             {
                 instabilityComponent.NextTimeTick = 10;
                 if (!TryComp<MobThresholdsComponent>(uid, out var uidThresholds)
                     || uidThresholds.CurrentThresholdState is MobState.Dead)
-                    return;
+                    continue;
 
                 switch (instabilityComponent.Stage)
                 {
