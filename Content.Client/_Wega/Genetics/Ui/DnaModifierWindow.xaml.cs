@@ -109,8 +109,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             SpeciesLabel.Text = string.IsNullOrWhiteSpace(state.ScannerSpecies) ? Loc.GetString("dna-modifier-no-data") : state.ScannerSpecies;
             EjectButton.Disabled = false;
             AppearancePreview.Visible = state.ScannerBody is not null;
-            if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity))
-                SetScannerPreview(bodyEntity);
+            if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
+                SetScannerPreview(bodyUid);
         }
         else
         {
