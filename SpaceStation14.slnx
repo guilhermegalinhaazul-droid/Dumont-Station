@@ -49,6 +49,19 @@
   <Project Path="Content.Tests/Content.Tests.csproj" />
   <Project Path="Content.Tools/Content.Tools.csproj" />
   <Project Path="Content.YAMLLinter/Content.YAMLLinter.csproj" />
+  <!-- Trauma projects are incomplete and must not be part of the default solution build. -->
+  <Project Path="Content.Trauma.Shared/Content.Trauma.Shared.csproj">
+    <Build Solution="Debug|*" Project="false" />
+    <Build Solution="DebugOpt|*" Project="false" />
+    <Build Solution="Release|*" Project="false" />
+    <Build Solution="Tools|*" Project="false" />
+  </Project>
+  <Project Path="Content.Trauma.Client/Content.Trauma.Client.csproj">
+    <Build Solution="Debug|*" Project="false" />
+    <Build Solution="DebugOpt|*" Project="false" />
+    <Build Solution="Release|*" Project="false" />
+    <Build Solution="Tools|*" Project="false" />
+  </Project>
   <Project Path="Pow3r/Pow3r.csproj" />
   <Folder Name="/RobustToolbox/.github/workflows/">
     <File Path="RobustToolbox/.github/workflows/build-all-configurations.yml" />
