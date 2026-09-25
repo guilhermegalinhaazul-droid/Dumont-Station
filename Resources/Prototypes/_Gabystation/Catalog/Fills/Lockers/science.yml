@@ -8,6 +8,7 @@
     - id: BoxBeaker
     - id: PillCanisterHyronalin
     - id: PillCanisterMutadon
+    - id: PortableDnaScanner
     # - id: MedicalScannerFlatpack
     # - id: FlatpackDnaModifierConsole
     - id: BoxDnaFisk
