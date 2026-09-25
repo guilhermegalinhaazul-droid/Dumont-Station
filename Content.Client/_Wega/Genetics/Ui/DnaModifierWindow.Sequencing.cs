@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 using System.Linq;
+using System.Numerics;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.UI;
+using Content.Shared.Humanoid.Markings;
+using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._Wega.Genetics.Ui;
@@ -99,14 +102,22 @@ public sealed partial class DnaModifierWindow
             Func<string> selected;
             if (state.AppearanceOptions.TryGetValue(field, out var markings))
             {
-                var options = new OptionButton { MinWidth = 220 };
-                for (var i = 0; i < markings.Count; i++)
+                var list = new ItemList { MinSize = new Vector2(220, 64), MaxSize = new Vector2(320, 96) };
+                var selectedValue = markings.Count > 0 ? markings[0] : string.Empty;
+                foreach (var id in markings)
                 {
-                    var id = markings[i];
-                    options.AddItem(id.Length == 0 ? Loc.GetString("dna-eu-none") : id, i);
+                    var item = new ItemList.Item(list) { Text = id.Length == 0 ? Loc.GetString("dna-eu-none") : id, Metadata = id };
+                    if (id.Length > 0 && _prototypeManager.TryIndex<MarkingPrototype>(id, out var marking))
+                        item.Icon = _entManager.System<SpriteSystem>().Frame0(marking.Sprites[0]);
+                    list.Add(item);
                 }
-                selected = () => markings[Math.Clamp(options.SelectedId, 0, markings.Count - 1)];
-                row.AddChild(options);
+                list.OnItemSelected += args =>
+                {
+                    if (args.ItemList[args.ItemIndex].Metadata is string id)
+                        selectedValue = id;
+                };
+                selected = () => selectedValue;
+                row.AddChild(list);
             }
             else if (field == nameof(UniqueIdentifiersData.Gender))
             {
