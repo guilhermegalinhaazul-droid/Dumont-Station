@@ -140,7 +140,10 @@ public sealed partial class DnaModifierWindow
                 list.OnItemSelected += args =>
                 {
                     if (args.ItemList[args.ItemIndex].Metadata is string id)
+                    {
                         selectedValue = id;
+                        PreviewAppearance(field, id);
+                    }
                 };
                 selected = () => selectedValue;
                 row.AddChild(list);
@@ -152,6 +155,7 @@ public sealed partial class DnaModifierWindow
                 options.AddItem(Loc.GetString("dna-eu-male"), 1);
                 options.AddItem(Loc.GetString("dna-eu-neuter"), 2);
                 selected = () => options.SelectedId.ToString();
+                options.OnItemSelected += args => PreviewAppearance(field, args.Id.ToString());
                 row.AddChild(options);
             }
             else if (field == AppearanceGene.Name)
@@ -159,6 +163,7 @@ public sealed partial class DnaModifierWindow
                 var input = new LineEdit { MinWidth = 220 };
                 input.Text = state.ScannerBodyInfo ?? string.Empty;
                 selected = () => input.Text;
+                input.OnTextChanged += args => PreviewAppearance(field, args.Text);
                 row.AddChild(input);
             }
             else
@@ -167,7 +172,11 @@ public sealed partial class DnaModifierWindow
                 var slider = new Slider { MinValue = 0, MaxValue = max, Step = 1, SetWidth = 220 };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
-                slider.OnValueChanged += args => value.Text = ((int) args.Value).ToString();
+                slider.OnValueChanged += args =>
+                {
+                    value.Text = ((int) args.Value).ToString();
+                    PreviewAppearance(field, value.Text);
+                };
                 selected = () => ((int) slider.Value).ToString();
                 row.AddChild(slider);
                 row.AddChild(value);
