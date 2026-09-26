@@ -10,6 +10,7 @@ using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._Wega.Genetics.Ui;
@@ -387,13 +388,17 @@ public sealed partial class DnaModifierWindow
             var button = new Button { Text = answer[i].ToString(), Disabled = puzzle.Original[i] != 'X', MinWidth = 32 };
             void UpdateButtonColor()
             {
-                button.ModulateSelfOverride = answer[index] switch
+                button.FontColorOverride = Color.White;
+                button.StyleBoxOverride = new StyleBoxFlat
                 {
-                    'A' => Color.FromHex("#e45757"),
-                    'T' => Color.FromHex("#4f9be8"),
-                    'C' => Color.FromHex("#e0b84f"),
-                    'G' => Color.FromHex("#55c77a"),
-                    _ => Color.White
+                    BackgroundColor = answer[index] switch
+                    {
+                        'A' => Color.FromHex("#7d3030"),
+                        'T' => Color.FromHex("#2d5d8f"),
+                        'C' => Color.FromHex("#806a22"),
+                        'G' => Color.FromHex("#317543"),
+                        _ => Color.FromHex("#252525")
+                    }
                 };
             }
             void Cycle(int direction)
@@ -428,13 +433,17 @@ public sealed partial class DnaModifierWindow
             for (var i = 0; i < buttons.Count; i++)
             {
                 buttons[i].Text = answer[i].ToString();
-                buttons[i].ModulateSelfOverride = answer[i] switch
+                buttons[i].FontColorOverride = Color.White;
+                buttons[i].StyleBoxOverride = new StyleBoxFlat
                 {
-                    'A' => Color.FromHex("#e45757"),
-                    'T' => Color.FromHex("#4f9be8"),
-                    'C' => Color.FromHex("#e0b84f"),
-                    'G' => Color.FromHex("#55c77a"),
-                    _ => Color.White
+                    BackgroundColor = answer[i] switch
+                    {
+                        'A' => Color.FromHex("#7d3030"),
+                        'T' => Color.FromHex("#2d5d8f"),
+                        'C' => Color.FromHex("#806a22"),
+                        'G' => Color.FromHex("#317543"),
+                        _ => Color.FromHex("#252525")
+                    }
                 };
             }
             submit.Disabled = answer.Contains('X');
