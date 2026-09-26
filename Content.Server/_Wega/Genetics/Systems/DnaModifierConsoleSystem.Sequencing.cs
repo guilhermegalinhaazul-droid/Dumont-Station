@@ -80,12 +80,11 @@ public sealed partial class DnaModifierConsoleSystem
         => subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.Order == number);
 
     private bool IsDiscovered(string id) => _discoveredGenes.Contains(id);
-    // Keep the puzzle readable while still requiring the player to solve it.
-    // Prototype values remain useful for research rewards, but never hide
-    // more than four positions from a newly discovered gene.
+    // Structural enzyme prototypes use Trauma's original hidden-position
+    // difficulty. Active genes get the facilitated three-to-four-gap puzzle.
     private int Difficulty(string id) => _prototypeManager.TryIndex<StructuralEnzymesPrototype>(id, out var proto)
-        ? Math.Clamp(proto.Difficulty, 1, 4)
-        : 2;
+        ? Math.Clamp(proto.Difficulty, 2, GeneticSequence.StructuralPairs * 2)
+        : GeneticSequence.StructuralPairs;
     private string GeneName(string id)
     {
         if (id == StructuralEnzymesIndexerSystem.SpeciesGene)
@@ -138,7 +137,12 @@ public sealed partial class DnaModifierConsoleSystem
         if (!_geneAnswers.TryGetValue(id, out var answer))
             _geneAnswers[id] = answer = GeneticSequence.Generate(_random, GeneticSequence.StructuralPairs);
         if (!_geneClues.TryGetValue((subject, id), out var clue))
-            _geneClues[(subject, id)] = clue = GeneticSequence.HideStructural(_random, answer, Difficulty(id));
+        {
+            clue = gene.Active
+                ? GeneticSequence.HideStructuralFacilitated(_random, answer)
+                : GeneticSequence.HideStructural(_random, answer, Difficulty(id));
+            _geneClues[(subject, id)] = clue;
+        }
         _pendingSequences[uid] = new PendingSequence
         {
             Subject = subject, User = args.Actor, Gene = id, Answer = answer,

@@ -69,6 +69,23 @@ public static class GeneticSequence
     {
         var bases = sequence.ToCharArray();
         var remaining = Math.Clamp(difficulty + random.Next(-2, 2), 2, bases.Length);
+        HidePositions(random, bases, remaining);
+        return new string(bases);
+    }
+
+    /// <summary>
+    /// Creates the easier puzzle used for a gene that is already active.
+    /// Exactly three or four positions are hidden.
+    /// </summary>
+    public static string HideStructuralFacilitated(IRobustRandom random, string sequence)
+    {
+        var bases = sequence.ToCharArray();
+        HidePositions(random, bases, random.Next(3, 5));
+        return new string(bases);
+    }
+
+    private static void HidePositions(IRobustRandom random, char[] bases, int remaining)
+    {
         var pairs = bases.Length / 2;
         var pairChance = (float) remaining / bases.Length;
         while (remaining > 0)
@@ -88,7 +105,6 @@ public static class GeneticSequence
             bases[index] = 'X';
             remaining--;
         }
-        return new string(bases);
     }
 
     public static bool Validate(string original, string answer, string expected)
