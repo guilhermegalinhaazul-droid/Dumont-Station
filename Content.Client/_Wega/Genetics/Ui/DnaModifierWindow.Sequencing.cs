@@ -82,8 +82,8 @@ public sealed partial class DnaModifierWindow
                     Text = Loc.GetString(gene.Active ? "dna-gene-on" : "dna-gene-off"),
                     Disabled = !gene.Discovered,
                     ModulateSelfOverride = gene.Active ? Color.FromHex("#40C56C") : Color.FromHex("#E05A5A"),
-                    MinWidth = 40,
-                    SetWidth = 40
+                    MinWidth = 50,
+                    SetWidth = 50
                 };
                 toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
                 row.AddChild(toggle);

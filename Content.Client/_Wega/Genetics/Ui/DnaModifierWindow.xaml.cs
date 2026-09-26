@@ -51,15 +51,15 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.RemoveChild(combineTab);
         Tabs.RemoveChild(transferTab);
         Tabs.RemoveChild(rejuvenatorTab);
-        Tabs.AddChild(transferTab);
-        Tabs.AddChild(combineTab);
         Tabs.AddChild(structuralTab);
+        Tabs.AddChild(combineTab);
+        Tabs.AddChild(transferTab);
         Tabs.AddChild(rejuvenatorTab);
 
         Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
-        Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-transfer"));
+        Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         Tabs.SetTabTitle(2, Loc.GetString("dna-tab-combine"));
-        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-se"));
+        Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-transfer"));
         Tabs.SetTabTitle(4, Loc.GetString("dna-modifier-tab-rejuvenator"));
 
         InitializeSequencingUi();

@@ -839,7 +839,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 _damage.TryChangeDamage(child, damage, true);
             }
 
-            EnsureComp<DnaLowestComponent>(child).Parent = target;
+            var lowest = EnsureComp<DnaLowestComponent>(child);
+            lowest.Parent = target;
+            lowest.OriginalUniqueIdentifiers = CloneUniqueIdentifiers(component.UniqueIdentifiers);
+            lowest.OriginalEnzymesPrototypes = CloneEnzymesPrototypes(component.EnzymesPrototypes);
 
             // First undress
             if (_inventory.TryGetContainerSlotEnumerator(target, out var enumerator))
@@ -928,8 +931,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
                 if (TryComp<DnaModifierComponent>(parent, out var dnaModifier))
                 {
-                    dnaModifier.UniqueIdentifiers = component.UniqueIdentifiers;
-                    dnaModifier.EnzymesPrototypes = component.EnzymesPrototypes?.ToList();
+                    dnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(dnaLowest.OriginalUniqueIdentifiers ?? component.UniqueIdentifiers);
+                    dnaModifier.EnzymesPrototypes = CloneEnzymesPrototypes(dnaLowest.OriginalEnzymesPrototypes ?? component.EnzymesPrototypes);
                     dnaModifier.Instability = component.Instability;
                     dnaModifier.Upper = component.Upper;
                     dnaModifier.Lowest = component.Lowest;
