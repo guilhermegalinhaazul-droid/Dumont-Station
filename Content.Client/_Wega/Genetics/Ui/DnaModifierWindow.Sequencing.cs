@@ -113,7 +113,7 @@ public sealed partial class DnaModifierWindow
         {
             var parent = puzzle.Appearance ? _appearancePuzzle : _structuralPuzzle;
             parent.AddChild(BuildPuzzle(puzzle));
-            Tabs.CurrentTab = puzzle.Appearance ? 0 : 3;
+            Tabs.CurrentTab = puzzle.Appearance ? 0 : 1;
         }
     }
 
@@ -385,11 +385,8 @@ public sealed partial class DnaModifierWindow
         {
             var index = i;
             var button = new Button { Text = answer[i].ToString(), Disabled = puzzle.Original[i] != 'X', MinWidth = 32 };
-            void Cycle(int direction)
+            void UpdateButtonColor()
             {
-                const string bases = "XACGT";
-                answer[index] = bases[(bases.IndexOf(answer[index]) + direction + bases.Length) % bases.Length];
-                button.Text = answer[index].ToString();
                 button.ModulateSelfOverride = answer[index] switch
                 {
                     'A' => Color.FromHex("#e45757"),
@@ -398,8 +395,16 @@ public sealed partial class DnaModifierWindow
                     'G' => Color.FromHex("#55c77a"),
                     _ => Color.White
                 };
+            }
+            void Cycle(int direction)
+            {
+                const string bases = "XACGT";
+                answer[index] = bases[(bases.IndexOf(answer[index]) + direction + bases.Length) % bases.Length];
+                button.Text = answer[index].ToString();
+                UpdateButtonColor();
                 submit.Disabled = answer.Contains('X');
             }
+            UpdateButtonColor();
             button.OnPressed += _ => Cycle(1);
             button.OnKeyBindDown += args =>
             {
@@ -419,13 +424,20 @@ public sealed partial class DnaModifierWindow
         var reset = new Button { Text = Loc.GetString("dna-sequence-reset") };
         reset.OnPressed += _ =>
         {
-            answer = puzzle.Original.ToCharArray();
+            // Keep bases already filled by the player; only unfinished gaps remain X.
             for (var i = 0; i < buttons.Count; i++)
             {
                 buttons[i].Text = answer[i].ToString();
-                buttons[i].ModulateSelfOverride = Color.White;
+                buttons[i].ModulateSelfOverride = answer[i] switch
+                {
+                    'A' => Color.FromHex("#e45757"),
+                    'T' => Color.FromHex("#4f9be8"),
+                    'C' => Color.FromHex("#e0b84f"),
+                    'G' => Color.FromHex("#55c77a"),
+                    _ => Color.White
+                };
             }
-            submit.Disabled = true;
+            submit.Disabled = answer.Contains('X');
         };
         container.AddChild(new BoxContainer { Children = { submit, reset } });
         return container;
