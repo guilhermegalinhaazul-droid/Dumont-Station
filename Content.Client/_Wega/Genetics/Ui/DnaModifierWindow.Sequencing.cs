@@ -388,7 +388,7 @@ public sealed partial class DnaModifierWindow
             var button = new Button { Text = answer[i].ToString(), Disabled = puzzle.Original[i] != 'X', MinWidth = 32 };
             void UpdateButtonColor()
             {
-                button.FontColorOverride = Color.White;
+                button.Label.FontColorOverride = Color.White;
                 button.StyleBoxOverride = new StyleBoxFlat
                 {
                     BackgroundColor = answer[index] switch
@@ -433,7 +433,7 @@ public sealed partial class DnaModifierWindow
             for (var i = 0; i < buttons.Count; i++)
             {
                 buttons[i].Text = answer[i].ToString();
-                buttons[i].FontColorOverride = Color.White;
+                buttons[i].Label.FontColorOverride = Color.White;
                 buttons[i].StyleBoxOverride = new StyleBoxFlat
                 {
                     BackgroundColor = answer[i] switch
