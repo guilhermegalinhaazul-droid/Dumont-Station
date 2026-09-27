@@ -401,8 +401,8 @@ public sealed partial class DnaModifierWindow
                 button.StyleBoxOverride = answer[index] == 'X'
                     ? new StyleBoxFlat
                     {
-                        BackgroundColor = Color.FromHex("#252525"),
-                        BorderColor = Color.FromHex("#252525")
+                        BackgroundColor = Color.FromHex("#333333"),
+                        BorderColor = Color.FromHex("#222222")
                     }
                     : null;
                 button.Label.ModulateSelfOverride = answer[index] == 'X' ? Color.White : null;
@@ -450,8 +450,8 @@ public sealed partial class DnaModifierWindow
                 buttons[i].StyleBoxOverride = answer[i] == 'X'
                     ? new StyleBoxFlat
                     {
-                        BackgroundColor = Color.FromHex("#252525"),
-                        BorderColor = Color.FromHex("#252525")
+                        BackgroundColor = Color.FromHex("#333333"),
+                        BorderColor = Color.FromHex("#222222")
                     }
                     : null;
                 buttons[i].Label.ModulateSelfOverride = answer[i] == 'X' ? Color.White : null;
