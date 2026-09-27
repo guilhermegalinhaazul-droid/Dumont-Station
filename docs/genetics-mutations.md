@@ -84,9 +84,9 @@ As mutações do arquivo `trauma.yml` são a versão adaptada do Trauma; as dema
 - **Olfato Transcendente** — concede rastreamento por cheiro.
 - **Astuto** — permite interações complexas que exigem inteligência ou habilidade especial.
 - **Instabilidade Espacial** — teletransporta o personagem aleatoriamente em intervalos periódicos e produz efeitos elétricos.
-- **Nanismo** — reduz a escala corporal para 80%.
+- **Nanismo** — reduz a escala corporal para 75%.
 - **Acromegalia** — aumenta a escala corporal para 125%.
-- **Gigantismo** — aumenta a escala corporal para 120%.
+- **Gigantismo** — aumenta a escala corporal para 125%.
 - **Força** — aumenta o dano de ataques corpo a corpo em 20%.
 - **Estimulado** — aumenta o metabolismo em 25%.
 - **Fraqueza ao Frio** — torna o personagem mais vulnerável ao frio, causa tremores e aumenta o dano de frio recebido.

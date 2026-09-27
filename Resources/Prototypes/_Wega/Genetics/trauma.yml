@@ -208,7 +208,7 @@
   - MutationGigantism
   replaces:
   - GeneticsSmallHeightBasic
-  scale: 1, 0.8
+  scale: 0.75, 0.75
 - type: structuralEnzymes
   id: MutationAcromegaly
   name: Acromegalia
@@ -230,7 +230,7 @@
   - MutationDwarfism
   replaces:
   - GeneticsObesityDisease
-  scale: 1.2, 1.2
+  scale: 1.25, 1.25
 - type: structuralEnzymes
   id: MutationStrength
   name: Força
