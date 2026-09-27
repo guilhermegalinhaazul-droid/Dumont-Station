@@ -398,6 +398,9 @@ public sealed partial class DnaModifierWindow
                     'G' => Color.FromHex("#55c77a"),
                     _ => Color.White
                 };
+                button.StyleBoxOverride = answer[index] == 'X'
+                    ? new StyleBoxFlat { BackgroundColor = Color.FromHex("#252525") }
+                    : null;
             }
             void Cycle(int direction)
             {
@@ -439,6 +442,9 @@ public sealed partial class DnaModifierWindow
                     'G' => Color.FromHex("#55c77a"),
                     _ => Color.White
                 };
+                buttons[i].StyleBoxOverride = answer[i] == 'X'
+                    ? new StyleBoxFlat { BackgroundColor = Color.FromHex("#252525") }
+                    : null;
             }
             submit.Disabled = answer.Contains('X');
         };
