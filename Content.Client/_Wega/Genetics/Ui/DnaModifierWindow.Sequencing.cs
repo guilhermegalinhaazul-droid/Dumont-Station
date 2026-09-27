@@ -388,18 +388,18 @@ public sealed partial class DnaModifierWindow
             var button = new Button { Text = answer[i].ToString(), Disabled = puzzle.Original[i] != 'X', MinWidth = 32 };
             void UpdateButtonColor()
             {
-                button.Label.FontColorOverride = Color.White;
-                button.StyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = answer[index] switch
+                // Fixed bases keep the normal button appearance. Only hidden puzzle
+                // slots use the original Trauma base colours while being solved.
+                button.ModulateSelfOverride = puzzle.Original[index] == 'X'
+                    ? answer[index] switch
                     {
-                        'A' => Color.FromHex("#7d3030"),
-                        'T' => Color.FromHex("#2d5d8f"),
-                        'C' => Color.FromHex("#806a22"),
-                        'G' => Color.FromHex("#317543"),
-                        _ => Color.FromHex("#252525")
+                        'A' => Color.FromHex("#e45757"),
+                        'T' => Color.FromHex("#4f9be8"),
+                        'C' => Color.FromHex("#e0b84f"),
+                        'G' => Color.FromHex("#55c77a"),
+                        _ => Color.White
                     }
-                };
+                    : Color.White;
             }
             void Cycle(int direction)
             {
@@ -433,18 +433,16 @@ public sealed partial class DnaModifierWindow
             for (var i = 0; i < buttons.Count; i++)
             {
                 buttons[i].Text = answer[i].ToString();
-                buttons[i].Label.FontColorOverride = Color.White;
-                buttons[i].StyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = answer[i] switch
+                buttons[i].ModulateSelfOverride = puzzle.Original[i] == 'X'
+                    ? answer[i] switch
                     {
-                        'A' => Color.FromHex("#7d3030"),
-                        'T' => Color.FromHex("#2d5d8f"),
-                        'C' => Color.FromHex("#806a22"),
-                        'G' => Color.FromHex("#317543"),
-                        _ => Color.FromHex("#252525")
+                        'A' => Color.FromHex("#e45757"),
+                        'T' => Color.FromHex("#4f9be8"),
+                        'C' => Color.FromHex("#e0b84f"),
+                        'G' => Color.FromHex("#55c77a"),
+                        _ => Color.White
                     }
-                };
+                    : Color.White;
             }
             submit.Disabled = answer.Contains('X');
         };
