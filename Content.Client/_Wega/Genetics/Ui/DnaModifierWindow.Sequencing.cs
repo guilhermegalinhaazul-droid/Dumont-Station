@@ -399,8 +399,13 @@ public sealed partial class DnaModifierWindow
                     _ => Color.White
                 };
                 button.StyleBoxOverride = answer[index] == 'X'
-                    ? new StyleBoxFlat { BackgroundColor = Color.FromHex("#252525") }
+                    ? new StyleBoxFlat
+                    {
+                        BackgroundColor = Color.FromHex("#252525"),
+                        BorderColor = Color.FromHex("#252525")
+                    }
                     : null;
+                button.Label.ModulateSelfOverride = answer[index] == 'X' ? Color.White : null;
             }
             void Cycle(int direction)
             {
@@ -443,8 +448,13 @@ public sealed partial class DnaModifierWindow
                     _ => Color.White
                 };
                 buttons[i].StyleBoxOverride = answer[i] == 'X'
-                    ? new StyleBoxFlat { BackgroundColor = Color.FromHex("#252525") }
+                    ? new StyleBoxFlat
+                    {
+                        BackgroundColor = Color.FromHex("#252525"),
+                        BorderColor = Color.FromHex("#252525")
+                    }
                     : null;
+                buttons[i].Label.ModulateSelfOverride = answer[i] == 'X' ? Color.White : null;
             }
             submit.Disabled = answer.Contains('X');
         };
