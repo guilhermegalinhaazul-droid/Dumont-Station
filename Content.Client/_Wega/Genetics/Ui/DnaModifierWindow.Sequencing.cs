@@ -388,24 +388,12 @@ public sealed partial class DnaModifierWindow
             var button = new Button { Text = answer[i].ToString(), Disabled = puzzle.Original[i] != 'X', MinWidth = 32 };
             void UpdateButtonColor()
             {
-                // Keep the original Trauma appearance: bases are tinted by their
-                // letter, while unresolved X slots remain plain white.
                 button.ModulateSelfOverride = answer[index] switch
                 {
-                    'A' => Color.FromHex("#e45757"),
-                    'T' => Color.FromHex("#4f9be8"),
-                    'C' => Color.FromHex("#e0b84f"),
-                    'G' => Color.FromHex("#55c77a"),
-                    _ => Color.White
+                    'A' or 'T' => Color.FromHex("#1b9638"),
+                    'G' or 'C' => Color.FromHex("#1c71b1"),
+                    _ => null
                 };
-                button.StyleBoxOverride = answer[index] == 'X'
-                    ? new StyleBoxFlat
-                    {
-                        BackgroundColor = Color.FromHex("#333333"),
-                        BorderColor = Color.FromHex("#222222")
-                    }
-                    : null;
-                button.Label.ModulateSelfOverride = answer[index] == 'X' ? Color.White : null;
             }
             void Cycle(int direction)
             {
@@ -441,20 +429,10 @@ public sealed partial class DnaModifierWindow
                 buttons[i].Text = answer[i].ToString();
                 buttons[i].ModulateSelfOverride = answer[i] switch
                 {
-                    'A' => Color.FromHex("#e45757"),
-                    'T' => Color.FromHex("#4f9be8"),
-                    'C' => Color.FromHex("#e0b84f"),
-                    'G' => Color.FromHex("#55c77a"),
-                    _ => Color.White
+                    'A' or 'T' => Color.FromHex("#1b9638"),
+                    'G' or 'C' => Color.FromHex("#1c71b1"),
+                    _ => null
                 };
-                buttons[i].StyleBoxOverride = answer[i] == 'X'
-                    ? new StyleBoxFlat
-                    {
-                        BackgroundColor = Color.FromHex("#333333"),
-                        BorderColor = Color.FromHex("#222222")
-                    }
-                    : null;
-                buttons[i].Label.ModulateSelfOverride = answer[i] == 'X' ? Color.White : null;
             }
             submit.Disabled = answer.Contains('X');
         };
