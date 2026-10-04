@@ -791,7 +791,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         var genes = ent.Comp.EnzymesPrototypes;
         // Remove before adding, so upgrades sharing a component (Hulk -> Ork) get new settings.
-        foreach (var id in ent.Comp.AppliedGenes.ToArray())
+        foreach (var id in ent.Comp.GeneComponents.Keys.ToArray())
         {
             if (genes.Any(g => g.EnzymesPrototypeId == id && g.Active))
                 continue;
