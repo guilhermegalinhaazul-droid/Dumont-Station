@@ -70,19 +70,11 @@ dna-modifier-unknown-reagent-text = Reagente Desconhecido
 
 dna-modifier-no-data = Sem Dados
 
-dna-portable-title = Analisador Portátil de DNA
-dna-portable-subject = Entidade escaneada:
-dna-portable-unique = Enzimas únicas (EU):
-dna-portable-bases = Bases nitrogenadas:
-dna-portable-enzymes = Amostra EU/EE:
-dna-portable-save-unique = Salvar EU
-dna-portable-save-structural = Salvar EE
-dna-portable-save-both = Salvar EU + EE
-dna-portable-clear = Limpar amostra
-dna-portable-no-sample = Nenhuma entidade escaneada
-dna-portable-no-data = Sem dados
-dna-portable-active = ativo
-dna-portable-inactive = inativo
+dna-eu-category-identity = Identidade
+dna-eu-category-markings = Marcas e estilos
+dna-eu-category-hair = Cabelo e barba
+dna-eu-category-colors = Cores
+dna-eu-category-details = Detalhes
 
 dna-disk-sample = amostra-
 
