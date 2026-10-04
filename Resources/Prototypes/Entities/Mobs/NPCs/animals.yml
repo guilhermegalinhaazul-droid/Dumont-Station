@@ -1883,7 +1883,7 @@
     upper: MobHuman
     lowest: MobMonkey
     intrinsicGenes:
-    - GeneticsClumsinessDisease
+    - MutationClumsiness
   # Corvax-Wega-Genetics-end
   - type: DuoEmote # Funky Change
   - type: TailDuoEmote # Funky Change

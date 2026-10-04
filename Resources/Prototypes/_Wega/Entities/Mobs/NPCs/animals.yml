@@ -396,7 +396,7 @@
     upper: MobFeroxi
     lowest: MobSkrellkey
     intrinsicGenes:
-    - GeneticsClumsinessDisease
+    - MutationClumsiness
   - type: Reactive
     groups:
       Flammable: [ Touch ]
@@ -485,7 +485,7 @@
     upper: MobResomi
     lowest: MobStokkey
     intrinsicGenes:
-    - GeneticsClumsinessDisease
+    - MutationClumsiness
 
 - type: entity
   id: MobStokkeyVox
@@ -556,7 +556,7 @@
     upper: MobVulpkanin
     lowest: MobWolfling
     intrinsicGenes:
-    - GeneticsClumsinessDisease
+    - MutationClumsiness
 
 - type: entity
   name: farwa
