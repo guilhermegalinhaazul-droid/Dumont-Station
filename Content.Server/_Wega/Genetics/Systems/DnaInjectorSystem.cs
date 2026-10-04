@@ -23,6 +23,7 @@ public sealed partial class DnaModifierSystem
         SubscribeLocalEvent<DnaModifierInjectorComponent, DnaInjectorDoAfterEvent>(OnDoAfter);
 
         SubscribeLocalEvent<DnaModifierCleanRandomizeComponent, ComponentStartup>(OnCleanRandomize);
+        SubscribeLocalEvent<DnaModifierActivateAllComponent, ComponentStartup>(OnActivateAll);
     }
 
     public void OnFillingInjector(EntityUid injector, UniqueIdentifiersData? uniqueIdentifiers, List<EnzymesPrototypeInfo>? enzymesPrototypes)
@@ -131,5 +132,21 @@ public sealed partial class DnaModifierSystem
         }
 
         injector.EnzymesPrototypes = uniqueEnzymesPrototypes;
+    }
+
+    private void OnActivateAll(Entity<DnaModifierActivateAllComponent> ent, ref ComponentStartup args)
+    {
+        if (!TryComp<DnaModifierInjectorComponent>(ent, out var injector))
+            return;
+
+        var enzymesPrototypes = _enzymesIndexer.GetAllEnzymesPrototypes();
+        injector.EnzymesPrototypes = enzymesPrototypes
+            .Select(enzyme => new EnzymesPrototypeInfo
+            {
+                EnzymesPrototypeId = enzyme.EnzymesPrototypeId,
+                Order = enzyme.Order,
+                Active = true
+            })
+            .ToList();
     }
 }

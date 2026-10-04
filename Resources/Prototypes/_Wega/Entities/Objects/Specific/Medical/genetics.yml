@@ -24,3 +24,12 @@
   suffix: Clean SE
   components:
   - type: DnaModifierCleanRandomize
+
+- type: entity
+  parent: BaseDnaInjector
+  id: DnaInjectorActivateAllEe
+  name: DNA injector activate all structural enzymes
+  description: "Activates every structural-enzyme gene in the target's DNA."
+  suffix: Activate all EE
+  components:
+  - type: DnaModifierActivateAll

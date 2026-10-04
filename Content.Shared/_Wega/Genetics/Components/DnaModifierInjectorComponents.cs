@@ -20,3 +20,9 @@ public sealed partial class DnaModifierInjectorComponent : Component
 
 [RegisterComponent, Access(typeof(SharedDnaModifierSystem))]
 public sealed partial class DnaModifierCleanRandomizeComponent : Component;
+
+/// <summary>
+/// Fills the injector with every current structural-enzyme gene enabled.
+/// </summary>
+[RegisterComponent, Access(typeof(SharedDnaModifierSystem))]
+public sealed partial class DnaModifierActivateAllComponent : Component;
