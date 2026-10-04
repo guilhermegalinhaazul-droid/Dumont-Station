@@ -30,6 +30,7 @@ using Content.Server.Access.Systems;
 using Content.Shared.Access.Components;
 using Content.Shared.Forensics.Components;
 using Content.Shared.GameTicking;
+using Content.Shared.Genetics;
 using Content.Shared.Inventory;
 using Content.Shared.PDA;
 using Content.Shared.Preferences;
@@ -188,7 +189,7 @@ public sealed partial class StationRecordsSystem : SharedStationRecordsSystem
             Gender = gender,
             DisplayPriority = jobPrototype.RealDisplayWeight,
             Fingerprint = mobFingerprint,
-            DNA = dna
+            DNA = dna == null ? null : GeneticSequence.ToNitrogenBases(dna)
         };
 
         var key = AddRecordEntry(station, record);

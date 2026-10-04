@@ -116,6 +116,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Timing;
 using Content.Server.Chemistry.Containers.EntitySystems;
 using Content.Shared.Forensics.Components;
+using Content.Shared.Genetics;
 using Robust.Shared.Prototypes;
 // todo: remove this stinky LINQy
 
@@ -185,13 +186,17 @@ namespace Content.Server.Forensics
                 {
                     scanner.Fingerprints = forensics.Fingerprints.ToList();
                     scanner.Fibers = forensics.Fibers.ToList();
-                    scanner.TouchDNAs = forensics.DNAs.ToList();
+                    scanner.TouchDNAs = forensics.DNAs
+                        .Select(dna => (GeneticSequence.ToNitrogenBases(dna.Item1), dna.Item2))
+                        .ToList();
                     scanner.Residues = forensics.Residues.ToList();
                 }
 
                 if (_tag.HasTag(args.Args.Target.Value, DNASolutionScannableTag))
                 {
-                    scanner.SolutionDNAs = _forensicsSystem.GetSolutionsDNA(args.Args.Target.Value);
+                    scanner.SolutionDNAs = _forensicsSystem.GetSolutionsDNA(args.Args.Target.Value)
+                        .Select(dna => (GeneticSequence.ToNitrogenBases(dna.Item1), dna.Item2))
+                        .ToList();
                 } else
                 {
                     scanner.SolutionDNAs = new();
