@@ -22,7 +22,8 @@ public static class AppearanceGene
         nameof(UniqueIdentifiersData.EyeColorR), nameof(UniqueIdentifiersData.EyeColorG), nameof(UniqueIdentifiersData.EyeColorB),
         nameof(UniqueIdentifiersData.Gender), nameof(UniqueIdentifiersData.HairStyle), nameof(UniqueIdentifiersData.BeardStyle),
         nameof(UniqueIdentifiersData.HeadAccessoryStyle), nameof(UniqueIdentifiersData.HeadMarkingStyle), nameof(UniqueIdentifiersData.BodyMarkingStyle),
-        nameof(UniqueIdentifiersData.TailMarkingStyle)
+        nameof(UniqueIdentifiersData.TailMarkingStyle),
+        nameof(UniqueIdentifiersData.Height), nameof(UniqueIdentifiersData.Width)
     };
 
     public static IEnumerable<string> Fields => ColorFields.Append(Name);
@@ -65,6 +66,8 @@ public static class AppearanceGene
         nameof(UniqueIdentifiersData.HeadMarkingStyle) => data.HeadMarkingStyle,
         nameof(UniqueIdentifiersData.BodyMarkingStyle) => data.BodyMarkingStyle,
         nameof(UniqueIdentifiersData.TailMarkingStyle) => data.TailMarkingStyle,
+        nameof(UniqueIdentifiersData.Height) => data.Height,
+        nameof(UniqueIdentifiersData.Width) => data.Width,
         _ => null
     };
 
@@ -108,6 +111,8 @@ public static class AppearanceGene
             case nameof(UniqueIdentifiersData.HeadMarkingStyle): data.HeadMarkingStyle = copy; break;
             case nameof(UniqueIdentifiersData.BodyMarkingStyle): data.BodyMarkingStyle = copy; break;
             case nameof(UniqueIdentifiersData.TailMarkingStyle): data.TailMarkingStyle = copy; break;
+            case nameof(UniqueIdentifiersData.Height): data.Height = copy; break;
+            case nameof(UniqueIdentifiersData.Width): data.Width = copy; break;
         }
     }
 

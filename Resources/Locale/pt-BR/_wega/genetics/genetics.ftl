@@ -75,6 +75,8 @@ dna-eu-category-markings = Marcas e estilos
 dna-eu-category-hair = Cabelo e barba
 dna-eu-category-colors = Cores
 dna-eu-category-details = Detalhes
+dna-eu-Height = Altura
+dna-eu-Width = Largura corporal
 
 dna-disk-sample = amostra-
 

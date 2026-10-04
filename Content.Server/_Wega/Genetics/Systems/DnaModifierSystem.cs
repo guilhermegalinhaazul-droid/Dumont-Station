@@ -41,6 +41,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     [Dependency] private readonly EnsureMarkingSystem _ensureMarking = default!;
     [Dependency] private readonly StructuralEnzymesIndexerSystem _enzymesIndexer = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoidAppearance = default!;
     [Dependency] private readonly ServerInventorySystem _inventory = default!;
     [Dependency] private readonly MarkingPrototypesIndexerSystem _markingIndexer = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
@@ -210,6 +211,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             var uniqueIdentifiers = new UniqueIdentifiersData
             {
                 ID = $"UniqueIdentifiers{uid}",
+                Height = ScaleToGenes(humanoid.Height),
+                Width = ScaleToGenes(humanoid.Width),
             };
 
             var markingSet = humanoid.MarkingSet;
@@ -688,6 +691,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         UpdateMarkings((ent, humanoid), uniqueIdentifiers);
         UpdateEyeColor((ent, humanoid), uniqueIdentifiers);
         UpdateGender((ent, humanoid), uniqueIdentifiers);
+        UpdateScale((ent, humanoid), uniqueIdentifiers);
 
         Dirty(ent, humanoid);
     }
@@ -781,6 +785,16 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         humanoid.Comp.Gender = currentGender;
         humanoid.Comp.Sex = currentSex;
     }
+
+    private void UpdateScale(Entity<HumanoidAppearanceComponent> humanoid, UniqueIdentifiersData uniqueIdentifiers)
+    {
+        if (int.TryParse(string.Concat(uniqueIdentifiers.Height), out var height)
+            && int.TryParse(string.Concat(uniqueIdentifiers.Width), out var width))
+            _humanoidAppearance.SetScale(humanoid.Owner, new System.Numerics.Vector2(width / 100f, height / 100f), true, humanoid.Comp);
+    }
+
+    private static string[] ScaleToGenes(float value)
+        => Math.Clamp((int) MathF.Round(value * 100f), 1, 999).ToString("D3").Select(c => c.ToString()).ToArray();
     #endregion Modify U.I.
 
     #region Modify S.E.

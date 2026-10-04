@@ -44,6 +44,9 @@ public sealed class UniqueIdentifiersData
     public string[] HeadMarkingStyle { get; set; } = Array.Empty<string>();
     public string[] BodyMarkingStyle { get; set; } = Array.Empty<string>();
     public string[] TailMarkingStyle { get; set; } = Array.Empty<string>();
+    // Stored as three decimal digits representing percentage scale (100 = normal).
+    public string[] Height { get; set; } = new[] { "1", "0", "0" };
+    public string[] Width { get; set; } = new[] { "1", "0", "0" };
 
     public UniqueIdentifiersData Clone(UniqueIdentifiersData data)
     {
@@ -85,7 +88,9 @@ public sealed class UniqueIdentifiersData
             HeadAccessoryStyle = (string[])data.HeadAccessoryStyle.Clone(),
             HeadMarkingStyle = (string[])data.HeadMarkingStyle.Clone(),
             BodyMarkingStyle = (string[])data.BodyMarkingStyle.Clone(),
-            TailMarkingStyle = (string[])data.TailMarkingStyle.Clone()
+            TailMarkingStyle = (string[])data.TailMarkingStyle.Clone(),
+            Height = (string[])data.Height.Clone(),
+            Width = (string[])data.Width.Clone()
         };
 
         return newData;

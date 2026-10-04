@@ -31,13 +31,42 @@ public sealed partial class DnaModifierWindow
 
     private void SetScannerPreview(EntityUid source)
     {
-        if (_appearancePreview is { } preview && _entManager.EntityExists(preview))
-        {
+        if (EnsureAppearancePreview(source) is { } preview)
             SubjectPreview.SetEntity(preview);
-            return;
+        else
+            SubjectPreview.SetEntity(source);
+    }
+
+    private EntityUid? EnsureAppearancePreview(EntityUid source)
+    {
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
+            return null;
+
+        if (_appearancePreview is not { } preview || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
+        {
+            if (preview.IsValid() && _entManager.EntityExists(preview))
+                _entManager.DeleteEntity(preview);
+
+            var species = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
+            preview = _entManager.SpawnEntity(species.DollPrototype, MapCoordinates.Nullspace);
+            _appearancePreview = preview;
+            _appearancePreviewSource = source;
         }
 
-        SubjectPreview.SetEntity(source);
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var previewAppearance)
+            || !_entManager.TryGetComponent<SpriteComponent>(preview, out var previewSprite))
+            return preview;
+
+        previewAppearance.Species = sourceAppearance.Species;
+        previewAppearance.Sex = sourceAppearance.Sex;
+        previewAppearance.Gender = sourceAppearance.Gender;
+        previewAppearance.SkinColor = sourceAppearance.SkinColor;
+        previewAppearance.EyeColor = sourceAppearance.EyeColor;
+        previewAppearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
+        previewAppearance.Height = sourceAppearance.Height;
+        previewAppearance.Width = sourceAppearance.Width;
+        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, previewAppearance, previewSprite));
+        return preview;
     }
 
     private void ClearScannerPreview()
@@ -101,7 +130,6 @@ public sealed partial class DnaModifierWindow
             _appearanceEditor.RemoveAllChildren();
             foreach (var group in state.AppearanceFields.GroupBy(AppearanceCategory))
             {
-                _uniqueGenes.AddChild(new Label { Text = Loc.GetString("dna-eu-category-" + group.Key), StyleClasses = { "LabelSubText" } });
                 BuildAppearanceGroup(_appearanceEditor, group, state);
             }
         }
@@ -171,18 +199,25 @@ public sealed partial class DnaModifierWindow
             }
             else
             {
-                var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : 255;
-                var slider = new Slider { MinValue = 0, MaxValue = max, SetWidth = 220 };
+                var isScale = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
+                var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : isScale ? 200 : 255;
+                var min = isScale ? 50 : 0;
+                var slider = new Slider { MinValue = min, MaxValue = max, SetWidth = 220 };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
+                var colorPreview = new Button { Text = string.Empty, SetWidth = 30, SetHeight = 30, Disabled = true };
+                UpdateColorButton(colorPreview, state, field, value.Text);
                 slider.OnValueChanged += args =>
                 {
                     value.Text = ((int) args.Value).ToString();
+                    UpdateColorButton(colorPreview, state, field, value.Text);
                     PreviewAppearance(field, value.Text);
                 };
                 selected = () => ((int) slider.Value).ToString();
                 row.AddChild(slider);
                 row.AddChild(value);
+                if (IsColorField(field))
+                    row.AddChild(colorPreview);
             }
 
             var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
@@ -204,24 +239,12 @@ public sealed partial class DnaModifierWindow
             !_entManager.TryGetComponent<HumanoidAppearanceComponent>(sourceEntity, out var sourceAppearance))
             return;
 
-        EntityUid preview = default;
+        var preview = EnsureAppearancePreview(sourceEntity);
+        if (preview is not { } previewEntity)
+            return;
 
-        if (_appearancePreview is { } existingPreview)
-            preview = existingPreview;
-
-        if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != sourceEntity)
-        {
-            if (preview.IsValid() && _entManager.EntityExists(preview))
-                _entManager.DeleteEntity(preview);
-
-            var prototype = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
-            preview = _entManager.SpawnEntity(prototype.DollPrototype, MapCoordinates.Nullspace);
-            _appearancePreview = preview;
-            _appearancePreviewSource = sourceEntity;
-        }
-
-        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var appearance) ||
-            !_entManager.TryGetComponent<SpriteComponent>(preview, out var sprite))
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(previewEntity, out var appearance) ||
+            !_entManager.TryGetComponent<SpriteComponent>(previewEntity, out var sprite))
             return;
 
         appearance.Species = sourceAppearance.Species;
@@ -230,6 +253,8 @@ public sealed partial class DnaModifierWindow
         appearance.SkinColor = sourceAppearance.SkinColor;
         appearance.EyeColor = sourceAppearance.EyeColor;
         appearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
+        appearance.Height = sourceAppearance.Height;
+        appearance.Width = sourceAppearance.Width;
 
         if (field.EndsWith("Style") && value.Length > 0 && _prototypeManager.TryIndex<MarkingPrototype>(value, out var marking))
         {
@@ -251,11 +276,20 @@ public sealed partial class DnaModifierWindow
             appearance.Gender = (Gender) Math.Clamp(gender, 0, 2);
             appearance.Sex = gender == 0 ? Sex.Female : gender == 1 ? Sex.Male : Sex.Unsexed;
         }
+        else if (field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width)
+                 && int.TryParse(value, out var scale))
+        {
+            var factor = Math.Clamp(scale / 100f, 0.5f, 2f);
+            if (field == nameof(UniqueIdentifiersData.Height))
+                appearance.Height = factor;
+            else
+                appearance.Width = factor;
+        }
 
         ApplyColorPreview(state: _lastUpdate, appearance, field, value);
 
-        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, appearance, sprite));
-        SetScannerPreview(sourceEntity);
+        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((previewEntity, appearance, sprite));
+        SubjectPreview.SetEntity(previewEntity);
     }
 
     private static void ApplyColorPreview(DnaModifierBoundUserInterfaceState? state,
@@ -310,12 +344,45 @@ public sealed partial class DnaModifierWindow
             return 0;
 
         var encoded = string.Concat(value);
-        if (field == nameof(UniqueIdentifiersData.SkinTone))
+        if (field is nameof(UniqueIdentifiersData.SkinTone)
+            or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
             return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
 
         return Math.Clamp(int.TryParse(encoded, System.Globalization.NumberStyles.HexNumber, null, out var hexValue)
             ? hexValue
             : 0, 0, max);
+    }
+
+    private static bool IsColorField(string field)
+        => field.Contains("Color", StringComparison.Ordinal) || field == nameof(UniqueIdentifiersData.SkinTone);
+
+    private static void UpdateColorButton(Button button, DnaModifierBoundUserInterfaceState state,
+        string field, string value)
+    {
+        if (!IsColorField(field) || state.Unique is not { } unique)
+            return;
+
+        var channel = int.TryParse(value, out var parsed) ? Math.Clamp(parsed, 0, 255) : 0;
+        var red = ReadColorChannel(unique, field, 'R', channel);
+        var green = ReadColorChannel(unique, field, 'G', channel);
+        var blue = ReadColorChannel(unique, field, 'B', channel);
+        button.ModulateSelfOverride = new Color(red / 255f, green / 255f, blue / 255f);
+    }
+
+    private static int ReadColorChannel(UniqueIdentifiersData unique, string field, char channel, int edited)
+    {
+        if (field == nameof(UniqueIdentifiersData.SkinTone))
+            return Math.Clamp((int) (edited * 2.55f), 0, 255);
+
+        if (field.Length > 0 && field[^1] == channel)
+            return edited;
+
+        var category = field[..^1] + channel;
+        var value = AppearanceGene.Get(unique, category);
+        return value is { Length: >= 2 } && int.TryParse(value[0] + value[1],
+            System.Globalization.NumberStyles.HexNumber, null, out var parsed)
+            ? parsed
+            : 0;
     }
 
     private void ShowAppearanceEditor(string field, DnaModifierBoundUserInterfaceState state)

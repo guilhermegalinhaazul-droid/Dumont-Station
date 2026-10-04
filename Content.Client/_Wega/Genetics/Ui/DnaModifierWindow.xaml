@@ -11,24 +11,31 @@
         <!-- Верхняя часть окна -->
         <BoxContainer Orientation="Vertical" VerticalExpand="False" Margin="10">
             <BoxContainer Orientation="Horizontal" Margin="2">
-                <Label StyleClasses="LabelBig" Text="{Loc 'dna-modifier-label-big-title-name'}" MinWidth="120"/>
-                <Control HorizontalExpand="True"/>
-                <Button Name="EjectButton" Text="{Loc 'dna-modifier-button-eject'}" Disabled="True"/>
-            </BoxContainer>
-            <BoxContainer Orientation="Horizontal" Margin="2">
-                <Label Text="{Loc 'dna-modifier-label-name'}" MinWidth="60"/>
-                <Control MinWidth="10"/>
-                <Label Name="NameLabel"/>
-            </BoxContainer>
-            <BoxContainer Orientation="Horizontal" Margin="2">
-                <Label Text="{Loc 'dna-modifier-label-species'}" MinWidth="60"/>
-                <Control MinWidth="10"/>
-                <Label Name="SpeciesLabel"/>
-            </BoxContainer>
-            <BoxContainer Orientation="Horizontal" Margin="2">
-                <Label Text="{Loc 'dna-modifier-label-status'}" MinWidth="60"/>
-                <Control MinWidth="10"/>
-                <Label Name="StatusLabel"/>
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True">
+                    <BoxContainer Orientation="Horizontal">
+                        <Label StyleClasses="LabelBig" Text="{Loc 'dna-modifier-label-big-title-name'}" MinWidth="120"/>
+                        <Control HorizontalExpand="True"/>
+                        <Button Name="EjectButton" Text="{Loc 'dna-modifier-button-eject'}" Disabled="True"/>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal">
+                        <Label Text="{Loc 'dna-modifier-label-name'}" MinWidth="60"/>
+                        <Control MinWidth="10"/>
+                        <Label Name="NameLabel"/>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal">
+                        <Label Text="{Loc 'dna-modifier-label-species'}" MinWidth="60"/>
+                        <Control MinWidth="10"/>
+                        <Label Name="SpeciesLabel"/>
+                    </BoxContainer>
+                    <BoxContainer Orientation="Horizontal">
+                        <Label Text="{Loc 'dna-modifier-label-status'}" MinWidth="60"/>
+                        <Control MinWidth="10"/>
+                        <Label Name="StatusLabel"/>
+                    </BoxContainer>
+                </BoxContainer>
+                <PanelContainer Name="AppearancePreview" Visible="False" MinSize="128 128" MaxSize="128 128" HorizontalAlignment="Right">
+                    <SpriteView Name="SubjectPreview" SetSize="120 120" Scale="2 2" OverrideDirection="South"/>
+                </PanelContainer>
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="2">
                 <Label Text="{Loc 'dna-modifier-label-health'}" MinWidth="100"/>
@@ -68,9 +75,6 @@
                     <!-- Вкладка Modify U.I. -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <Label Text="{Loc 'dna-modifier-box-ui'}" StyleClasses="LabelBig"/>
-                        <PanelContainer Name="AppearancePreview" Visible="False" MinSize="120 120" MaxSize="120 120" HorizontalAlignment="Center">
-                            <SpriteView Name="SubjectPreview" SetSize="112 112" Scale="2 2" OverrideDirection="South"/>
-                        </PanelContainer>
                         <PanelContainer Name="UiPanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>
                                 <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />

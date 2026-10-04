@@ -286,6 +286,11 @@ public sealed partial class DnaModifierConsoleSystem
                 if (value is < 0 or > 100) return;
                 encoded = value == 100 ? "100" : "0" + value.ToString("D2");
             }
+            else if (args.Field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
+            {
+                if (value is < 50 or > 200) return;
+                encoded = value.ToString("D3");
+            }
             else
             {
                 if (value is < 0 or > 255) return;
