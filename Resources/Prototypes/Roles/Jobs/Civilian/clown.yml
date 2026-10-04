@@ -134,6 +134,9 @@
   special:
   - !type:AddComponentSpecial
     components:
+    - type: DnaModifier
+      intrinsicGenes:
+      - MutationClumsiness
     - type: Clumsy
       gunShootFailDamage:
         types: #literally just picked semi random valus. i tested this once and tweaked it.
@@ -205,4 +208,3 @@
 - type: jobAlternateTitle
   id: ClownTitleActress
   name: job-name-alt-clown-actress
-

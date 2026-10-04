@@ -135,6 +135,9 @@
   special:
   - !type:AddComponentSpecial
     components:
+    - type: DnaModifier
+      intrinsicGenes:
+      - MutationMute
     - type: MimePowers
       preventWriting: true
     - type: FrenchAccent
@@ -212,4 +215,3 @@
 - type: jobAlternateTitle
   id: MimeTitleChaplin
   name: job-name-alt-mime-chaplin
-
