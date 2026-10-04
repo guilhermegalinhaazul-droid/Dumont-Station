@@ -552,6 +552,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             }
 
             component.GeneComponents[id] = owned;
+            component.AppliedGenes.Add(id);
             ApplyGeneTraits((uid, component), prototype, true);
         }
     }
@@ -580,8 +581,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        // AppliedGenes is runtime state. Intrinsic genes are kept separate so
-        // their abilities never contribute to instability.
+        // AppliedGenes is runtime state and includes active intrinsic genes.
         component.AppliedGenes.RemoveWhere(id => !component.GeneComponents.ContainsKey(id));
 
         // A gene is active only when it was explicitly applied to the DNA.
@@ -827,8 +827,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 EntityManager.AddComponents(ent, prototype.AddComponent, false);
             }
             ent.Comp.GeneComponents[id] = owned;
-            if (!ent.Comp.IntrinsicGenes.Contains(id))
-                ent.Comp.AppliedGenes.Add(id);
+            ent.Comp.AppliedGenes.Add(id);
             ApplyGeneTraits(ent, prototype, true);
             _admin.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent):user} acquires gene '{id}'.");
         }

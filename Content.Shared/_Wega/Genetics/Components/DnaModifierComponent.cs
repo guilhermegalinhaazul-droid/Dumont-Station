@@ -15,8 +15,8 @@ public sealed partial class DnaModifierComponent : Component
 
     [ViewVariables(VVAccess.ReadOnly)]
     public HashSet<string> AppliedGenes = new();
-    // Prototype-defined biology. These genes grant their abilities without
-    // contributing to instability or being removable in the DNA UI.
+    // Prototype-defined biology. These genes start active while remaining
+    // ordinary, editable genes in the DNA UI.
     [ViewVariables(VVAccess.ReadOnly), DataField("intrinsicGenes")]
     public HashSet<string> IntrinsicGenes { get; set; } = new();
     [ViewVariables(VVAccess.ReadOnly)]
