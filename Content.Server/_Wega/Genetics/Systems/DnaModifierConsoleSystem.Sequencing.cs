@@ -176,6 +176,16 @@ public sealed partial class DnaModifierConsoleSystem
             if (pending.State.Appearance)
                 _damage.TryChangeDamage(subject, new DamageSpecifier { DamageDict = { { "Poison", 2 } } },
                     ignoreResistances: true, canBeCancelled: false, ignoreBlockers: true, canMiss: false);
+            else
+                _damage.TryChangeDamage(subject, new DamageSpecifier
+                {
+                    DamageDict =
+                    {
+                        { "Poison", 0.5 },
+                        { "Genetic", 1.0 },
+                        { "Radiation", 0.3 }
+                    }
+                }, ignoreResistances: true, canBeCancelled: false, ignoreBlockers: true, canMiss: false);
             _geneticStatus[uid] = Loc.GetString("dna-sequence-failed");
             UpdateUserInterface(uid, component);
             return;
