@@ -30,13 +30,13 @@ public sealed partial class DnaModifierSystem
 
     private void OnGeneMeleeDamage(Entity<DnaModifierComponent> ent, ref GetUserMeleeDamageEvent args)
     {
-        foreach (var id in ent.Comp.AppliedGenes)
+        foreach (var id in ent.Comp.AppliedGenes.Concat(ent.Comp.IntrinsicGenes))
             args.Damage *= _prototype.Index<StructuralEnzymesPrototype>(id).MeleeMultiplier;
     }
 
     private void OnGeneDamage(Entity<DnaModifierComponent> ent, ref DamageModifyEvent args)
     {
-        foreach (var id in ent.Comp.AppliedGenes)
+        foreach (var id in ent.Comp.AppliedGenes.Concat(ent.Comp.IntrinsicGenes))
         {
             if (_prototype.Index<StructuralEnzymesPrototype>(id).DamageModifiers is { } modifiers)
                 args.Damage = DamageSpecifier.ApplyModifierSet(args.Damage, modifiers);

@@ -395,6 +395,8 @@
   - type: DnaModifier
     upper: MobFeroxi
     lowest: MobSkrellkey
+    intrinsicGenes:
+    - GeneticsClumsinessDisease
   - type: Reactive
     groups:
       Flammable: [ Touch ]
@@ -482,6 +484,8 @@
   - type: DnaModifier
     upper: MobResomi
     lowest: MobStokkey
+    intrinsicGenes:
+    - GeneticsClumsinessDisease
 
 - type: entity
   id: MobStokkeyVox
@@ -551,6 +555,8 @@
   - type: DnaModifier
     upper: MobVulpkanin
     lowest: MobWolfling
+    intrinsicGenes:
+    - GeneticsClumsinessDisease
 
 - type: entity
   name: farwa

@@ -1882,6 +1882,8 @@
   - type: DnaModifier
     upper: MobHuman
     lowest: MobMonkey
+    intrinsicGenes:
+    - GeneticsClumsinessDisease
   # Corvax-Wega-Genetics-end
   - type: DuoEmote # Funky Change
   - type: TailDuoEmote # Funky Change
@@ -2361,6 +2363,8 @@
   - type: DnaModifier
     upper: MobRodentia
     lowest: MobMouse
+    intrinsicGenes:
+    - GeneticsNightVisionIntermediate
   # Corvax-Wega-Genetics-end
 
 - type: entity

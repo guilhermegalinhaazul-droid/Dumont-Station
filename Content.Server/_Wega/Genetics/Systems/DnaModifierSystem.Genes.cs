@@ -14,7 +14,8 @@ public sealed partial class DnaModifierSystem
 
         foreach (var gene in subject.Comp.EnzymesPrototypes)
         {
-            if (gene.EnzymesPrototypeId != StructuralEnzymesIndexerSystem.SpeciesGene)
+            if (gene.EnzymesPrototypeId != StructuralEnzymesIndexerSystem.SpeciesGene &&
+                !subject.Comp.IntrinsicGenes.Contains(gene.EnzymesPrototypeId))
                 gene.Active = false;
         }
 
@@ -30,7 +31,8 @@ public sealed partial class DnaModifierSystem
         var activated = 0;
         foreach (var gene in subject.Comp.EnzymesPrototypes)
         {
-            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene || gene.Active)
+            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene ||
+                subject.Comp.IntrinsicGenes.Contains(gene.EnzymesPrototypeId) || gene.Active)
                 continue;
 
             gene.Active = true;
@@ -46,12 +48,16 @@ public sealed partial class DnaModifierSystem
     {
         if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene)
             return gene.Active;
+        if (subject.Comp.IntrinsicGenes.Contains(gene.EnzymesPrototypeId))
+            return true;
         return subject.Comp.AppliedGenes.Contains(gene.EnzymesPrototypeId);
 
     }
 
     public void SetGeneActive(Entity<DnaModifierComponent> subject, EnzymesPrototypeInfo gene, bool active)
     {
+        if (subject.Comp.IntrinsicGenes.Contains(gene.EnzymesPrototypeId))
+            return;
         if (active && _prototype.TryIndex<StructuralEnzymesPrototype>(gene.EnzymesPrototypeId, out var prototype))
         {
             var genes = subject.Comp.EnzymesPrototypes!;

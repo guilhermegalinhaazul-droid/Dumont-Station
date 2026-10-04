@@ -522,13 +522,38 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             {
                 EnzymesPrototypeId = enzymePrototype.EnzymesPrototypeId,
                 Order = enzymePrototype.Order,
-                Active = enzymePrototype.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene && hasHumanoidAppearance
+                Active = component.IntrinsicGenes.Contains(enzymePrototype.EnzymesPrototypeId) ||
+                    (enzymePrototype.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene && hasHumanoidAppearance)
             };
 
             uniqueEnzymesPrototypes.Add(uniqueEnzyme);
         }
 
         component.EnzymesPrototypes = uniqueEnzymesPrototypes;
+
+        // Apply prototype-defined genes immediately. They are already present
+        // on the animal in most cases, but this also covers passive traits and
+        // gene actions that have no standalone entity component.
+        foreach (var id in component.IntrinsicGenes)
+        {
+            if (!_prototype.TryIndex<StructuralEnzymesPrototype>(id, out var prototype))
+                continue;
+
+            var owned = new HashSet<Type>();
+            if (prototype.AddComponent != null)
+            {
+                foreach (var entry in prototype.AddComponent)
+                {
+                    if (!_entManager.HasComponent(uid, entry.Value.Component.GetType()))
+                        owned.Add(entry.Value.Component.GetType());
+                }
+
+                EntityManager.AddComponents(uid, prototype.AddComponent, false);
+            }
+
+            component.GeneComponents[id] = owned;
+            ApplyGeneTraits((uid, component), prototype, true);
+        }
     }
 
     #endregion
@@ -555,8 +580,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        // AppliedGenes is runtime state. Remove entries left by the old
-        // component-inference implementation or by a replaced DNA body.
+        // AppliedGenes is runtime state. Intrinsic genes are kept separate so
+        // their abilities never contribute to instability.
         component.AppliedGenes.RemoveWhere(id => !component.GeneComponents.ContainsKey(id));
 
         // A gene is active only when it was explicitly applied to the DNA.
@@ -789,7 +814,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         foreach (var gene in genes)
         {
             var id = gene.EnzymesPrototypeId;
-            if (!gene.Active || id == StructuralEnzymesIndexerSystem.SpeciesGene || ent.Comp.AppliedGenes.Contains(id) ||
+            if (!gene.Active || id == StructuralEnzymesIndexerSystem.SpeciesGene ||
+                ent.Comp.AppliedGenes.Contains(id) || ent.Comp.GeneComponents.ContainsKey(id) ||
                 !_prototype.TryIndex<StructuralEnzymesPrototype>(id, out var prototype))
                 continue;
             var owned = new HashSet<Type>();
@@ -801,7 +827,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 EntityManager.AddComponents(ent, prototype.AddComponent, false);
             }
             ent.Comp.GeneComponents[id] = owned;
-            ent.Comp.AppliedGenes.Add(id);
+            if (!ent.Comp.IntrinsicGenes.Contains(id))
+                ent.Comp.AppliedGenes.Add(id);
             ApplyGeneTraits(ent, prototype, true);
             _admin.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(ent):user} acquires gene '{id}'.");
         }
@@ -871,6 +898,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             var childDnaModifier = EnsureComp<DnaModifierComponent>(child);
             childDnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(component.UniqueIdentifiers);
             childDnaModifier.EnzymesPrototypes = component.EnzymesPrototypes?.Select(e => (EnzymesPrototypeInfo)e.Clone()).ToList();
+            childDnaModifier.IntrinsicGenes = new HashSet<string>(component.IntrinsicGenes);
             childDnaModifier.Instability = component.Instability;
             childDnaModifier.Upper = component.Upper;
             childDnaModifier.Lowest = component.Lowest;
@@ -933,6 +961,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 {
                     dnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(dnaLowest.OriginalUniqueIdentifiers ?? component.UniqueIdentifiers);
                     dnaModifier.EnzymesPrototypes = CloneEnzymesPrototypes(dnaLowest.OriginalEnzymesPrototypes ?? component.EnzymesPrototypes);
+                    dnaModifier.IntrinsicGenes = new HashSet<string>(component.IntrinsicGenes);
                     dnaModifier.Instability = component.Instability;
                     dnaModifier.Upper = component.Upper;
                     dnaModifier.Lowest = component.Lowest;
@@ -992,6 +1021,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             var childDnaModifier = EnsureComp<DnaModifierComponent>(child);
             childDnaModifier.UniqueIdentifiers = component.UniqueIdentifiers;
             childDnaModifier.EnzymesPrototypes = component.EnzymesPrototypes?.ToList();
+            childDnaModifier.IntrinsicGenes = new HashSet<string>(component.IntrinsicGenes);
             childDnaModifier.Instability = component.Instability;
             childDnaModifier.Upper = component.Upper;
             childDnaModifier.Lowest = component.Lowest;
