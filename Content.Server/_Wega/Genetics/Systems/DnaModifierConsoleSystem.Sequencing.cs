@@ -172,7 +172,9 @@ public sealed partial class DnaModifierConsoleSystem
         _pendingSequences.Remove(uid);
         if (!GeneticSequence.Validate(pending.State.Original, args.Answer, pending.Answer))
         {
-            Spawn("GeneticSequenceSmoke", Transform(uid).Coordinates);
+            // Show the failed reaction where the scanned body is located, so
+            // the smoke is visible even when the console is away from it.
+            Spawn("GeneticSequenceSmoke", Transform(subject.Owner).Coordinates);
             if (pending.State.Appearance)
                 _damage.TryChangeDamage(subject, new DamageSpecifier { DamageDict = { { "Poison", 2 } } },
                     ignoreResistances: true, canBeCancelled: false, ignoreBlockers: true, canMiss: false);
@@ -181,9 +183,9 @@ public sealed partial class DnaModifierConsoleSystem
                 {
                     DamageDict =
                     {
-                        { "Poison", 0.5 },
-                        { "Genetic", 1.0 },
-                        { "Radiation", 0.3 }
+                        { "Poison", 1.0 },
+                        { "Genetic", 2.0 },
+                        { "Radiation", 0.6 }
                     }
                 }, ignoreResistances: true, canBeCancelled: false, ignoreBlockers: true, canMiss: false);
             _geneticStatus[uid] = Loc.GetString("dna-sequence-failed");
