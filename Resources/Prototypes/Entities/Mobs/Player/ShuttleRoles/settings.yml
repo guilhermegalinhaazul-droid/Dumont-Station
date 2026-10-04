@@ -460,6 +460,9 @@
   parent: VisitorCivilian
   randomizeName: false
   components:
+    - type: DnaModifier
+      intrinsicGenes:
+      - MutationClumsiness
     - type: GhostRole
       name: job-name-clown
     - type: Loadout
@@ -544,6 +547,9 @@
   id: VisitorMime
   parent: VisitorCivilian
   components:
+    - type: DnaModifier
+      intrinsicGenes:
+      - MutationMute
     - type: MimePowers
     - type: GhostRole
       name: job-name-mime
