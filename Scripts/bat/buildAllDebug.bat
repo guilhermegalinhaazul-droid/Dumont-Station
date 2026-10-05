@@ -7,6 +7,7 @@ REM SPDX-License-Identifier: AGPL-3.0-or-later
 cd ../../
 
 call git submodule update --init --recursive
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cleanupSandbox.ps1"
 call dotnet build -c Debug --no-incremental
 
 pause
