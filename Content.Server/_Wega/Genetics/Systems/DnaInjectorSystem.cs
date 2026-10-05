@@ -7,6 +7,7 @@ using Content.Shared.Genetics;
 using Content.Shared.Interaction;
 using Robust.Server.Audio;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Genetics.System;
 
@@ -97,7 +98,16 @@ public sealed partial class DnaModifierSystem
         }
 
         Dirty(target, dnaModifier);
-        ChangeDna(target);
+
+        // Applying every active structural gene can add a large number of
+        // components. Defer that work until the next tick so PVS does not
+        // attempt to serialize newly-created components as delta state in
+        // the same tick they were created.
+        Timer.Spawn(0, () =>
+        {
+            if (Exists(target))
+                ChangeDna(target);
+        });
 
         _audio.PlayPvs(ent.Comp.InjectSound, target);
 
