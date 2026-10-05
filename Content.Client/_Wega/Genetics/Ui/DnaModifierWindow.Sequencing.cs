@@ -95,7 +95,7 @@ public sealed partial class DnaModifierWindow
         UiPanel.Visible = state.AppearanceFields.Count > 0;
         SePanel.Visible = state.Genes.Count > 0;
         GeneticStatusLabel.Text = state.GeneticStatus;
-        var signature = string.Join('|', state.Genes.Select(g => $"{g.Number}:{g.Name}:{g.Discovered}:{g.Active}"));
+        var signature = string.Join("|", state.Genes.Select(g => $"{g.Number}:{g.Name}:{g.Discovered}:{g.Active}"));
         if (_geneSignature != signature)
         {
             _geneSignature = signature;
@@ -123,7 +123,7 @@ public sealed partial class DnaModifierWindow
             _structuralGenes.AddChild(grid);
             UpdateCombiner(state);
         }
-        var appearanceSignature = string.Join('|', state.AppearanceFields) + state.ScannerSpecies;
+        var appearanceSignature = string.Join("|", state.AppearanceFields) + state.ScannerSpecies;
         if (_appearanceSignature != appearanceSignature)
         {
             _appearanceSignature = appearanceSignature;
@@ -344,7 +344,7 @@ public sealed partial class DnaModifierWindow
         if (state.Unique is null || AppearanceGene.Get(state.Unique, field) is not { Length: > 0 } value)
             return 0;
 
-        var encoded = string.Concat(value);
+        var encoded = value;
         if (field is nameof(UniqueIdentifiersData.SkinTone)
             or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
             return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
