@@ -344,7 +344,7 @@ public sealed partial class DnaModifierWindow
         if (state.Unique is null || AppearanceGene.Get(state.Unique, field) is not { Length: > 0 } value)
             return 0;
 
-        var encoded = value;
+        var encoded = value[0];
         if (field is nameof(UniqueIdentifiersData.SkinTone)
             or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
             return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
