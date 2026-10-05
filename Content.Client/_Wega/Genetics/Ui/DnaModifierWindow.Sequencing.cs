@@ -112,7 +112,7 @@ public sealed partial class DnaModifierWindow
                 {
                     Text = Loc.GetString(gene.Active ? "dna-gene-on" : "dna-gene-off"),
                     Disabled = !gene.Discovered,
-                    ModulateSelfOverride = gene.Active ? Color.FromHex("#40C56C") : Color.FromHex("#E05A5A"),
+                    ModulateSelfOverride = gene.Active ? new Color(64, 197, 108) : new Color(224, 90, 90),
                     MinWidth = 50,
                     SetWidth = 50
                 };
@@ -375,7 +375,7 @@ public sealed partial class DnaModifierWindow
         if (field == nameof(UniqueIdentifiersData.SkinTone))
             return Math.Clamp((int) (edited * 2.55f), 0, 255);
 
-        if (field.Length > 0 && field[^1] == channel)
+        if (field.Length > 0 && field[field.Length - 1] == channel)
             return edited;
 
         // Avoid range slicing here: the generated ReadOnlySpan constructor is
@@ -460,8 +460,8 @@ public sealed partial class DnaModifierWindow
             {
                 button.ModulateSelfOverride = answer[index] switch
                 {
-                    'A' or 'T' => Color.FromHex("#1b9638"),
-                    'G' or 'C' => Color.FromHex("#1c71b1"),
+                    'A' or 'T' => new Color(27, 150, 56),
+                    'G' or 'C' => new Color(28, 113, 177),
                     _ => null
                 };
             }
@@ -499,8 +499,8 @@ public sealed partial class DnaModifierWindow
                 buttons[i].Text = answer[i].ToString();
                 buttons[i].ModulateSelfOverride = answer[i] switch
                 {
-                    'A' or 'T' => Color.FromHex("#1b9638"),
-                    'G' or 'C' => Color.FromHex("#1c71b1"),
+                    'A' or 'T' => new Color(27, 150, 56),
+                    'G' or 'C' => new Color(28, 113, 177),
                     _ => null
                 };
             }
