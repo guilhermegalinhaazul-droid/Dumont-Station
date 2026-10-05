@@ -31,7 +31,6 @@
   addComponent:
   - type: SpecialHighTempImmunity
   - type: FireImmunity
-  - type: AshStormImmune
 - type: structuralEnzymes
   id: MutationThermalAdaptation
   name: Adaptação Térmica
