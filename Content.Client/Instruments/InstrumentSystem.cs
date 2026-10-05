@@ -301,12 +301,6 @@ public sealed partial class InstrumentSystem : SharedInstrumentSystem
 
     }
 
-    [Obsolete("Use overload that takes in byte[] instead.")]
-    public bool OpenMidi(EntityUid uid, ReadOnlySpan<byte> data, InstrumentComponent? instrument = null)
-    {
-        return OpenMidi(uid, data.ToArray(), instrument);
-    }
-
     public bool OpenMidi(EntityUid uid, byte[] data, InstrumentComponent? instrument = null)
     {
         if (!Resolve(uid, ref instrument))
