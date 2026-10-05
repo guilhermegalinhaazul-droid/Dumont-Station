@@ -790,7 +790,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     {
         if (int.TryParse(string.Concat(uniqueIdentifiers.Height), out var height)
             && int.TryParse(string.Concat(uniqueIdentifiers.Width), out var width))
-            _humanoidAppearance.SetScale(humanoid.Owner, new System.Numerics.Vector2(width / 100f, height / 100f), true, humanoid.Comp);
+            _humanoidAppearance.SetScale(humanoid.Owner, new global::System.Numerics.Vector2(width / 100f, height / 100f), true, humanoid.Comp);
     }
 
     private static string[] ScaleToGenes(float value)

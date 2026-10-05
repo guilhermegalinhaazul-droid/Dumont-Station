@@ -42,7 +42,8 @@ public sealed partial class DnaModifierWindow
         if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
             return null;
 
-        if (_appearancePreview is not { } preview || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
+        var preview = _appearancePreview ?? default;
+        if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
         {
             if (preview.IsValid() && _entManager.EntityExists(preview))
                 _entManager.DeleteEntity(preview);
