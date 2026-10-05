@@ -382,7 +382,8 @@ public sealed partial class DnaModifierWindow
         // rejected by the client sandbox type checker.
         var category = field.Substring(0, field.Length - 1) + channel;
         var value = AppearanceGene.Get(unique, category);
-        return value is { Length: >= 2 } && int.TryParse(value[0] + value[1],
+        var encoded = value is { Length: >= 2 } ? string.Concat(value[0], value[1]) : null;
+        return encoded is not null && int.TryParse(encoded,
             System.Globalization.NumberStyles.HexNumber, null, out var parsed)
             ? parsed
             : 0;
