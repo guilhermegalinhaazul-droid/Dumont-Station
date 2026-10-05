@@ -378,7 +378,9 @@ public sealed partial class DnaModifierWindow
         if (field.Length > 0 && field[^1] == channel)
             return edited;
 
-        var category = field[..^1] + channel;
+        // Avoid range slicing here: the generated ReadOnlySpan constructor is
+        // rejected by the client sandbox type checker.
+        var category = field.Substring(0, field.Length - 1) + channel;
         var value = AppearanceGene.Get(unique, category);
         return value is { Length: >= 2 } && int.TryParse(value[0] + value[1],
             System.Globalization.NumberStyles.HexNumber, null, out var parsed)
