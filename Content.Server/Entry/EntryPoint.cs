@@ -362,7 +362,7 @@ namespace Content.Server.Entry
 
         private static void LoadBuildConfigPresets(IConfigurationManager cfg, IResourceManager res, ISawmill sawmill)
         {
-#if TOOLS
+#if TOOLS || DEVELOPMENT
             Load(CCVars.ConfigPresetDevelopment, "development");
 #endif
 #if DEBUG
