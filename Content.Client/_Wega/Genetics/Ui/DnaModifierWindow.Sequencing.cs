@@ -9,6 +9,7 @@ using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
+using Robust.Shared.Timing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface.Controls;
@@ -532,12 +533,66 @@ public sealed partial class DnaModifierWindow
 
     private sealed class GeneNameButton : Button
     {
+        private const float ScrollSpeed = 24f;
+        private const float PauseAtEdge = 0.9f;
+        private float _scrollOffset;
+        private float _pause;
+        private int _direction = -1;
+        private float _labelOriginX;
+        private bool _originInitialized;
+
         public GeneNameButton(string name)
         {
             Text = name;
             SetWidth = 110;
             MaxWidth = 110;
             ToolTip = name;
+
+            // Keep the button fixed while allowing its label to move inside it.
+            // The button clips the label, so long names never draw over the
+            // neighbouring toggle button.
+            RectClipContent = true;
+            Label.ClipText = false;
+            Label.HorizontalAlignment = HAlignment.Left;
+            Label.HorizontalExpand = false;
+        }
+
+        protected override void FrameUpdate(FrameEventArgs args)
+        {
+            base.FrameUpdate(args);
+
+            if (!_originInitialized)
+            {
+                _labelOriginX = Label.Position.X;
+                _originInitialized = true;
+            }
+
+            var overflow = Label.DesiredSize.X - Label.Size.X;
+            if (overflow <= 1f)
+                return;
+
+            if (_pause > 0f)
+            {
+                _pause -= args.DeltaSeconds;
+            }
+            else
+            {
+                _scrollOffset += _direction * ScrollSpeed * args.DeltaSeconds;
+                if (_scrollOffset <= -overflow)
+                {
+                    _scrollOffset = -overflow;
+                    _direction = 1;
+                    _pause = PauseAtEdge;
+                }
+                else if (_scrollOffset >= 0f)
+                {
+                    _scrollOffset = 0f;
+                    _direction = -1;
+                    _pause = PauseAtEdge;
+                }
+            }
+
+            LayoutContainer.SetPosition(Label, new Vector2(_labelOriginX + _scrollOffset, Label.Position.Y));
         }
     }
 }
