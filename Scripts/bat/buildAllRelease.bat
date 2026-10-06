@@ -8,6 +8,7 @@ cd ../../
 
 call git submodule update --init --recursive
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0cleanupSandbox.ps1"
+call dotnet clean -c Release
 call dotnet build -c Release --no-incremental
 
 pause
