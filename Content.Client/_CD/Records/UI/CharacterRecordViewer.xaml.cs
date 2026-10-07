@@ -5,6 +5,7 @@
 
 using Content.Client.UserInterface.Controls;
 using Content.Shared.Administration;
+using Content.Shared.Genetics;
 using Content.Shared.Security;
 using Content.Shared.StationRecords;
 using Content.Shared._CD.Records;
@@ -423,7 +424,9 @@ public sealed partial class CharacterRecordViewer : FancyWindow
         RecordContainerSecurity.Visible = true;
         RecordContainerIdentFeatures.SetValue(record.PRecords.IdentifyingFeatures);
         RecordContainerFingerprint.Text = record.Fingerprint ?? Loc.GetString("cd-character-records-viewer-unknown");
-        RecordContainerDNA.Text = record.DNA ?? Loc.GetString("cd-character-records-viewer-unknown");
+        RecordContainerDNA.Text = record.DNA is { } dna
+            ? GeneticSequence.ToNitrogenBases(dna)
+            : Loc.GetString("cd-character-records-viewer-unknown");
 
         RecordContainerWantedReason.Visible = false;
         if (criminal != null)
@@ -514,4 +517,3 @@ public sealed partial class CharacterRecordViewer : FancyWindow
         _arrestWarrantReasonDialog.OnClose += () => { _arrestWarrantReasonDialog = null; };
     }
 }
-
