@@ -12,6 +12,7 @@ using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Research.Components;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Genetics.System;
 
@@ -46,6 +47,7 @@ public sealed partial class DnaModifierConsoleSystem
     {
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticSelectMessage>(OnSelectGene);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticToggleMessage>(OnToggleGene);
+        SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticRevealAllMessage>(OnRevealAllGenes);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticSubmitMessage>(OnSubmitSequence);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticAppearanceMessage>(OnSelectAppearance);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticBufferAppearanceMessage>(OnSelectBufferAppearance);
@@ -160,6 +162,28 @@ public sealed partial class DnaModifierConsoleSystem
         component.LastGeneToggleTime = _timing.CurTime;
         _dnaModifier.SetGeneActive(subject, gene, !_dnaModifier.IsGeneActive(subject, gene));
         UpdateUserInterface(uid, component);
+    }
+
+    private void OnRevealAllGenes(EntityUid uid, DnaModifierConsoleComponent component, GeneticRevealAllMessage args)
+    {
+        if (!TrySubject(uid, component, out var subject))
+            return;
+
+        // Temporary testing control: expose every gene in the scanner and
+        // apply them on the next tick so newly-added components are not sent
+        // by PVS during the same tick.
+        foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
+            _discoveredGenes.Add(gene.EnzymesPrototypeId);
+
+        UpdateUserInterface(uid, component);
+        Timer.Spawn(0, () =>
+        {
+            if (!Exists(subject.Owner))
+                return;
+
+            _dnaModifier.ActivateAllGenes(subject);
+            UpdateUserInterface(uid, component);
+        });
     }
 
     private void OnSubmitSequence(EntityUid uid, DnaModifierConsoleComponent component, GeneticSubmitMessage args)

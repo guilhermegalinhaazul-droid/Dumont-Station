@@ -21,6 +21,7 @@ public sealed partial class DnaModifierWindow
     public event Action<BoundUserInterfaceMessage>? OnGeneticMessage;
     private readonly BoxContainer _uniqueGenes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _structuralGenes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
+    private readonly BoxContainer _geneTools = new() { Orientation = BoxContainer.LayoutOrientation.Horizontal };
     private readonly BoxContainer _appearanceEditor = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _appearancePuzzle = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _structuralPuzzle = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
@@ -87,6 +88,15 @@ public sealed partial class DnaModifierWindow
         UiContainer.AddChild(_appearanceEditor);
         UiContainer.AddChild(_appearancePuzzle);
         SeContainer.Orientation = BoxContainer.LayoutOrientation.Vertical;
+        var revealAll = new Button
+        {
+            Text = "ATIVAR TODOS OS GENES (TESTE)",
+            ToolTip = "Revela todos os genes e ativa todos os blocos no corpo escaneado.",
+            MinWidth = 220
+        };
+        revealAll.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticRevealAllMessage());
+        _geneTools.AddChild(revealAll);
+        SeContainer.AddChild(_geneTools);
         SeContainer.AddChild(_structuralGenes);
         SeContainer.AddChild(_structuralPuzzle);
     }
@@ -105,7 +115,7 @@ public sealed partial class DnaModifierWindow
             foreach (var gene in state.Genes)
             {
                 var row = new BoxContainer { Margin = new Thickness(1) };
-                row.AddChild(new Label { Text = gene.Number.ToString(), MinWidth = 18 });
+                row.AddChild(new Label { Text = $"Bloco {gene.Number}", MinWidth = 48 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 110 };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);

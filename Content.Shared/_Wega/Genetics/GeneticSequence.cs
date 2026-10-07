@@ -157,6 +157,9 @@ public sealed class GeneticToggleMessage(int number) : BoundUserInterfaceMessage
 }
 
 [Serializable, NetSerializable]
+public sealed class GeneticRevealAllMessage : BoundUserInterfaceMessage;
+
+[Serializable, NetSerializable]
 public sealed class GeneticSubmitMessage(int token, string answer) : BoundUserInterfaceMessage
 {
     public readonly int Token = token;
