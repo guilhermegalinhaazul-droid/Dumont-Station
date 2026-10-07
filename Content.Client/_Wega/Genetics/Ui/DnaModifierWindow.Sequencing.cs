@@ -543,8 +543,8 @@ public sealed partial class DnaModifierWindow
 
     private sealed class GeneNameButton : Button
     {
-        private const float ScrollSpeed = 24f;
-        private const float PauseAtEdge = 0.9f;
+        private const float ScrollSpeed = 14f;
+        private const float PauseAtEdge = 1.15f;
         private float _scrollOffset;
         private float _pause;
         private int _direction = -1;
@@ -570,6 +570,11 @@ public sealed partial class DnaModifierWindow
         protected override void FrameUpdate(FrameEventArgs args)
         {
             base.FrameUpdate(args);
+
+            // Ten characters is the point at which gene names should use the
+            // display marquee, even when a particular font happens to fit.
+            if (Label.Text is not { Length: >= 10 })
+                return;
 
             if (!_originInitialized)
             {
