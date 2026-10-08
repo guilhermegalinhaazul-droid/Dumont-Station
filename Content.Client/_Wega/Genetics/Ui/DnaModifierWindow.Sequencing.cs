@@ -115,7 +115,7 @@ public sealed partial class DnaModifierWindow
             foreach (var gene in state.Genes)
             {
                 var row = new BoxContainer { Margin = new Thickness(1) };
-                row.AddChild(new Label { Text = $"Bloco {gene.Number}", MinWidth = 48 });
+                row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 48 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 110 };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
@@ -134,7 +134,11 @@ public sealed partial class DnaModifierWindow
             _structuralGenes.AddChild(grid);
             UpdateCombiner(state);
         }
-        var appearanceSignature = string.Join("|", state.AppearanceFields) + state.ScannerSpecies;
+        var appearanceValues = state.Unique is { } unique
+            ? string.Join("|", state.AppearanceFields.Select(field =>
+                $"{field}:{string.Join(string.Empty, AppearanceGene.Get(unique, field) ?? Array.Empty<string>())}"))
+            : string.Empty;
+        var appearanceSignature = $"{state.ScannerBody}:{state.ScannerSpecies}:{appearanceValues}";
         if (_appearanceSignature != appearanceSignature)
         {
             _appearanceSignature = appearanceSignature;
@@ -162,6 +166,33 @@ public sealed partial class DnaModifierWindow
         DnaModifierBoundUserInterfaceState state)
     {
         var group = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        var colorControls = new Dictionary<string, (Slider Slider, Button Preview)>();
+
+        void RefreshColorGroup(string field)
+        {
+            if (!IsRgbColorField(field))
+                return;
+
+            var prefix = field.Substring(0, field.Length - 1);
+            int Channel(char channel)
+            {
+                var channelField = prefix + channel;
+                return colorControls.TryGetValue(channelField, out var control)
+                    ? (int) control.Slider.Value
+                    : ReadAppearanceValue(state, channelField, 255);
+            }
+
+            var color = new Color(Channel('R'), Channel('G'), Channel('B'));
+            foreach (var pair in colorControls)
+            {
+                if (!pair.Key.StartsWith(prefix, StringComparison.Ordinal))
+                    continue;
+
+                pair.Value.Slider.ModulateSelfOverride = color;
+                pair.Value.Preview.ModulateSelfOverride = color;
+            }
+        }
+
         foreach (var field in fields)
         {
             var label = Loc.GetString("dna-eu-" + field);
@@ -214,15 +245,21 @@ public sealed partial class DnaModifierWindow
                 var isScale = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
                 var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : isScale ? 200 : 255;
                 var min = isScale ? 50 : 0;
-                var slider = new Slider { MinValue = min, MaxValue = max, SetWidth = 220 };
+                var slider = new Slider { MinValue = min, MaxValue = max, SetWidth = 220, HorizontalExpand = true };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
                 var colorPreview = new Button { Text = string.Empty, SetWidth = 30, SetHeight = 30, Disabled = true };
-                UpdateColorButton(colorPreview, state, field, value.Text);
+                if (!IsRgbColorField(field))
+                    UpdateColorButton(colorPreview, state, field, value.Text);
+                else
+                    colorControls[field] = (slider, colorPreview);
                 slider.OnValueChanged += args =>
                 {
                     value.Text = ((int) args.Value).ToString();
-                    UpdateColorButton(colorPreview, state, field, value.Text);
+                    if (IsRgbColorField(field))
+                        RefreshColorGroup(field);
+                    else
+                        UpdateColorButton(colorPreview, state, field, value.Text);
                     PreviewAppearance(field, value.Text);
                 };
                 selected = () => ((int) slider.Value).ToString();
@@ -242,6 +279,10 @@ public sealed partial class DnaModifierWindow
             row.AddChild(apply);
             group.AddChild(row);
         }
+
+        foreach (var field in colorControls.Keys.ToArray())
+            RefreshColorGroup(field);
+
         parent.AddChild(group);
     }
 
@@ -310,6 +351,12 @@ public sealed partial class DnaModifierWindow
         if (state?.Unique is null || !int.TryParse(value, out var channel))
             return;
 
+        if (field == nameof(UniqueIdentifiersData.SkinTone))
+        {
+            appearance.SkinColor = SkinToneToColor(Math.Clamp(channel, 0, 100));
+            return;
+        }
+
         channel = Math.Clamp(channel, 0, 255);
         if (field is nameof(UniqueIdentifiersData.EyeColorR) or nameof(UniqueIdentifiersData.EyeColorG)
             or nameof(UniqueIdentifiersData.EyeColorB))
@@ -322,9 +369,22 @@ public sealed partial class DnaModifierWindow
             return;
         }
 
+        if (field is nameof(UniqueIdentifiersData.FurColorR) or nameof(UniqueIdentifiersData.FurColorG)
+            or nameof(UniqueIdentifiersData.FurColorB))
+        {
+            var color = appearance.SkinColor;
+            var furR = field.EndsWith("R") ? channel : color.RByte;
+            var furG = field.EndsWith("G") ? channel : color.GByte;
+            var furB = field.EndsWith("B") ? channel : color.BByte;
+            appearance.SkinColor = new Color(furR, furG, furB);
+            return;
+        }
+
         var category = field switch
         {
             nameof(UniqueIdentifiersData.HairColorR) or nameof(UniqueIdentifiersData.HairColorG) or nameof(UniqueIdentifiersData.HairColorB)
+                => MarkingCategories.Hair,
+            nameof(UniqueIdentifiersData.SecondaryHairColorR) or nameof(UniqueIdentifiersData.SecondaryHairColorG) or nameof(UniqueIdentifiersData.SecondaryHairColorB)
                 => MarkingCategories.Hair,
             nameof(UniqueIdentifiersData.BeardColorR) or nameof(UniqueIdentifiersData.BeardColorG) or nameof(UniqueIdentifiersData.BeardColorB)
                 => MarkingCategories.FacialHair,
@@ -343,11 +403,16 @@ public sealed partial class DnaModifierWindow
             return;
 
         var marking = markings[0];
-        var existing = marking.MarkingColors.FirstOrDefault();
+        var colorIndex = field.StartsWith("SecondaryHairColor", StringComparison.Ordinal) ? 1 : 0;
+        if (colorIndex >= marking.MarkingColors.Count)
+        {
+            colorIndex = 0;
+        }
+        var existing = marking.MarkingColors[colorIndex];
         var markingR = field.EndsWith("R") ? channel : existing.RByte;
         var markingG = field.EndsWith("G") ? channel : existing.GByte;
         var markingB = field.EndsWith("B") ? channel : existing.BByte;
-        marking.SetColor(0, new Color(markingR, markingG, markingB));
+        marking.SetColor(colorIndex, new Color(markingR, markingG, markingB));
     }
 
     private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)
@@ -358,9 +423,22 @@ public sealed partial class DnaModifierWindow
         var encoded = value[0];
         if (field is nameof(UniqueIdentifiersData.SkinTone)
             or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
-            return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
+        {
+            if (field == nameof(UniqueIdentifiersData.SkinTone) && value.Length >= 3)
+            {
+                var tone = value[0] == "1"
+                    ? 100
+                    : TryHexDigit(value[1]) * 10 + TryHexDigit(value[2]);
+                return Math.Clamp(tone, 0, max);
+            }
 
-        return Math.Clamp(int.TryParse(encoded, System.Globalization.NumberStyles.HexNumber, null, out var hexValue)
+            return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
+        }
+
+        // RGB channels are stored as three hexadecimal nibbles (the first two
+        // represent the 0-255 channel value, the third is reserved metadata).
+        var hex = value.Length >= 2 ? string.Concat(value[0], value[1]) : encoded;
+        return Math.Clamp(int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var hexValue)
             ? hexValue
             : 0, 0, max);
     }
@@ -368,11 +446,50 @@ public sealed partial class DnaModifierWindow
     private static bool IsColorField(string field)
         => field.Contains("Color", StringComparison.Ordinal) || field == nameof(UniqueIdentifiersData.SkinTone);
 
+    private static bool IsRgbColorField(string field)
+        => IsColorField(field) && field.Length > 0 &&
+           field[^1] is 'R' or 'G' or 'B' && field != nameof(UniqueIdentifiersData.SkinTone);
+
+    private static int TryHexDigit(string value)
+        => int.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var result)
+            ? result
+            : 0;
+
+    private static Color SkinToneToColor(int toneValue)
+    {
+        toneValue = Math.Clamp(toneValue, 0, 100);
+
+        float hue;
+        float saturation;
+        float value;
+        if (toneValue <= 20)
+        {
+            hue = 25f + (45f - 25f) * (20 - toneValue) / 20f;
+            saturation = 0.2f;
+            value = 1f;
+        }
+        else
+        {
+            hue = 25f;
+            saturation = 0.2f + 0.8f * (toneValue - 20) / 80f;
+            value = 1f - 0.8f * (toneValue - 20) / 80f;
+        }
+
+        return Color.FromHsv(new Vector4(hue / 360f, saturation, value, 1f));
+    }
+
     private static void UpdateColorButton(Button button, DnaModifierBoundUserInterfaceState state,
         string field, string value)
     {
         if (!IsColorField(field) || state.Unique is not { } unique)
             return;
+
+        if (field == nameof(UniqueIdentifiersData.SkinTone))
+        {
+            var tone = int.TryParse(value, out var parsedTone) ? Math.Clamp(parsedTone, 0, 100) : 0;
+            button.ModulateSelfOverride = SkinToneToColor(tone);
+            return;
+        }
 
         var channel = int.TryParse(value, out var parsed) ? Math.Clamp(parsed, 0, 255) : 0;
         var red = ReadColorChannel(unique, field, 'R', channel);

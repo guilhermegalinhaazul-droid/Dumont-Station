@@ -82,6 +82,10 @@ public sealed partial class DnaModifierConsoleSystem
         => subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.Order == number);
 
     private bool IsDiscovered(string id) => _discoveredGenes.Contains(id);
+
+    private bool IsRecipeResult(string id)
+        => _prototypeManager.EnumeratePrototypes<GeneticRecipePrototype>()
+            .Any(recipe => recipe.Result == id);
     // Structural enzyme prototypes use Trauma's original hidden-position
     // difficulty. Active genes get the facilitated three-to-four-gap puzzle.
     private int Difficulty(string id) => _prototypeManager.TryIndex<StructuralEnzymesPrototype>(id, out var proto)
@@ -107,7 +111,9 @@ public sealed partial class DnaModifierConsoleSystem
         }
         foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
         {
-            var known = IsDiscovered(gene.EnzymesPrototypeId);
+            // Crafted genes are deliberately hidden from the sequencing grid.
+            // They become visible only after their recipe is completed.
+            var known = !IsRecipeResult(gene.EnzymesPrototypeId) && IsDiscovered(gene.EnzymesPrototypeId);
             state.Genes.Add(new GeneticGeneState
             {
                 Number = gene.Order,
@@ -133,7 +139,8 @@ public sealed partial class DnaModifierConsoleSystem
 
     private void OnSelectGene(EntityUid uid, DnaModifierConsoleComponent component, GeneticSelectMessage args)
     {
-        if (!TrySubject(uid, component, out var subject) || FindGene(subject, args.Number) is not { } gene || IsDiscovered(gene.EnzymesPrototypeId))
+        if (!TrySubject(uid, component, out var subject) || FindGene(subject, args.Number) is not { } gene ||
+            IsRecipeResult(gene.EnzymesPrototypeId) || IsDiscovered(gene.EnzymesPrototypeId))
             return;
         var id = gene.EnzymesPrototypeId;
         if (!_geneAnswers.TryGetValue(id, out var answer))
@@ -173,7 +180,8 @@ public sealed partial class DnaModifierConsoleSystem
         // apply them on the next tick so newly-added components are not sent
         // by PVS during the same tick.
         foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
-            _discoveredGenes.Add(gene.EnzymesPrototypeId);
+            if (!IsRecipeResult(gene.EnzymesPrototypeId))
+                _discoveredGenes.Add(gene.EnzymesPrototypeId);
 
         UpdateUserInterface(uid, component);
         Timer.Spawn(0, () =>
@@ -365,7 +373,9 @@ public sealed partial class DnaModifierConsoleSystem
         }
         else
         {
-            // Like Trauma, combination activates but does not discover or award science.
+            // Recipe results cannot be sequenced directly. Combining the ingredients
+            // is the only way to reveal and activate the crafted gene.
+            _discoveredGenes.Add(result.EnzymesPrototypeId);
             _dnaModifier.SetGeneActive(subject, result, true);
             _geneticStatus[uid] = Loc.GetString("dna-combine-success", ("number", result.Order));
         }

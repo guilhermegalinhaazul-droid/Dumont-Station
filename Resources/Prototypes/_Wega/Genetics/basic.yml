@@ -1,5 +1,55 @@
 # Basic / D A C
 - type: structuralEnzymes
+  id: GeneticsAcidSpitBasic
+  name: Cuspe Ácido
+  abbreviation: Cuspe Ácido
+  message: genetics-acid-spit-message
+  typeDeviation: Base
+  costInstability: 20
+  addComponent:
+  - type: RechargeBasicEntityAmmo
+    rechargeCooldown: 120
+  - type: BasicEntityAmmoProvider
+    proto: BulletAcid
+    capacity: 1
+    count: 1
+  - type: Gun
+    fireRate: 0.5
+    useKey: false
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
+  - type: AcidSpitGen
+
+- type: structuralEnzymes
+  id: GeneticsChickenEggBasic
+  name: Ovos de Galinha
+  abbreviation: Ovos de Galinha
+  message: genetics-chicken-egg-message
+  typeDeviation: Base
+  costInstability: 10
+  addComponent:
+  - type: EggLayer
+    eggLayAction: ActionGenLayChickenEgg
+    eggSpawn:
+    - id: FoodEgg
+    eggLayCooldownMin: 10
+    eggLayCooldownMax: 10
+    hungerUsage: 10
+    hungerRequired: true
+
+- type: structuralEnzymes
+  id: GeneticsLaserEyesBasic
+  name: Olhos Laser
+  abbreviation: Olhos Laser
+  message: genetics-laser-eyes-message
+  typeDeviation: Base
+  costInstability: 20
+  addComponent:
+  - type: LaserEyesGen
+
+- type: structuralEnzymes
   id: GeneticsEmpatheticThoughtBasic
   name: Pensamento Empático
   abbreviation: Pensamento Empático
@@ -41,8 +91,8 @@
 
 - type: structuralEnzymes
   id: GeneticsNoBreathingBasic
-  name: Sem Respiração
-  abbreviation: Sem Respiração
+  name: Respiração no Vácuo
+  abbreviation: Respiração no Vácuo
   message: genetics-no-breathing-message
   typeDeviation: Base
   chanceAssimilation: 0.25

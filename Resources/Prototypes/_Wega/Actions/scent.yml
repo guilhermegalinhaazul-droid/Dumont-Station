@@ -1,0 +1,13 @@
+- type: entity
+  id: ActionScentTracker
+  parent: BaseAction
+  name: Rastrear cheiro
+  description: Rastreia o cheiro de uma entidade e marca sua localização.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Action
+    icon: { sprite: _Wega/Interface/Actions/actions.rsi, state: genetic_view }
+  - type: TargetAction
+    range: 7
+  - type: EntityTargetAction
+    event: !type:ScentTrackerActionEvent

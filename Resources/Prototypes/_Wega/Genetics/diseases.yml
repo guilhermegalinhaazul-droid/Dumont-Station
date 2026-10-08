@@ -15,8 +15,8 @@
 
 - type: structuralEnzymes
   id: GeneticsAuldImperialDisease
-  name: Imperial Arcaico
-  abbreviation: Imperial Arcaico
+  name: Sotaque Imperial
+  abbreviation: Sotaque Imperial
   message: genetics-auld-imperial-message
   typeDeviation: Disease
   addComponent:

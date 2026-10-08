@@ -3,6 +3,10 @@ matter-eater-succes = Você devorou {$eat}
 # Messages
 genetics-empathetic-thought-message = De repente, você começou a notar mais nos outros do que antes.
 genetics-hulk-message = Seus músculos estão latejando de dor.
+genetics-laser-eyes-message = Seus olhos começaram a emitir um brilho vermelho intenso.
+genetics-chicken-egg-message = Você sente vontade de botar um ovo.
+genetics-acid-spit-message = Sua boca começa a produzir uma saliva corrosiva.
+genetics-xray-vision-message = Você começa a enxergar através das paredes.
 genetics-matter-eater-message = Você sente uma fome voraz.
 genetics-small-height-message = Agora tudo ao seu redor parece maior...
 genetics-no-breathing-message = Você não sente mais a necessidade de respirar.

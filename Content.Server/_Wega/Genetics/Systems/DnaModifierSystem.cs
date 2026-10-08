@@ -12,6 +12,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.Forensics.Components;
+using Content.Shared.Flash;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.Systems;
 using Content.Shared.Hands.EntitySystems;
@@ -71,6 +72,15 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         SubscribeLocalEvent<DnaModifierComponent, MutateDnaAttemptEvent>(OnTryMutateDna);
 
         SubscribeLocalEvent<DnaModifierComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<DnaModifierComponent, FlashAttemptEvent>(OnFlashAttempt);
+    }
+
+    private void OnFlashAttempt(Entity<DnaModifierComponent> ent, ref FlashAttemptEvent args)
+    {
+        // Keep the genetics immunity effective even when another system replaces
+        // or removes the component added by the gene prototype.
+        if (ent.Comp.AppliedGenes.Contains("GeneticsFlashImmunityIntermediate"))
+            args.Cancelled = true;
     }
 
     public override void Update(float frameTime)

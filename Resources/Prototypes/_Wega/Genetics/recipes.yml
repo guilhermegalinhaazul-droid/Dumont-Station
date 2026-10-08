@@ -1,8 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Recipes from Trauma Station.
 - type: geneticRecipe
+  id: XrayVision
+  result: GeneticsXrayVisionRecipe
+  required:
+  - GeneticsThermalVisionIntermediate
+  - GeneticsRemoteViewingIntermediate
+  - GeneticsLongVisionBasic
+- type: geneticRecipe
   id: Hulk
-  result: MutationHulk
+  result: GeneticsHulkBasic
   required:
   - MutationRadioactivity
   - MutationStrength
@@ -10,7 +17,7 @@
   id: Ork
   result: MutationOrk
   required:
-  - MutationHulk
+  - GeneticsHulkBasic
   - MutationClumsiness
 - type: geneticRecipe
   id: ThermalAdaptation

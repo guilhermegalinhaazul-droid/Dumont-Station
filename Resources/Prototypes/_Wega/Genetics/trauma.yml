@@ -60,20 +60,6 @@
   addComponent:
   - type: PressureImmunity
 - type: structuralEnzymes
-  id: MutationHulk
-  name: Hulk
-  abbreviation: Hulk
-  difficulty: 16
-  typeDeviation: Base
-  costInstability: 35
-  conflicts:
-  - MutationOrk
-  replaces:
-  - GeneticsHulkBasic
-  addComponent:
-  - type: Hulk
-    laserEyes: false
-- type: structuralEnzymes
   id: MutationOrk
   name: Ork
   abbreviation: Ork
@@ -81,7 +67,7 @@
   typeDeviation: Base
   costInstability: 35
   removes:
-  - MutationHulk
+  - GeneticsHulkBasic
   addComponent:
   - type: Hulk
     laserEyes: false
@@ -170,6 +156,8 @@
   difficulty: 12
   typeDeviation: Base
   costInstability: 25
+  actions:
+  - ActionScentTracker
   addComponent:
   - type: ScentTracker
 - type: structuralEnzymes

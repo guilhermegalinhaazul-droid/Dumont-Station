@@ -113,6 +113,16 @@
   - type: RemoteViewingGen
 
 - type: structuralEnzymes
+  id: GeneticsXrayVisionRecipe
+  name: Visão de Raio X
+  abbreviation: Visão de Raio X
+  message: genetics-xray-vision-message
+  typeDeviation: Disease
+  costInstability: 30
+  addComponent:
+  - type: XrayVisionGen
+
+- type: structuralEnzymes
   id: GeneticsMorphismIntermediate
   name: Morfismo
   abbreviation: Morfismo

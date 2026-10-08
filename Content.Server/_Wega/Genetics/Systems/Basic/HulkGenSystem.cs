@@ -16,7 +16,6 @@ using Content.Shared.Stunnable;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics.Components;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server.Genetics.System;
 
@@ -25,13 +24,10 @@ public sealed class HulkGenSystem : EntitySystem
     [Dependency] private readonly SharedActionsSystem _action = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly DamageableSystem _damage = default!;
-    [Dependency] private readonly DnaModifierSystem _dnaModifier = default!;
     [Dependency] private readonly PhysicsSystem _physics = default!;
     [Dependency] private readonly PolymorphSystem _polymorph = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedStunSystem _stun = default!;
-
-    private static readonly ProtoId<StructuralEnzymesPrototype> HulkGen = "GeneticsHulkBasic";
 
     public override void Initialize()
     {
@@ -55,19 +51,8 @@ public sealed class HulkGenSystem : EntitySystem
     private void OnTransformation(Entity<WegaHulkGenComponent> ent, ref HulkTransformationActionEvent args)
     {
         args.Handled = true;
-        if (!TryComp<DnaModifierComponent>(ent, out var dnaModifier) || dnaModifier.EnzymesPrototypes == null
-            || !TryComp<HumanoidAppearanceComponent>(ent, out var humanoid))
+        if (!TryComp<HumanoidAppearanceComponent>(ent, out var humanoid))
             return;
-
-        foreach (var enzymeInfo in dnaModifier.EnzymesPrototypes)
-        {
-            if (enzymeInfo.EnzymesPrototypeId == HulkGen)
-            {
-                enzymeInfo.Active = false;
-                _dnaModifier.ChangeDna((ent, dnaModifier), 1);
-                break;
-            }
-        }
 
         var polymorph = CheckSpeciesEntity(humanoid)
             ? ent.Comp.PolymorphAltProto
