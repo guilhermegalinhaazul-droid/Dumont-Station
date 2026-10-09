@@ -617,10 +617,12 @@ public sealed partial class DnaModifierWindow
         private const float ScrollSpeed = 14f;
         private const float PauseAtEdge = 1.15f;
         private float _scrollOffset;
-        private float _pause;
+        private float _pause = PauseAtEdge;
         private int _direction = -1;
         private float _labelOriginX;
         private bool _originInitialized;
+        private float _lastOverflow;
+        private float _lastLabelWidth;
 
         public GeneNameButton(string name)
         {
@@ -642,20 +644,31 @@ public sealed partial class DnaModifierWindow
         {
             base.FrameUpdate(args);
 
-            // Ten characters is the point at which gene names should use the
-            // display marquee, even when a particular font happens to fit.
-            if (Label.Text is not { Length: >= 10 })
-                return;
-
-            if (!_originInitialized)
-            {
-                _labelOriginX = Label.Position.X;
-                _originInitialized = true;
-            }
-
             var overflow = Label.DesiredSize.X - Label.Size.X;
             if (overflow <= 1f)
+            {
+                // Layout may be recalculated after the button is resized. Keep
+                // short names completely static and restore the label position.
+                _scrollOffset = 0f;
+                if (_originInitialized)
+                    LayoutContainer.SetPosition(Label, new Vector2(_labelOriginX, Label.Position.Y));
+                _originInitialized = false;
                 return;
+            }
+
+            // Reinitialize after a layout/font change so the animation always
+            // starts at the left edge and pauses before moving.
+            if (!_originInitialized || Math.Abs(overflow - _lastOverflow) > 0.5f ||
+                Math.Abs(Label.Size.X - _lastLabelWidth) > 0.5f)
+            {
+                _labelOriginX = Label.Position.X - _scrollOffset;
+                _scrollOffset = 0f;
+                _direction = -1;
+                _pause = PauseAtEdge;
+                _originInitialized = true;
+                _lastOverflow = overflow;
+                _lastLabelWidth = Label.Size.X;
+            }
 
             if (_pause > 0f)
             {
