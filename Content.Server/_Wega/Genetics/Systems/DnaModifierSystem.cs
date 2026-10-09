@@ -864,6 +864,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     private void TryChangeLastBlock(EntityUid target, DnaModifierComponent component, EnzymesPrototypeInfo enzyme)
     {
+        // Species replacement can be reached more than once in the same tick
+        // while components are being rebuilt. Never create a second replacement
+        // for an entity that is already being removed.
+        if (TerminatingOrDeleted(target))
+            return;
+
         if (string.IsNullOrEmpty(component.Upper) || string.IsNullOrEmpty(component.Lowest))
             return;
 
@@ -997,6 +1003,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 _transform.SetCoordinates(parent, parentXform, Transform(target).Coordinates);
                 _transform.AttachToGridOrMap(parent, parentXform);
 
+                _metaData.SetEntityPaused(target, true, meta);
                 _entManager.DeleteEntity(target);
 
                 if (targetContainer != null)
@@ -1055,6 +1062,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             _admin.Add(LogType.Action, LogImpact.High, $"{ToPrettyString(target):user} gene went up a step.");
 
             // Third clearing
+            // Hide the old form before deleting it so PVS cannot send both the
+            // monkey and its replacement during the same update.
+            _metaData.SetEntityPaused(target, true, meta);
             _entManager.DeleteEntity(target); // Bye
 
             if (targetContainer != null)
