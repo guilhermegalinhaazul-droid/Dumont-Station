@@ -1,5 +1,7 @@
 using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared.Genetics;
+using Content.Shared._Goobstation.Wizard.Mutate;
+using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Prototypes;
 

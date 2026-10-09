@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System.Linq;
 using Content.Server.Destructible;
 using Content.Server.Polymorph.Systems;
 using Content.Shared.Actions;
@@ -16,6 +15,7 @@ using Content.Shared.Stunnable;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Genetics.System;
 
@@ -69,7 +69,7 @@ public sealed class HulkGenSystem : EntitySystem
             new ProtoId<SpeciesPrototype>("Resomi"),
             new ProtoId<SpeciesPrototype>("Vox")
         };
-        return altSpecies.Contains(humanoid.Species);
+        return Array.IndexOf(altSpecies, humanoid.Species) >= 0;
     }
 
     #region Abilities
