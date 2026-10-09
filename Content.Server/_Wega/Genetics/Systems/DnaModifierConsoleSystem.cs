@@ -679,7 +679,12 @@ namespace Content.Server.Genetics.System
             if (targetBlock == null || _timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
                 return;
 
-            var singleBlockInfo = new List<EnzymesPrototypeInfo> { targetBlock };
+            // A block injector is an explicit request to apply that gene. Some
+            // saved buffers contain the gene as discovered but inactive, so
+            // copying the entry verbatim would inject an inert component.
+            var singleBlock = (EnzymesPrototypeInfo) targetBlock.Clone();
+            singleBlock.Active = true;
+            var singleBlockInfo = new List<EnzymesPrototypeInfo> { singleBlock };
             _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
                 null, singleBlockInfo);
 

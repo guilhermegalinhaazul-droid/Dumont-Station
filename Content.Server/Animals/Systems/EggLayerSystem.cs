@@ -49,6 +49,10 @@ public sealed class EggLayerSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<EggLayerComponent, MapInitEvent>(OnMapInit);
+        // Genetics can add EggLayer at runtime, after MapInit has already
+        // fired. Initialize the action on component init as well so injected
+        // egg genes work immediately.
+        SubscribeLocalEvent<EggLayerComponent, ComponentInit>(OnComponentInit);
         SubscribeLocalEvent<EggLayerComponent, EggLayInstantActionEvent>(OnEggLayAction);
         SubscribeLocalEvent<EggLayerComponent, ComponentShutdown>(OnShutdown); //_Trauma
     }
@@ -91,8 +95,19 @@ public sealed class EggLayerSystem : EntitySystem
 
     private void OnMapInit(EntityUid uid, EggLayerComponent component, MapInitEvent args)
     {
-        _actions.AddAction(uid, ref component.Action, component.EggLayAction);
+        EnsureEggAction(uid, component);
         component.NextGrowth = _timing.CurTime + TimeSpan.FromSeconds(_random.NextFloat(component.EggLayCooldownMin, component.EggLayCooldownMax));
+    }
+
+    private void OnComponentInit(EntityUid uid, EggLayerComponent component, ComponentInit args)
+    {
+        EnsureEggAction(uid, component);
+    }
+
+    private void EnsureEggAction(EntityUid uid, EggLayerComponent component)
+    {
+        if (component.Action is null)
+            _actions.AddAction(uid, ref component.Action, component.EggLayAction);
     }
 
     private void OnEggLayAction(EntityUid uid, EggLayerComponent egglayer, EggLayInstantActionEvent args)
