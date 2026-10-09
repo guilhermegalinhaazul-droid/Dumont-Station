@@ -111,9 +111,9 @@ public sealed partial class DnaModifierConsoleSystem
         }
         foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
         {
-            // Crafted genes are deliberately hidden from the sequencing grid.
-            // They become visible only after their recipe is completed.
-            var known = !IsRecipeResult(gene.EnzymesPrototypeId) && IsDiscovered(gene.EnzymesPrototypeId);
+            // Crafted genes stay hidden until their recipe is completed, then
+            // appear in the same grid as ordinary discovered genes.
+            var known = IsDiscovered(gene.EnzymesPrototypeId);
             state.Genes.Add(new GeneticGeneState
             {
                 Number = gene.Order,
