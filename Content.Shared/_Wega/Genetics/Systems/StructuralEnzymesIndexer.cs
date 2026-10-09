@@ -46,7 +46,8 @@ namespace Content.Shared.Genetics.Systems
             _random.Shuffle(allEnzymesPrototypes);
 
             var replaced = allEnzymesPrototypes.SelectMany(p => p.Replaces).ToHashSet();
-            allEnzymesPrototypes.RemoveAll(p => replaced.Contains(p.ID));
+            // Species is a synthetic final block, never a regular prototype.
+            allEnzymesPrototypes.RemoveAll(p => p.ID == SpeciesGene || replaced.Contains(p.ID));
             foreach (var prototype in allEnzymesPrototypes)
             {
                 _enzymesPrototypes.Add(new EnzymesPrototypeInfo

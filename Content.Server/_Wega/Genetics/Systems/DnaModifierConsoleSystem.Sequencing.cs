@@ -109,7 +109,10 @@ public sealed partial class DnaModifierConsoleSystem
             _pendingSequences.Remove(console);
             return;
         }
-        foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
+        var genes = (subject.Comp.EnzymesPrototypes ?? new())
+            .OrderBy(g => g.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene)
+            .ThenBy(g => g.Order);
+        foreach (var gene in genes)
         {
             // Crafted genes stay hidden until their recipe is completed, then
             // appear in the same grid as ordinary discovered genes.
