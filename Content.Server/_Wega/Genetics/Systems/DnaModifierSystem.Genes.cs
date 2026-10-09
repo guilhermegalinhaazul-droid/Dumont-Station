@@ -52,7 +52,8 @@ public sealed partial class DnaModifierSystem
 
     }
 
-    public void SetGeneActive(Entity<DnaModifierComponent> subject, EnzymesPrototypeInfo gene, bool active)
+    public void SetGeneActive(Entity<DnaModifierComponent> subject, EnzymesPrototypeInfo gene, bool active,
+        bool removeReplaced = true)
     {
         if (active && _prototype.TryIndex<StructuralEnzymesPrototype>(gene.EnzymesPrototypeId, out var prototype))
         {
@@ -60,8 +61,11 @@ public sealed partial class DnaModifierSystem
             if (genes.Any(g => prototype.Conflicts.Contains(g.EnzymesPrototypeId) && IsGeneActive(subject, g)) ||
                 prototype.Required.Any(id => !genes.Any(g => g.EnzymesPrototypeId == id && IsGeneActive(subject, g))))
                 return;
-            foreach (var removed in genes.Where(g => prototype.Removes.Contains(g.EnzymesPrototypeId)))
-                removed.Active = false;
+            if (removeReplaced)
+            {
+                foreach (var removed in genes.Where(g => prototype.Removes.Contains(g.EnzymesPrototypeId)))
+                    removed.Active = false;
+            }
         }
         gene.Active = active;
         TryChangeStructuralEnzymes(subject);

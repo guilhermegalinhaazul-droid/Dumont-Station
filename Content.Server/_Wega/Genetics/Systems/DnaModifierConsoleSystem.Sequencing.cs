@@ -167,7 +167,9 @@ public sealed partial class DnaModifierConsoleSystem
         if (!TrySubject(uid, component, out var subject) || FindGene(subject, args.Number) is not { } gene || !IsDiscovered(gene.EnzymesPrototypeId))
             return;
         component.LastGeneToggleTime = _timing.CurTime;
-        _dnaModifier.SetGeneActive(subject, gene, !_dnaModifier.IsGeneActive(subject, gene));
+        // A manual toggle changes only the selected block. Recipe replacement
+        // rules are applied by the combine operation, not by a button click.
+        _dnaModifier.SetGeneActive(subject, gene, !_dnaModifier.IsGeneActive(subject, gene), removeReplaced: false);
         UpdateUserInterface(uid, component);
     }
 
