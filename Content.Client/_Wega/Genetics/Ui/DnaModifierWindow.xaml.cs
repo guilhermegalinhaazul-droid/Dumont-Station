@@ -312,7 +312,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
             };
             foreach (var gene in data.Info!)
                 blockSelectButton.AddItem($"{gene.Order}", gene.Order);
-            blockSelectButton.SelectId(1);
+            // Block order values are not guaranteed to start at one.
+            // Select the first actual block so the generated injector always contains data.
+            blockSelectButton.SelectId(data.Info[0].Order);
             blockSelectButton.OnItemSelected += args => blockSelectButton.SelectId(args.Id);
 
             var injectBlockButton = new Button
