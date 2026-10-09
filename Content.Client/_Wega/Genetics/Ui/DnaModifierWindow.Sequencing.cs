@@ -9,6 +9,7 @@ using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -642,6 +643,7 @@ public sealed partial class DnaModifierWindow
         private bool _originInitialized;
         private float _lastOverflow;
         private float _lastLabelWidth;
+        private float _textWidth;
 
         public GeneNameButton(string name)
         {
@@ -657,13 +659,25 @@ public sealed partial class DnaModifierWindow
             Label.ClipText = false;
             Label.HorizontalAlignment = HAlignment.Left;
             Label.HorizontalExpand = false;
+            Label.Measure(Vector2Helpers.Infinity);
+            _textWidth = Label.DesiredSize.X;
         }
 
         protected override void FrameUpdate(FrameEventArgs args)
         {
             base.FrameUpdate(args);
 
-            var overflow = Label.DesiredSize.X - Label.Size.X;
+            // Measure without the button's width constraint. The label itself
+            // remains constrained by the button, while this gives us the full
+            // width needed to calculate the marquee distance.
+            if (_textWidth <= 0f)
+            {
+                Label.Measure(Vector2Helpers.Infinity);
+                _textWidth = Label.DesiredSize.X;
+            }
+
+            var viewportWidth = MathF.Max(1f, Label.Size.X);
+            var overflow = _textWidth - viewportWidth;
             if (overflow <= 1f)
             {
                 // Layout may be recalculated after the button is resized. Keep
@@ -678,7 +692,7 @@ public sealed partial class DnaModifierWindow
             // Reinitialize after a layout/font change so the animation always
             // starts at the left edge and pauses before moving.
             if (!_originInitialized || Math.Abs(overflow - _lastOverflow) > 0.5f ||
-                Math.Abs(Label.Size.X - _lastLabelWidth) > 0.5f)
+                Math.Abs(viewportWidth - _lastLabelWidth) > 0.5f)
             {
                 _labelOriginX = Label.Position.X - _scrollOffset;
                 _scrollOffset = 0f;
@@ -686,7 +700,7 @@ public sealed partial class DnaModifierWindow
                 _pause = PauseAtEdge;
                 _originInitialized = true;
                 _lastOverflow = overflow;
-                _lastLabelWidth = Label.Size.X;
+                _lastLabelWidth = viewportWidth;
             }
 
             if (_pause > 0f)
