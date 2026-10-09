@@ -167,7 +167,7 @@ public sealed partial class DnaModifierWindow
         DnaModifierBoundUserInterfaceState state)
     {
         var group = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
-        var colorControls = new Dictionary<string, (Slider Slider, Button Preview)>();
+        var colorControls = new Dictionary<string, Slider>();
 
         void RefreshColorGroup(string field)
         {
@@ -178,8 +178,8 @@ public sealed partial class DnaModifierWindow
             int Channel(char channel)
             {
                 var channelField = prefix + channel;
-                return colorControls.TryGetValue(channelField, out var control)
-                    ? (int) control.Slider.Value
+                return colorControls.TryGetValue(channelField, out var slider)
+                    ? (int) slider.Value
                     : ReadAppearanceValue(state, channelField, 255);
             }
 
@@ -189,8 +189,7 @@ public sealed partial class DnaModifierWindow
                 if (!pair.Key.StartsWith(prefix, StringComparison.Ordinal))
                     continue;
 
-                pair.Value.Slider.ModulateSelfOverride = color;
-                pair.Value.Preview.ModulateSelfOverride = color;
+                pair.Value.ModulateSelfOverride = color;
             }
         }
 
@@ -249,25 +248,18 @@ public sealed partial class DnaModifierWindow
                 var slider = new Slider { MinValue = min, MaxValue = max, SetWidth = 220, HorizontalExpand = true };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
-                var colorPreview = new Button { Text = string.Empty, SetWidth = 30, SetHeight = 30, Disabled = true };
-                if (!IsRgbColorField(field))
-                    UpdateColorButton(colorPreview, state, field, value.Text);
-                else
-                    colorControls[field] = (slider, colorPreview);
+                if (IsRgbColorField(field))
+                    colorControls[field] = slider;
                 slider.OnValueChanged += args =>
                 {
                     value.Text = ((int) args.Value).ToString();
                     if (IsRgbColorField(field))
                         RefreshColorGroup(field);
-                    else
-                        UpdateColorButton(colorPreview, state, field, value.Text);
                     PreviewAppearance(field, value.Text);
                 };
                 selected = () => ((int) slider.Value).ToString();
                 row.AddChild(slider);
                 row.AddChild(value);
-                if (IsColorField(field))
-                    row.AddChild(colorPreview);
             }
 
             var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
@@ -477,45 +469,6 @@ public sealed partial class DnaModifierWindow
         }
 
         return Color.FromHsv(new Vector4(hue / 360f, saturation, value, 1f));
-    }
-
-    private static void UpdateColorButton(Button button, DnaModifierBoundUserInterfaceState state,
-        string field, string value)
-    {
-        if (!IsColorField(field) || state.Unique is not { } unique)
-            return;
-
-        if (field == nameof(UniqueIdentifiersData.SkinTone))
-        {
-            var tone = int.TryParse(value, out var parsedTone) ? Math.Clamp(parsedTone, 0, 100) : 0;
-            button.ModulateSelfOverride = SkinToneToColor(tone);
-            return;
-        }
-
-        var channel = int.TryParse(value, out var parsed) ? Math.Clamp(parsed, 0, 255) : 0;
-        var red = ReadColorChannel(unique, field, 'R', channel);
-        var green = ReadColorChannel(unique, field, 'G', channel);
-        var blue = ReadColorChannel(unique, field, 'B', channel);
-        button.ModulateSelfOverride = new Color(red / 255f, green / 255f, blue / 255f);
-    }
-
-    private static int ReadColorChannel(UniqueIdentifiersData unique, string field, char channel, int edited)
-    {
-        if (field == nameof(UniqueIdentifiersData.SkinTone))
-            return Math.Clamp((int) (edited * 2.55f), 0, 255);
-
-        if (field.Length > 0 && field[field.Length - 1] == channel)
-            return edited;
-
-        // Avoid range slicing here: the generated ReadOnlySpan constructor is
-        // rejected by the client sandbox type checker.
-        var category = field.Substring(0, field.Length - 1) + channel;
-        var value = AppearanceGene.Get(unique, category);
-        var encoded = value is { Length: >= 2 } ? string.Concat(value[0], value[1]) : null;
-        return encoded is not null && int.TryParse(encoded,
-            System.Globalization.NumberStyles.HexNumber, null, out var parsed)
-            ? parsed
-            : 0;
     }
 
     private void ShowAppearanceEditor(string field, DnaModifierBoundUserInterfaceState state)
