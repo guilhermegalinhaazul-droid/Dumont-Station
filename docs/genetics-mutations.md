@@ -9,7 +9,7 @@ As mutações do arquivo `trauma.yml` são a versão adaptada do Trauma; as dema
 - **Hulk** — concede o conjunto básico de força e transformação Hulk.
 - **Comedor de Matéria** — permite consumir matéria/objetos para obter alimento.
 - **Baixa Estatura** — reduz a altura do personagem.
-- **Sem Respiração** — remove a necessidade de respirar.
+- **Respirar no Vácuo** — remove a necessidade de respirar.
 - **Sem Impressões** — impede ou oculta a produção de impressões digitais.
 - **Resistência Psíquica** — fornece resistência a efeitos psíquicos.
 - **Telecinese** — permite interagir ou manipular objetos à distância.

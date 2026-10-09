@@ -223,8 +223,8 @@
 
 - type: structuralEnzymes
   id: GeneticsWingdingsDisease
-  name: Wingdings
-  abbreviation: Wingdings
+  name: Símbolos Wingdings
+  abbreviation: Símbolos Wingdings
   message: genetics-wingdings-message
   typeDeviation: Disease
   costInstability: -5
