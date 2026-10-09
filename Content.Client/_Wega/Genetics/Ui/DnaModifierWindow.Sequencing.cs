@@ -189,7 +189,26 @@ public sealed partial class DnaModifierWindow
                 if (!pair.Key.StartsWith(prefix, StringComparison.Ordinal))
                     continue;
 
-                pair.Value.ModulateSelfOverride = color;
+                // Tint the slider itself (track, fill and handle) instead of
+                // adding a separate color swatch beside the controls. Every
+                // channel in this RGB group receives the same composed color.
+                pair.Value.ModulateSelfOverride = Color.White;
+                pair.Value.BackgroundStyleBoxOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = color.WithAlpha(0.35f)
+                };
+                pair.Value.ForegroundStyleBoxOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = color.WithAlpha(0.65f)
+                };
+                pair.Value.FillStyleBoxOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = color
+                };
+                pair.Value.GrabberStyleBoxOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = color
+                };
             }
         }
 
