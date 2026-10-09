@@ -115,7 +115,8 @@ public sealed partial class DnaModifierWindow
             foreach (var gene in state.Genes)
             {
                 var row = new BoxContainer { Margin = new Thickness(1) };
-                row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 48 });
+                // Keep the gene name button directly beside its block number.
+                row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 110 };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
