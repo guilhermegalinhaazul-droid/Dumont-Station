@@ -183,11 +183,17 @@ public sealed partial class DnaModifierConsoleSystem
         if (!TrySubject(uid, component, out var subject))
             return;
 
-        // Temporary testing control: expose every gene in the scanner,
-        // including recipe results, and apply them on the next tick so
-        // newly-added components are not sent by PVS during the same tick.
+        // Temporary testing control: reveal and activate ordinary genes only.
+        // Recipe results must remain hidden until their ingredients are
+        // combined, even when this testing control is used.
         foreach (var gene in subject.Comp.EnzymesPrototypes ?? new())
+        {
+            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene ||
+                IsRecipeResult(gene.EnzymesPrototypeId))
+                continue;
+
             _discoveredGenes.Add(gene.EnzymesPrototypeId);
+        }
 
         UpdateUserInterface(uid, component);
         Timer.Spawn(0, () =>
