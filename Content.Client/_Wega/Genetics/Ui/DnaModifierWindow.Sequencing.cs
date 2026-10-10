@@ -184,7 +184,7 @@ public sealed partial class DnaModifierWindow
                     : ReadAppearanceValue(state, channelField, 255);
             }
 
-            var color = new Color(Channel('R'), Channel('G'), Channel('B'));
+            var color = new Color((byte) Channel('R'), (byte) Channel('G'), (byte) Channel('B'));
             foreach (var pair in colorControls)
             {
                 if (!pair.Key.StartsWith(prefix, StringComparison.Ordinal))
@@ -378,7 +378,7 @@ public sealed partial class DnaModifierWindow
             var eyeR = field.EndsWith("R") ? channel : color.RByte;
             var eyeG = field.EndsWith("G") ? channel : color.GByte;
             var eyeB = field.EndsWith("B") ? channel : color.BByte;
-            appearance.EyeColor = new Color(eyeR, eyeG, eyeB);
+            appearance.EyeColor = new Color((byte) eyeR, (byte) eyeG, (byte) eyeB);
             return;
         }
 
@@ -389,7 +389,7 @@ public sealed partial class DnaModifierWindow
             var furR = field.EndsWith("R") ? channel : color.RByte;
             var furG = field.EndsWith("G") ? channel : color.GByte;
             var furB = field.EndsWith("B") ? channel : color.BByte;
-            appearance.SkinColor = new Color(furR, furG, furB);
+            appearance.SkinColor = new Color((byte) furR, (byte) furG, (byte) furB);
             return;
         }
 
@@ -425,7 +425,7 @@ public sealed partial class DnaModifierWindow
         var markingR = field.EndsWith("R") ? channel : existing.RByte;
         var markingG = field.EndsWith("G") ? channel : existing.GByte;
         var markingB = field.EndsWith("B") ? channel : existing.BByte;
-        marking.SetColor(colorIndex, new Color(markingR, markingG, markingB));
+        marking.SetColor(colorIndex, new Color((byte) markingR, (byte) markingG, (byte) markingB));
     }
 
     private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)
