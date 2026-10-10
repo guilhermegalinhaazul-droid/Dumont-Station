@@ -48,6 +48,7 @@
   components:
   - type: Action
     icon: { sprite: _Wega/Interface/Actions/actions_hulk.rsi, state: "transformarion" }
+    useDelay: 600
   - type: InstantAction
     event: !type:HulkTransformationActionEvent
 

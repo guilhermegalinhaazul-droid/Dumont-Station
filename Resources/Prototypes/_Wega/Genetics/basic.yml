@@ -23,23 +23,6 @@
   - type: AcidSpitGen
 
 - type: structuralEnzymes
-  id: GeneticsChickenEggBasic
-  name: Ovos de Galinha
-  abbreviation: Ovos de Galinha
-  message: genetics-chicken-egg-message
-  typeDeviation: Base
-  costInstability: 10
-  addComponent:
-  - type: EggLayer
-    eggLayAction: ActionGenLayChickenEgg
-    eggSpawn:
-    - id: FoodEgg
-    eggLayCooldownMin: 10
-    eggLayCooldownMax: 10
-    hungerUsage: 10
-    hungerRequired: true
-
-- type: structuralEnzymes
   id: GeneticsLaserEyesBasic
   name: Olhos Laser
   abbreviation: Olhos Laser
