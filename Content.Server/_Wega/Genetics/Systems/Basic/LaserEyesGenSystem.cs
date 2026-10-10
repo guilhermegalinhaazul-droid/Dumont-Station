@@ -2,9 +2,8 @@ using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared.Actions;
 using Content.Shared.Genetics;
 using Content.Shared._Goobstation.Wizard.Mutate;
-using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
-using Robust.Shared.Prototypes;
+using Content.Server.Power.Components;
 
 namespace Content.Server.Genetics.System;
 
@@ -30,9 +29,15 @@ public sealed class LaserEyesGenSystem : EntitySystem
         _gun.SetClumsyProof(gun, true);
         _gun.RefreshModifiers((ent, gun));
 
-        var hitscan = EntityManager.ComponentFactory.GetComponent<BasicHitscanAmmoProviderComponent>();
-        hitscan.Proto = new ProtoId<HitscanPrototype>("RedHeavyLaser");
-        AddComp(ent, hitscan, true);
+        RemComp<BasicHitscanAmmoProviderComponent>(ent);
+        var hitscan = EnsureComp<HitscanBatteryAmmoProviderComponent>(ent);
+        hitscan.Prototype = "RedLightLaser";
+        var battery = EnsureComp<BatteryComponent>(ent);
+        battery.MaxCharge = 100f;
+        battery.CurrentCharge = 100f;
+        var recharger = EnsureComp<BatterySelfRechargerComponent>(ent);
+        recharger.AutoRecharge = true;
+        recharger.AutoRechargeRate = 25f;
     }
 
     private void OnShutdown(Entity<LaserEyesGenComponent> ent, ref ComponentShutdown args)

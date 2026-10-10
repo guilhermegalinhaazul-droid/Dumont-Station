@@ -19,8 +19,10 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Action
-    icon: { sprite: _Wega/Interface/Actions/actions.rsi, state: genetic_view }
+    icon: { sprite: Mobs/Aliens/laser_raptor.rsi, state: laser_raptor }
     itemIconStyle: BigAction
+  - type: TargetAction
+    range: 12
   - type: WorldTargetAction
     event: !type:ActionGunShootEvent
 
@@ -32,8 +34,10 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Action
-    icon: { sprite: _Wega/Interface/Actions/actions.rsi, state: genetic_project }
+    icon: { sprite: _White/Interface/Actions/xenomorph.rsi, state: acid }
     itemIconStyle: BigAction
+  - type: TargetAction
+    range: 10
   - type: WorldTargetAction
     event: !type:ActionGunShootEvent
 
