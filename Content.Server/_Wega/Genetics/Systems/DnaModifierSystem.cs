@@ -968,6 +968,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (PausedMap != null)
             {
                 _transform.SetParent(target, Transform(target), PausedMap.Value);
+                _metaData.SetEntityPaused(target, true, meta);
             }
 
             if (targetContainer != null)
