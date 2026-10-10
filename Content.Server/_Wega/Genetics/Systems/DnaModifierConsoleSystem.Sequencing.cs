@@ -40,6 +40,7 @@ public sealed partial class DnaModifierConsoleSystem
         public List<EnzymesPrototypeInfo>? Structural;
         public string? Gene;
         public string? Field;
+        public string[]? Fields;
         public UniqueIdentifiersData? Appearance;
     }
 
@@ -50,6 +51,7 @@ public sealed partial class DnaModifierConsoleSystem
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticRevealAllMessage>(OnRevealAllGenes);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticSubmitMessage>(OnSubmitSequence);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticAppearanceMessage>(OnSelectAppearance);
+        SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticAppearanceGroupMessage>(OnSelectAppearanceGroup);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticBufferAppearanceMessage>(OnSelectBufferAppearance);
         SubscribeLocalEvent<DnaModifierConsoleComponent, GeneticCombineMessage>(OnCombineGenes);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
@@ -231,7 +233,12 @@ public sealed partial class DnaModifierConsoleSystem
         if (pending.Appearance is { } appearance && subject.Comp.UniqueIdentifiers is { } current)
         {
             // Merge only the chosen field, so another edit never gets reverted by a stale snapshot.
-            if (pending.Field is { } field)
+            if (pending.Fields is { } fields)
+            {
+                foreach (var field in fields)
+                    AppearanceGene.Copy(appearance, current, field);
+            }
+            else if (pending.Field is { } field)
                 AppearanceGene.Copy(appearance, current, field);
             else
                 subject.Comp.UniqueIdentifiers = appearance.Clone(appearance);
@@ -307,43 +314,70 @@ public sealed partial class DnaModifierConsoleSystem
                 return;
             AppearanceGene.Set(selected, args.Field, marking?.HexValue ?? new[] { "0", "0", "0" });
         }
-        else
-        {
-            if (!int.TryParse(args.Value, out var value))
-                return;
-            string encoded;
-            if (args.Field == nameof(UniqueIdentifiersData.Gender))
-            {
-                if (value is < 0 or > 2) return;
-                encoded = value switch { 0 => "573", 1 => "677", _ => "879" };
-            }
-            else if (args.Field == nameof(UniqueIdentifiersData.SkinTone))
-            {
-                if (value is < 0 or > 100) return;
-                encoded = value == 100 ? "100" : "0" + value.ToString("D2");
-            }
-            else if (args.Field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
-            {
-                if (value is < 50 or > 200) return;
-                encoded = value.ToString("D3");
-            }
-            else
-            {
-                if (value is < 0 or > 255) return;
-                encoded = value.ToString("X2") + "0";
-            }
-            AppearanceGene.Set(selected, args.Field, encoded.Select(c => c.ToString()).ToArray());
-        }
+        else if (!TrySetAppearanceValue(selected, args.Field, args.Value))
+            return;
         BeginAppearance(uid, component, subject, args.Actor, selected, args.Field);
     }
 
+    private void OnSelectAppearanceGroup(EntityUid uid, DnaModifierConsoleComponent component,
+        GeneticAppearanceGroupMessage args)
+    {
+        if (!TrySubject(uid, component, out var subject) || subject.Comp.UniqueIdentifiers is not { } current ||
+            args.Fields.Length == 0 || args.Fields.Length != args.Values.Length)
+            return;
+
+        var selected = current.Clone(current);
+        for (var i = 0; i < args.Fields.Length; i++)
+        {
+            var field = args.Fields[i];
+            if (!IsRgbField(field) || !TrySetAppearanceValue(selected, field, args.Values[i]))
+                return;
+        }
+
+        BeginAppearance(uid, component, subject, args.Actor, selected, null, args.Fields);
+    }
+
+    private static bool IsRgbField(string field)
+        => field.EndsWith("ColorR") || field.EndsWith("ColorG") || field.EndsWith("ColorB");
+
+    private static bool TrySetAppearanceValue(UniqueIdentifiersData selected, string field, string rawValue)
+    {
+        if (!int.TryParse(rawValue, out var value))
+            return false;
+
+        string encoded;
+        if (field == nameof(UniqueIdentifiersData.Gender))
+        {
+            if (value is < 0 or > 2) return false;
+            encoded = value switch { 0 => "573", 1 => "677", _ => "879" };
+        }
+        else if (field == nameof(UniqueIdentifiersData.SkinTone))
+        {
+            if (value is < 0 or > 100) return false;
+            encoded = value == 100 ? "100" : "0" + value.ToString("D2");
+        }
+        else if (field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
+        {
+            if (value is < 50 or > 200) return false;
+            encoded = value.ToString("D3");
+        }
+        else
+        {
+            if (value is < 0 or > 255 || !IsRgbField(field)) return false;
+            encoded = value.ToString("X2") + "0";
+        }
+
+        AppearanceGene.Set(selected, field, encoded.Select(c => c.ToString()).ToArray());
+        return true;
+    }
+
     private void BeginAppearance(EntityUid uid, DnaModifierConsoleComponent component, EntityUid subject,
-        EntityUid user, UniqueIdentifiersData selected, string? field)
+        EntityUid user, UniqueIdentifiersData selected, string? field, string[]? fields = null)
     {
         var answer = GeneticSequence.Generate(_random, GeneticSequence.AppearancePairs);
         _pendingSequences[uid] = new PendingSequence
         {
-            Subject = subject, User = user, Appearance = selected.Clone(selected), Field = field, Answer = answer,
+            Subject = subject, User = user, Appearance = selected.Clone(selected), Field = field, Fields = fields, Answer = answer,
             State = new GeneticPuzzleState
             {
                 Token = ++_sequenceToken, Title = field == null ? Loc.GetString("dna-eu-all") : Loc.GetString("dna-eu-" + field),

@@ -176,6 +176,7 @@ public sealed partial class DnaModifierWindow
     {
         var group = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
         var colorControls = new Dictionary<string, Slider>();
+        var colorGroups = new HashSet<string>(StringComparer.Ordinal);
 
         void RefreshColorGroup(string field)
         {
@@ -277,14 +278,34 @@ public sealed partial class DnaModifierWindow
                 row.AddChild(value);
             }
 
-            var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
-            apply.OnPressed += _ =>
+            if (!IsRgbColorField(field) || colorGroups.Add(field[..^1]))
             {
-                var value = selected();
-                PreviewAppearance(field, value);
-                OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, value));
-            };
-            row.AddChild(apply);
+                var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
+                if (IsRgbColorField(field))
+                {
+                    var prefix = field[..^1];
+                    apply.OnPressed += _ =>
+                    {
+                        var fieldsToSequence = new[] { prefix + "R", prefix + "G", prefix + "B" }
+                            .Where(colorControls.ContainsKey)
+                            .ToArray();
+                        var valuesToSequence = fieldsToSequence
+                            .Select(channel => ((int) colorControls[channel].Value).ToString())
+                            .ToArray();
+                        OnGeneticMessage?.Invoke(new GeneticAppearanceGroupMessage(fieldsToSequence, valuesToSequence));
+                    };
+                }
+                else
+                {
+                    apply.OnPressed += _ =>
+                    {
+                        var selectedValue = selected();
+                        PreviewAppearance(field, selectedValue);
+                        OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, selectedValue));
+                    };
+                }
+                row.AddChild(apply);
+            }
             group.AddChild(row);
         }
 

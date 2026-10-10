@@ -174,6 +174,13 @@ public sealed class GeneticAppearanceMessage(string field, string value) : Bound
 }
 
 [Serializable, NetSerializable]
+public sealed class GeneticAppearanceGroupMessage(string[] fields, string[] values) : BoundUserInterfaceMessage
+{
+    public readonly string[] Fields = fields;
+    public readonly string[] Values = values;
+}
+
+[Serializable, NetSerializable]
 public sealed class GeneticBufferAppearanceMessage(int buffer, string field) : BoundUserInterfaceMessage
 {
     public readonly int Buffer = buffer;
