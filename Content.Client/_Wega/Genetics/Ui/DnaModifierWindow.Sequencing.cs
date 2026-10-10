@@ -46,6 +46,7 @@ public sealed partial class DnaModifierWindow
             return null;
 
         var preview = _appearancePreview ?? default;
+        var created = false;
         if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
         {
             if (preview.IsValid() && _entManager.EntityExists(preview))
@@ -55,21 +56,27 @@ public sealed partial class DnaModifierWindow
             preview = _entManager.SpawnEntity(species.DollPrototype, MapCoordinates.Nullspace);
             _appearancePreview = preview;
             _appearancePreviewSource = source;
+            created = true;
         }
 
         if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var previewAppearance)
             || !_entManager.TryGetComponent<SpriteComponent>(preview, out var previewSprite))
             return preview;
 
-        previewAppearance.Species = sourceAppearance.Species;
-        previewAppearance.Sex = sourceAppearance.Sex;
-        previewAppearance.Gender = sourceAppearance.Gender;
-        previewAppearance.SkinColor = sourceAppearance.SkinColor;
-        previewAppearance.EyeColor = sourceAppearance.EyeColor;
-        previewAppearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
-        previewAppearance.Height = sourceAppearance.Height;
-        previewAppearance.Width = sourceAppearance.Width;
-        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, previewAppearance, previewSprite));
+        // Copy the scanned appearance only when creating a new preview. Re-copying
+        // it on every state update would erase unsaved changes made in the editor.
+        if (created)
+        {
+            previewAppearance.Species = sourceAppearance.Species;
+            previewAppearance.Sex = sourceAppearance.Sex;
+            previewAppearance.Gender = sourceAppearance.Gender;
+            previewAppearance.SkinColor = sourceAppearance.SkinColor;
+            previewAppearance.EyeColor = sourceAppearance.EyeColor;
+            previewAppearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
+            previewAppearance.Height = sourceAppearance.Height;
+            previewAppearance.Width = sourceAppearance.Width;
+            _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, previewAppearance, previewSprite));
+        }
         return preview;
     }
 
@@ -290,7 +297,7 @@ public sealed partial class DnaModifierWindow
     private void PreviewAppearance(string field, string value)
     {
         if (_lastUpdate?.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out EntityUid? source) || source is not { } sourceEntity ||
-            !_entManager.TryGetComponent<HumanoidAppearanceComponent>(sourceEntity, out var sourceAppearance))
+            !_entManager.EntityExists(sourceEntity))
             return;
 
         var preview = EnsureAppearancePreview(sourceEntity);
@@ -300,15 +307,6 @@ public sealed partial class DnaModifierWindow
         if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(previewEntity, out var appearance) ||
             !_entManager.TryGetComponent<SpriteComponent>(previewEntity, out var sprite))
             return;
-
-        appearance.Species = sourceAppearance.Species;
-        appearance.Sex = sourceAppearance.Sex;
-        appearance.Gender = sourceAppearance.Gender;
-        appearance.SkinColor = sourceAppearance.SkinColor;
-        appearance.EyeColor = sourceAppearance.EyeColor;
-        appearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
-        appearance.Height = sourceAppearance.Height;
-        appearance.Width = sourceAppearance.Width;
 
         if (field.EndsWith("Style") && value.Length > 0 && _prototypeManager.TryIndex<MarkingPrototype>(value, out var marking))
         {
