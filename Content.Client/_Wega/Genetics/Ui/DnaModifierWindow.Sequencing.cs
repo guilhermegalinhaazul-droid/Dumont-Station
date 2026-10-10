@@ -647,16 +647,19 @@ public sealed partial class DnaModifierWindow
 
     private sealed class GeneNameButton : Button
     {
-        private const float ScrollSpeed = 14f;
-        private const float PauseAtEdge = 1.15f;
+        private const float ScrollSpeed = 20f;
+        private const float PauseAtEdge = 0.25f;
+        private const float SafetyMargin = 5f;
+
         private float _scrollOffset;
-        private float _pause = PauseAtEdge;
+        private float _pause;
         private int _direction = -1;
         private float _labelOriginX;
-        private bool _originInitialized;
-        private float _lastOverflow;
-        private float _lastLabelWidth;
         private float _textWidth;
+        private float _overflow;
+        private float _lastViewportWidth;
+        private bool _metricsReady;
+        private bool _hovered;
 
         public GeneNameButton(string name)
         {
@@ -665,55 +668,40 @@ public sealed partial class DnaModifierWindow
             MaxWidth = 110;
             ToolTip = name;
 
-            // Keep the button fixed while allowing its label to move inside it.
-            // The button clips the label, so long names never draw over the
-            // neighbouring toggle button.
+            // Preserve the existing button and label styling. The button's
+            // existing clipping is used as the final boundary for the text.
             RectClipContent = true;
             Label.ClipText = false;
             Label.HorizontalAlignment = HAlignment.Left;
             Label.HorizontalExpand = false;
             Label.Measure(Vector2Helpers.Infinity);
             _textWidth = Label.DesiredSize.X;
+
+            OnMouseEntered += _ =>
+            {
+                _hovered = true;
+                RefreshMetrics();
+                ResetScroll();
+                if (_overflow > 0f)
+                    _pause = PauseAtEdge;
+            };
+            OnMouseExited += _ =>
+            {
+                _hovered = false;
+                ResetScroll();
+            };
         }
 
         protected override void FrameUpdate(FrameEventArgs args)
         {
             base.FrameUpdate(args);
+            RefreshMetrics();
 
-            // Measure without the button's width constraint. The label itself
-            // remains constrained by the button, while this gives us the full
-            // width needed to calculate the marquee distance.
-            if (_textWidth <= 0f)
+            // Names stay still until the pointer enters this specific button.
+            if (!_hovered || _overflow <= 0f)
             {
-                Label.Measure(Vector2Helpers.Infinity);
-                _textWidth = Label.DesiredSize.X;
-            }
-
-            var viewportWidth = MathF.Max(1f, Label.Size.X);
-            var overflow = _textWidth - viewportWidth;
-            if (overflow <= 1f)
-            {
-                // Layout may be recalculated after the button is resized. Keep
-                // short names completely static and restore the label position.
-                _scrollOffset = 0f;
-                if (_originInitialized)
-                    LayoutContainer.SetPosition(Label, new Vector2(_labelOriginX, Label.Position.Y));
-                _originInitialized = false;
+                ResetScroll();
                 return;
-            }
-
-            // Reinitialize after a layout/font change so the animation always
-            // starts at the left edge and pauses before moving.
-            if (!_originInitialized || Math.Abs(overflow - _lastOverflow) > 0.5f ||
-                Math.Abs(viewportWidth - _lastLabelWidth) > 0.5f)
-            {
-                _labelOriginX = Label.Position.X - _scrollOffset;
-                _scrollOffset = 0f;
-                _direction = -1;
-                _pause = PauseAtEdge;
-                _originInitialized = true;
-                _lastOverflow = overflow;
-                _lastLabelWidth = viewportWidth;
             }
 
             if (_pause > 0f)
@@ -723,9 +711,9 @@ public sealed partial class DnaModifierWindow
             else
             {
                 _scrollOffset += _direction * ScrollSpeed * args.DeltaSeconds;
-                if (_scrollOffset <= -overflow)
+                if (_scrollOffset <= -_overflow)
                 {
-                    _scrollOffset = -overflow;
+                    _scrollOffset = -_overflow;
                     _direction = 1;
                     _pause = PauseAtEdge;
                 }
@@ -737,6 +725,56 @@ public sealed partial class DnaModifierWindow
                 }
             }
 
+            SetLabelPosition();
+        }
+
+        private void RefreshMetrics()
+        {
+            Label.Measure(Vector2Helpers.Infinity);
+            var textWidth = Label.DesiredSize.X;
+            var viewportWidth = Label.Size.X;
+            if (textWidth <= 0f || viewportWidth <= 1f)
+                return;
+
+            if (!_metricsReady)
+            {
+                _labelOriginX = Label.Position.X;
+                _metricsReady = true;
+            }
+            else if (Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
+            {
+                // Layout changes can move the label while it is idle. Keep the
+                // original left edge and recalculate only the scroll distance.
+                if (!_hovered)
+                    _labelOriginX = Label.Position.X;
+                _scrollOffset = 0f;
+                _direction = -1;
+                _pause = _hovered ? PauseAtEdge : 0f;
+            }
+
+            _textWidth = textWidth;
+            _lastViewportWidth = viewportWidth;
+            // Reserve a small internal margin at the far edge so glyphs never
+            // touch or cross the button border while the label is moving.
+            _overflow = MathF.Max(0f, _textWidth - MathF.Max(1f, viewportWidth - SafetyMargin));
+
+            if (_overflow <= 0f)
+                ResetScroll();
+            else if (!_hovered)
+                SetLabelPosition();
+        }
+
+        private void ResetScroll()
+        {
+            _scrollOffset = 0f;
+            _direction = -1;
+            _pause = 0f;
+            if (_metricsReady)
+                SetLabelPosition();
+        }
+
+        private void SetLabelPosition()
+        {
             LayoutContainer.SetPosition(Label, new Vector2(_labelOriginX + _scrollOffset, Label.Position.Y));
         }
     }
