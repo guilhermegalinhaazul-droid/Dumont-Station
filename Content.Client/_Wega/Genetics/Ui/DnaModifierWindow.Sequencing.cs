@@ -257,8 +257,21 @@ public sealed partial class DnaModifierWindow
                 var isScale = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
                 var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : isScale ? 200 : 255;
                 var min = isScale ? 50 : 0;
-                var slider = new GeneColorSlider { MinValue = min, MaxValue = max, SetWidth = 220, HorizontalExpand = true };
-                var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
+                var slider = new GeneColorSlider
+                {
+                    MinValue = min,
+                    MaxValue = max,
+                    MinWidth = 220,
+                    MaxWidth = 220,
+                    SetWidth = 220
+                };
+                var value = new Label
+                {
+                    MinWidth = 35,
+                    MaxWidth = 35,
+                    SetWidth = 35,
+                    Text = ReadAppearanceValue(state, field, max).ToString()
+                };
                 slider.Value = int.Parse(value.Text);
                 if (IsRgbColorField(field))
                     colorControls[field] = slider;
@@ -305,6 +318,12 @@ public sealed partial class DnaModifierWindow
                     };
                 }
                 row.AddChild(apply);
+            }
+            else
+            {
+                // Keep the same column width on RGB rows whose channels share
+                // the single sequence button from the first channel.
+                row.AddChild(new Control { MinWidth = 120, MaxWidth = 120, SetWidth = 120 });
             }
             group.AddChild(row);
         }
