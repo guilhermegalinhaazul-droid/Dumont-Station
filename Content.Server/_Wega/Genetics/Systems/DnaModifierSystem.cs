@@ -34,6 +34,11 @@ namespace Content.Server.Genetics.System;
 
 public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 {
+    // Species changes replace the entity and synchronously rebuild its DNA.
+    // Keep a per-entity guard so nested/deferred DNA updates cannot start a
+    // second replacement before the first one has finished.
+    private readonly HashSet<EntityUid> _speciesTransitions = new();
+
     [Dependency] private readonly IAdminLogManager _admin = default!;
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
@@ -863,6 +868,21 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     }
 
     private void TryChangeLastBlock(EntityUid target, DnaModifierComponent component, EnzymesPrototypeInfo enzyme)
+    {
+        if (!_speciesTransitions.Add(target))
+            return;
+
+        try
+        {
+            TryChangeLastBlockCore(target, component, enzyme);
+        }
+        finally
+        {
+            _speciesTransitions.Remove(target);
+        }
+    }
+
+    private void TryChangeLastBlockCore(EntityUid target, DnaModifierComponent component, EnzymesPrototypeInfo enzyme)
     {
         // Species replacement can be reached more than once in the same tick
         // while components are being rebuilt. Never create a second replacement
