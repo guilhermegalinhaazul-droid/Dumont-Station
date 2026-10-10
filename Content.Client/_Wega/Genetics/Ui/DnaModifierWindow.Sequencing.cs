@@ -190,26 +190,10 @@ public sealed partial class DnaModifierWindow
                 if (!pair.Key.StartsWith(prefix, StringComparison.Ordinal))
                     continue;
 
-                // Tint the slider itself (track, fill and handle) instead of
-                // adding a separate color swatch beside the controls. Every
-                // channel in this RGB group receives the same composed color.
-                pair.Value.ModulateSelfOverride = Color.White;
-                pair.Value.BackgroundStyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = color.WithAlpha(0.35f)
-                };
-                pair.Value.ForegroundStyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = color.WithAlpha(0.65f)
-                };
-                pair.Value.FillStyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = color
-                };
-                pair.Value.GrabberStyleBoxOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = color
-                };
+                // Keep the original slider style intact and only recolor its
+                // existing green fill region.
+                if (pair.Value is GeneColorSlider colorSlider)
+                    colorSlider.SetFillColor(color);
             }
         }
 
@@ -265,7 +249,7 @@ public sealed partial class DnaModifierWindow
                 var isScale = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
                 var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : isScale ? 200 : 255;
                 var min = isScale ? 50 : 0;
-                var slider = new Slider { MinValue = min, MaxValue = max, SetWidth = 220, HorizontalExpand = true };
+                var slider = new GeneColorSlider { MinValue = min, MaxValue = max, SetWidth = 220, HorizontalExpand = true };
                 var value = new Label { MinWidth = 35, Text = ReadAppearanceValue(state, field, max).ToString() };
                 slider.Value = int.Parse(value.Text);
                 if (IsRgbColorField(field))
@@ -630,6 +614,35 @@ public sealed partial class DnaModifierWindow
         var combine = new Button { Text = Loc.GetString("dna-tab-combine"), Disabled = known.Count < 2 };
         combine.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticCombineMessage(first.SelectedId, second.SelectedId));
         CombineContainer.AddChild(new BoxContainer { Children = { first, second, combine } });
+    }
+
+    private sealed class GeneColorSlider : Slider
+    {
+        private Color? _fillColor;
+
+        public void SetFillColor(Color color)
+        {
+            _fillColor = color;
+            ApplyFillColor();
+        }
+
+        protected override void StylePropertiesChanged()
+        {
+            base.StylePropertiesChanged();
+            ApplyFillColor();
+        }
+
+        private void ApplyFillColor()
+        {
+            if (_fillColor is not { } color ||
+                !TryGetStyleProperty<StyleBox>(StylePropertyFill, out var style) ||
+                style is not StyleBoxTexture texture)
+                return;
+
+            // Clone the stylesheet texture style so texture, margins, borders,
+            // sizing and every other original property remain unchanged.
+            FillStyleBoxOverride = new StyleBoxTexture(texture) { Modulate = color };
+        }
     }
 
     private sealed class GeneNameButton : Button
