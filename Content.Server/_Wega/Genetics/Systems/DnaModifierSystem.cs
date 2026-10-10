@@ -896,6 +896,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (!TryComp<MetaDataComponent>(target, out var meta))
             return;
 
+        // The previous form is kept paused on the private genetics map while
+        // the replacement is active. It must never be processed again by a
+        // later DNA refresh, otherwise every refresh would spawn another form.
+        if (meta.EntityPaused)
+            return;
+
         _container.TryGetContainingContainer(target, out var targetContainer);
 
         if (!enzyme.Active)
