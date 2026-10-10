@@ -254,11 +254,15 @@ public sealed partial class DnaModifierWindow
                 slider.Value = int.Parse(value.Text);
                 if (IsRgbColorField(field))
                     colorControls[field] = slider;
+                else if (field == nameof(UniqueIdentifiersData.SkinTone))
+                    slider.SetFillColor(SkinToneToColor((int) slider.Value));
                 slider.OnValueChanged += args =>
                 {
                     value.Text = ((int) args.Value).ToString();
                     if (IsRgbColorField(field))
                         RefreshColorGroup(field);
+                    else if (field == nameof(UniqueIdentifiersData.SkinTone))
+                        slider.SetFillColor(SkinToneToColor((int) args.Value));
                     PreviewAppearance(field, value.Text);
                 };
                 selected = () => ((int) slider.Value).ToString();
@@ -453,27 +457,7 @@ public sealed partial class DnaModifierWindow
             : 0;
 
     private static Color SkinToneToColor(int toneValue)
-    {
-        toneValue = Math.Clamp(toneValue, 0, 100);
-
-        float hue;
-        float saturation;
-        float value;
-        if (toneValue <= 20)
-        {
-            hue = 25f + (45f - 25f) * (20 - toneValue) / 20f;
-            saturation = 0.2f;
-            value = 1f;
-        }
-        else
-        {
-            hue = 25f;
-            saturation = 0.2f + 0.8f * (toneValue - 20) / 80f;
-            value = 1f - 0.8f * (toneValue - 20) / 80f;
-        }
-
-        return Color.FromHsv(new Vector4(hue / 360f, saturation, value, 1f));
-    }
+        => SkinColor.HumanSkinTone(Math.Clamp(toneValue, 0, 100));
 
     private void ShowAppearanceEditor(string field, DnaModifierBoundUserInterfaceState state)
     {
