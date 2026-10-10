@@ -91,6 +91,11 @@ public sealed partial class DnaModifierSystem
         {
             foreach (var incoming in ent.Comp.EnzymesPrototypes)
             {
+                // Crafted genes are unlocked and activated only by the
+                // combination system, never by an injector payload.
+                if (IsRecipeResult(incoming.EnzymesPrototypeId))
+                    continue;
+
                 var existing = dnaModifier.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == incoming.EnzymesPrototypeId);
                 if (existing != null)
                     existing.Active = incoming.Active;
@@ -151,6 +156,7 @@ public sealed partial class DnaModifierSystem
 
         var enzymesPrototypes = _enzymesIndexer.GetAllEnzymesPrototypes();
         injector.EnzymesPrototypes = enzymesPrototypes
+            .Where(enzyme => !IsRecipeResult(enzyme.EnzymesPrototypeId))
             .Select(enzyme => new EnzymesPrototypeInfo
             {
                 EnzymesPrototypeId = enzyme.EnzymesPrototypeId,

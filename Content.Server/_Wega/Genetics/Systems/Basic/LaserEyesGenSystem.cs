@@ -15,7 +15,6 @@ public sealed class LaserEyesGenSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<LaserEyesGenComponent, ComponentInit>(OnInit);
-        SubscribeLocalEvent<LaserEyesGenComponent, ComponentShutdown>(OnShutdown);
     }
 
     private void OnInit(Entity<LaserEyesGenComponent> ent, ref ComponentInit args)
@@ -31,9 +30,4 @@ public sealed class LaserEyesGenSystem : EntitySystem
         AddComp(ent, hitscan, true);
     }
 
-    private void OnShutdown(Entity<LaserEyesGenComponent> ent, ref ComponentShutdown args)
-    {
-        RemCompDeferred<GunComponent>(ent);
-        RemCompDeferred<BasicHitscanAmmoProviderComponent>(ent);
-    }
 }
