@@ -2,5 +2,22 @@
 
 - type: entity
   id: ScentTrackEffect
-  parent: EffectSparks
   categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 1.1
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    scale: 0.55, 0.55
+    color: "#d9f29b"
+    layers:
+    - shader: unshaded
+      map: ["enum.EffectLayers.Unshaded"]
+      sprite: Effects/spacewind.rsi
+      state: spacewind
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+  - type: AnimationPlayer
