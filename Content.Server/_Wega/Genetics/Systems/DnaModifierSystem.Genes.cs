@@ -30,7 +30,10 @@ public sealed partial class DnaModifierSystem
         var activated = 0;
         foreach (var gene in subject.Comp.EnzymesPrototypes)
         {
-            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene || gene.Active)
+            // Recipe results are intentionally excluded from the test action.
+            // They must only become active through the combine operation.
+            if (gene.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene ||
+                IsRecipeResult(gene.EnzymesPrototypeId) || gene.Active)
                 continue;
 
             gene.Active = true;
@@ -48,9 +51,15 @@ public sealed partial class DnaModifierSystem
             return gene.Active;
         if (subject.Comp.IntrinsicGenes.Contains(gene.EnzymesPrototypeId))
             return gene.Active && subject.Comp.GeneComponents.ContainsKey(gene.EnzymesPrototypeId);
-        return subject.Comp.AppliedGenes.Contains(gene.EnzymesPrototypeId);
+        // Keep the UI synchronized with both the requested state and the
+        // components actually applied to the entity.
+        return gene.Active && subject.Comp.AppliedGenes.Contains(gene.EnzymesPrototypeId);
 
     }
+
+    private bool IsRecipeResult(string id)
+        => _prototype.EnumeratePrototypes<GeneticRecipePrototype>()
+            .Any(recipe => recipe.Result == id);
 
     public void SetGeneActive(Entity<DnaModifierComponent> subject, EnzymesPrototypeInfo gene, bool active,
         bool removeReplaced = true)
