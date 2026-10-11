@@ -104,8 +104,8 @@
 
 - type: structuralEnzymes
   id: GeneticsRemoteViewingIntermediate
-  name: Visão Remota
-  abbreviation: Visão Remota
+  name: Mente Colmeia
+  abbreviation: Mente Colmeia
   message: genetics-remote-viewing-message
   typeDeviation: Intermediate
   costInstability: 5

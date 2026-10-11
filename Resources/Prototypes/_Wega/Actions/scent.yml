@@ -6,7 +6,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Action
-    icon: { sprite: _Wega/Interface/Actions/actions.rsi, state: genetic_view }
+    icon: { sprite: Mobs/Pets/corgi.rsi, state: ian }
   - type: TargetAction
     range: 7
   - type: EntityTargetAction

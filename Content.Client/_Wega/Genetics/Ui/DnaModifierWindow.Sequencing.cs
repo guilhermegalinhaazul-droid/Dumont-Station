@@ -704,7 +704,7 @@ public sealed partial class DnaModifierWindow
         private const float PauseAtEdge = 0.25f;
         // Keep a larger inset so antialiased glyph edges cannot touch the
         // button border while the name is moving.
-        private const float SafetyMargin = 9f;
+        private const float SafetyMargin = 12f;
 
         private float _scrollOffset;
         private float _pause;

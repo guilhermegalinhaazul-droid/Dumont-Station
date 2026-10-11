@@ -1,0 +1,6 @@
+# Canal coletivo concedido pelo gene Mente Colmeia.
+- type: collectiveMind
+  id: Geneticmind
+  name: collective-mind-genetic
+  keycode: 'c'
+  color: "#62d6b5"

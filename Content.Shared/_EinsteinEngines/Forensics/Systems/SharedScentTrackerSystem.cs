@@ -1,5 +1,7 @@
 using Content.Shared.Popups;
 using Content.Shared.DoAfter;
+using Content.Shared.Actions;
+using Content.Shared._EinsteinEngines.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Verbs;
 using Content.Shared.Examine;
@@ -15,6 +17,7 @@ public abstract class SharedScentTrackerSystem : EntitySystem
     {
         SubscribeLocalEvent<ScentTrackerComponent, GetVerbsEvent<InnateVerb>>(AddVerbs);
         SubscribeLocalEvent<ScentTrackerComponent, ScentTrackerDoAfterEvent>(TrackScentDoAfter);
+        SubscribeLocalEvent<ScentTrackerComponent, ScentTrackerActionEvent>(OnScentTrackerAction);
         SubscribeLocalEvent<ForensicsComponent, ExaminedEvent>((uid, _, args) => OnExamine(uid, args));
     }
 
@@ -64,6 +67,30 @@ public abstract class SharedScentTrackerSystem : EntitySystem
 
         TrackScent(args.Args.User, args.Args.Target.Value);
 
+        args.Handled = true;
+    }
+
+    private void OnScentTrackerAction(Entity<ScentTrackerComponent> entity, ref ScentTrackerActionEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        // A second use of the ability stops the current tracking state. The
+        // action system consumes Toggle after this event and updates the
+        // action button without requiring a separate cancel ability.
+        if (entity.Comp.Scent != string.Empty)
+        {
+            StopTrackScent(entity.Owner, entity.Comp);
+            args.Toggle = true;
+            args.Handled = true;
+            return;
+        }
+
+        if (args.Target == entity.Owner)
+            return;
+
+        AttemptTrackScent(entity.Owner, args.Target, entity.Comp);
+        args.Toggle = true;
         args.Handled = true;
     }
 

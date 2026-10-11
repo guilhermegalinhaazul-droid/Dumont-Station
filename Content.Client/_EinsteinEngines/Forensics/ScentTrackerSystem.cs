@@ -44,9 +44,12 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
                 || transform.MapID == MapId.Nullspace)
                 continue;
 
-            comp.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(0.75f);
+            // Leave enough time between markers to create a readable trail
+            // without spawning one effect every update tick. Each marker is
+            // intentionally persistent for the full scent-tracking window.
+            comp.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(3f);
             var coordinates = _transform.GetMapCoordinates(uid);
-            Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.08f) + new Vector2(0f, 0.35f)));
+            Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.18f) + new Vector2(0f, 0.4f)));
         }
     }
 }

@@ -5,11 +5,11 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: TimedDespawn
-    lifetime: 1.1
+    lifetime: 300
   - type: Sprite
     drawdepth: Effects
     noRot: true
-    scale: 0.55, 0.55
+    scale: 1.15, 1.15
     color: "#d9f29b"
     layers:
     - shader: unshaded
