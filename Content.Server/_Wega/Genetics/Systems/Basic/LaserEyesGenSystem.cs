@@ -4,6 +4,7 @@ using Content.Shared.Genetics;
 using Content.Shared._Goobstation.Wizard.Mutate;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Server.Power.Components;
+using Content.Server.Power.EntitySystems;
 
 namespace Content.Server.Genetics.System;
 
@@ -11,6 +12,7 @@ public sealed class LaserEyesGenSystem : EntitySystem
 {
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly GunSystem _gun = default!;
+    [Dependency] private readonly BatterySystem _battery = default!;
 
     public override void Initialize()
     {
@@ -33,8 +35,8 @@ public sealed class LaserEyesGenSystem : EntitySystem
         var hitscan = EnsureComp<HitscanBatteryAmmoProviderComponent>(ent);
         hitscan.Prototype = "RedLightLaser";
         var battery = EnsureComp<BatteryComponent>(ent);
-        battery.MaxCharge = 100f;
-        battery.CurrentCharge = 100f;
+        _battery.SetMaxCharge(ent, 100f, battery);
+        _battery.SetCharge(ent, 100f, battery);
         var recharger = EnsureComp<BatterySelfRechargerComponent>(ent);
         recharger.AutoRecharge = true;
         recharger.AutoRechargeRate = 25f;

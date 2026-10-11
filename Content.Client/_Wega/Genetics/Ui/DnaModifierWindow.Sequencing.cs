@@ -13,6 +13,7 @@ using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._Wega.Genetics.Ui;
