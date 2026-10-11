@@ -21,6 +21,7 @@
   - type: Action
     icon: { sprite: Mobs/Aliens/laser_raptor.rsi, state: laser_raptor }
     itemIconStyle: BigAction
+    useDelay: 5
   - type: TargetAction
     range: 12
   - type: WorldTargetAction
@@ -36,6 +37,7 @@
   - type: Action
     icon: { sprite: _White/Interface/Actions/xenomorph.rsi, state: acid }
     itemIconStyle: BigAction
+    useDelay: 5
   - type: TargetAction
     range: 10
   - type: WorldTargetAction

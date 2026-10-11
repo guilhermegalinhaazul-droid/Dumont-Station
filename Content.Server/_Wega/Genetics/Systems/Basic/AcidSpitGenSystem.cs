@@ -34,6 +34,9 @@ public sealed class AcidSpitGenSystem : EntitySystem
 
     private void OnShoot(Entity<AcidSpitGenComponent> ent, ref ActionGunShootEvent args)
     {
+        if (args.Action.Owner != ent.Comp.ActionEntity)
+            return;
+
         if (TryComp<GunComponent>(ent, out var gun))
             _gun.AttemptShoot(ent, ent, gun, args.Target);
 

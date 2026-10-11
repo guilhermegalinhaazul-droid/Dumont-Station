@@ -49,6 +49,11 @@ public sealed class LaserEyesGenSystem : EntitySystem
 
     private void OnShoot(Entity<LaserEyesGenComponent> ent, ref ActionGunShootEvent args)
     {
+        // Both genetics actions raise ActionGunShootEvent on their owner.
+        // Only the action that was actually pressed may consume the event.
+        if (args.Action.Owner != ent.Comp.ActionEntity)
+            return;
+
         if (TryComp<GunComponent>(ent, out var gun))
             _gun.AttemptShoot(ent, ent, gun, args.Target);
 
