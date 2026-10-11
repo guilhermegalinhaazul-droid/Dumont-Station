@@ -720,9 +720,10 @@ public sealed partial class DnaModifierWindow
             // Preserve the existing button and label styling. The button's
             // existing clipping is used as the final boundary for the text.
             RectClipContent = true;
-            // Clip at the label viewport as well as at the button. This keeps
-            // glyphs from leaking through either edge during the animation.
-            Label.ClipText = true;
+            // Let the button's own content clipping handle the moving label.
+            // Clipping the internal Label causes its text/placeholder to be
+            // measured as empty on some UI layouts, hiding both names and ???.
+            Label.ClipText = false;
             Label.HorizontalAlignment = HAlignment.Left;
             Label.HorizontalExpand = false;
             Label.Measure(Vector2Helpers.Infinity);
