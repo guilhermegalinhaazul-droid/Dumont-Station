@@ -175,6 +175,7 @@ public sealed partial class DnaModifierWindow
     private void BuildAppearanceGroup(BoxContainer parent, IEnumerable<string> fields,
         DnaModifierBoundUserInterfaceState state)
     {
+        const float sequenceButtonWidth = 180f;
         var group = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -315,9 +316,9 @@ public sealed partial class DnaModifierWindow
                 var apply = new Button
                 {
                     Text = Loc.GetString("dna-eu-sequence"),
-                    MinWidth = 120,
-                    MaxWidth = 120,
-                    SetWidth = 120
+                    MinWidth = sequenceButtonWidth,
+                    MaxWidth = sequenceButtonWidth,
+                    SetWidth = sequenceButtonWidth
                 };
                 if (IsRgbColorField(field))
                 {
@@ -348,7 +349,12 @@ public sealed partial class DnaModifierWindow
             {
                 // Keep the same column width on RGB rows whose channels share
                 // the single sequence button from the first channel.
-                row.AddChild(new Control { MinWidth = 120, MaxWidth = 120, SetWidth = 120 });
+                row.AddChild(new Control
+                {
+                    MinWidth = sequenceButtonWidth,
+                    MaxWidth = sequenceButtonWidth,
+                    SetWidth = sequenceButtonWidth
+                });
             }
             group.AddChild(row);
         }
