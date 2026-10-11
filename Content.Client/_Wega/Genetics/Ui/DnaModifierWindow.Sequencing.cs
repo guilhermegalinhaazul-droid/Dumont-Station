@@ -175,7 +175,11 @@ public sealed partial class DnaModifierWindow
     private void BuildAppearanceGroup(BoxContainer parent, IEnumerable<string> fields,
         DnaModifierBoundUserInterfaceState state)
     {
-        var group = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        var group = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            HorizontalExpand = true
+        };
         var colorControls = new Dictionary<string, Slider>();
         var colorGroups = new HashSet<string>(StringComparer.Ordinal);
 
@@ -209,13 +213,27 @@ public sealed partial class DnaModifierWindow
         foreach (var field in fields)
         {
             var label = Loc.GetString("dna-eu-" + field);
-            var row = new BoxContainer { Margin = new Thickness(1), SeparationOverride = 6 };
-            row.AddChild(new Label { Text = label, MinWidth = 220, ToolTip = label });
+            var row = new BoxContainer
+            {
+                Margin = new Thickness(1),
+                SeparationOverride = 6,
+                HorizontalExpand = true
+            };
+            // Keep every row on the same four columns. MinWidth alone lets
+            // long labels grow and pushes the slider/button columns sideways.
+            row.AddChild(new Label
+            {
+                Text = label,
+                MinWidth = 220,
+                MaxWidth = 220,
+                SetWidth = 220,
+                ToolTip = label
+            });
 
             Func<string> selected;
             if (state.AppearanceOptions.TryGetValue(field, out var markings))
             {
-                var list = new ItemList { MinSize = new Vector2(220, 64), MaxSize = new Vector2(320, 96) };
+                var list = new ItemList { MinSize = new Vector2(220, 64), MaxSize = new Vector2(220, 96) };
                 var selectedValue = markings.Count > 0 ? markings[0] : string.Empty;
                 foreach (var id in markings)
                 {
@@ -237,7 +255,7 @@ public sealed partial class DnaModifierWindow
             }
             else if (field == nameof(UniqueIdentifiersData.Gender))
             {
-                var options = new OptionButton { MinWidth = 220 };
+                var options = new OptionButton { MinWidth = 220, MaxWidth = 220, SetWidth = 220 };
                 options.AddItem(Loc.GetString("dna-eu-female"), 0);
                 options.AddItem(Loc.GetString("dna-eu-male"), 1);
                 options.AddItem(Loc.GetString("dna-eu-neuter"), 2);
@@ -247,7 +265,7 @@ public sealed partial class DnaModifierWindow
             }
             else if (field == AppearanceGene.Name)
             {
-                var input = new LineEdit { MinWidth = 220 };
+                var input = new LineEdit { MinWidth = 220, MaxWidth = 220, SetWidth = 220 };
                 input.Text = state.ScannerBodyInfo ?? string.Empty;
                 selected = () => input.Text;
                 input.OnTextChanged += args => PreviewAppearance(field, args.Text);
@@ -294,7 +312,13 @@ public sealed partial class DnaModifierWindow
 
             if (!IsRgbColorField(field) || colorGroups.Add(field[..^1]))
             {
-                var apply = new Button { Text = Loc.GetString("dna-eu-sequence"), MinWidth = 120 };
+                var apply = new Button
+                {
+                    Text = Loc.GetString("dna-eu-sequence"),
+                    MinWidth = 120,
+                    MaxWidth = 120,
+                    SetWidth = 120
+                };
                 if (IsRgbColorField(field))
                 {
                     var prefix = field[..^1];
