@@ -672,7 +672,6 @@ public sealed partial class DnaModifierWindow
     private void UpdateCombiner(DnaModifierBoundUserInterfaceState state)
     {
         CombineContainer.RemoveAllChildren();
-        CombineContainer.AddChild(new Label { Text = Loc.GetString("dna-combine-instructions") });
         var known = state.Genes.Where(g => g.Discovered).ToList();
         var first = new OptionButton();
         var second = new OptionButton();
