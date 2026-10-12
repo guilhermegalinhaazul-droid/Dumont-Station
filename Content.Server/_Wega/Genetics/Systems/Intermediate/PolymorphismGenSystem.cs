@@ -40,7 +40,7 @@ public sealed class PolymorphismGenSystem : EntitySystem
         var doAfterArgs = new DoAfterArgs(
             EntityManager,
             ent,
-            8f,
+            5f,
             new PolymorphismDoAfterEvent(),
             ent,
             args.Target
