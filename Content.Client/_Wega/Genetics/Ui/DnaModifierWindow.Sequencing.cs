@@ -135,7 +135,10 @@ public sealed partial class DnaModifierWindow
                     Disabled = !gene.Discovered,
                     ModulateSelfOverride = gene.Active ? new Color(64, 197, 108) : new Color(224, 90, 90),
                     MinWidth = 50,
-                    SetWidth = 50
+                    SetWidth = 50,
+                    // Keep a small visual gap between the gene name and its
+                    // activation toggle without changing either control.
+                    Margin = new Thickness(5, 0, 0, 0)
                 };
                 toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
                 row.AddChild(toggle);
