@@ -9,4 +9,7 @@ public sealed partial class AcidSpitGenComponent : Component
     public EntProtoId ActionId = "ActionGenAcidSpit";
 
     public EntityUid? ActionEntity;
+
+    // Keep acid ammunition isolated from the laser eyes ammunition.
+    public EntityUid? GunEntity;
 }

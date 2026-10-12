@@ -1,3 +1,45 @@
+# Private gun entities keep the two genetic abilities from sharing ammo
+# providers when both genes are active on the same character.
+- type: entity
+  id: GeneticLaserEyesGun
+  save: false
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Gun
+    fireRate: 1.5
+    useKey: false
+    clumsyProof: true
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+  - type: HitscanBatteryAmmoProvider
+    proto: RedLightLaser
+  - type: Battery
+    maxCharge: 100
+    startingCharge: 100
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 25
+
+- type: entity
+  id: GeneticAcidSpitGun
+  save: false
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Gun
+    fireRate: 0.5
+    useKey: false
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
+  - type: RechargeBasicEntityAmmo
+    rechargeCooldown: 120
+  - type: BasicEntityAmmoProvider
+    proto: BulletAcid
+    capacity: 1
+    count: 1
+
 # Basic / D A C
 - type: structuralEnzymes
   id: GeneticsAcidSpitBasic
@@ -7,19 +49,6 @@
   typeDeviation: Base
   costInstability: 20
   addComponent:
-  - type: RechargeBasicEntityAmmo
-    rechargeCooldown: 120
-  - type: BasicEntityAmmoProvider
-    proto: BulletAcid
-    capacity: 1
-    count: 1
-  - type: Gun
-    fireRate: 0.5
-    useKey: false
-    selectedMode: SemiAuto
-    availableModes:
-    - SemiAuto
-    soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
   - type: AcidSpitGen
 
 - type: structuralEnzymes

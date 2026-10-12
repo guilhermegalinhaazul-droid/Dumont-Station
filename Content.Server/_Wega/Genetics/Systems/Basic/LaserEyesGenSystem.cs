@@ -3,8 +3,6 @@ using Content.Shared.Actions;
 using Content.Shared.Genetics;
 using Content.Shared._Goobstation.Wizard.Mutate;
 using Content.Shared.Weapons.Ranged.Components;
-using Content.Server.Power.Components;
-using Content.Server.Power.EntitySystems;
 
 namespace Content.Server.Genetics.System;
 
@@ -12,7 +10,6 @@ public sealed class LaserEyesGenSystem : EntitySystem
 {
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly GunSystem _gun = default!;
-    [Dependency] private readonly BatterySystem _battery = default!;
 
     public override void Initialize()
     {
@@ -25,39 +22,30 @@ public sealed class LaserEyesGenSystem : EntitySystem
     private void OnInit(Entity<LaserEyesGenComponent> ent, ref ComponentInit args)
     {
         ent.Comp.ActionEntity = _actions.AddAction(ent, ent.Comp.ActionId);
-        var gun = EnsureComp<GunComponent>(ent);
-        _gun.SetFireRate(gun, 1.5f);
-        _gun.SetUseKey(gun, false);
-        _gun.SetClumsyProof(gun, true);
-        _gun.RefreshModifiers((ent, gun));
-
-        RemComp<BasicHitscanAmmoProviderComponent>(ent);
-        var hitscan = EnsureComp<HitscanBatteryAmmoProviderComponent>(ent);
-        hitscan.Prototype = "RedLightLaser";
-        var battery = EnsureComp<BatteryComponent>(ent);
-        _battery.SetMaxCharge(ent, 100f, battery);
-        _battery.SetCharge(ent, 100f, battery);
-        var recharger = EnsureComp<BatterySelfRechargerComponent>(ent);
-        recharger.AutoRecharge = true;
-        recharger.AutoRechargeRate = 25f;
+        ent.Comp.GunEntity = Spawn("GeneticLaserEyesGun", Transform(ent).Coordinates);
     }
 
     private void OnShutdown(Entity<LaserEyesGenComponent> ent, ref ComponentShutdown args)
     {
         _actions.RemoveAction(ent.Comp.ActionEntity);
+        if (ent.Comp.GunEntity is { } gun && Exists(gun))
+            QueueDel(gun);
     }
 
     private void OnShoot(Entity<LaserEyesGenComponent> ent, ref ActionGunShootEvent args)
     {
         // Both genetics actions raise ActionGunShootEvent on their owner.
         // Only the action that was actually pressed may consume the event.
-        if (args.Action.Owner != ent.Comp.ActionEntity)
+        if (args.Handled || args.Action.Owner != ent.Comp.ActionEntity)
             return;
 
-        if (TryComp<GunComponent>(ent, out var gun))
-            _gun.AttemptShoot(ent, ent, gun, args.Target);
-
         args.Handled = true;
+
+        if (ent.Comp.GunEntity is not { } gunEntity ||
+            !TryComp<GunComponent>(gunEntity, out var gun))
+            return;
+
+        _gun.AttemptShoot(ent, gunEntity, gun, args.Target);
     }
 
 }
