@@ -77,7 +77,7 @@
   abbreviation: Analgesia Congênita
   message: genetics-congenital-analgesia-message
   typeDeviation: Base
-  costInstability: 15
+  costInstability: -15
   addComponent:
   - type: PainNumbness
 
