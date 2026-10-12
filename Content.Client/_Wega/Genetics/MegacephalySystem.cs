@@ -3,6 +3,7 @@
 using Content.Shared.Genetics;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
+using System.Numerics;
 
 namespace Content.Client.Genetics;
 
@@ -47,6 +48,6 @@ public sealed class MegacephalySystem : EntitySystem
             return;
 
         foreach (var layer in HeadLayers)
-            _sprite.LayerSetScale((uid, sprite), layer, new System.Numerics.Vector2(scale, scale));
+            _sprite.LayerSetScale((uid, sprite), layer, new Vector2(scale, scale));
     }
 }
