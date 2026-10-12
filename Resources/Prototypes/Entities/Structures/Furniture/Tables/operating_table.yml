@@ -26,6 +26,14 @@
     state: operating_table
   - type: OperatingTable
     speedModifier: 1.5 # Shitmed
+  # The bed fixture supplies the table collision mask but no collision layer.
+  # Add the table layer so standing mobs cannot walk through the operating table;
+  # lying mobs still pass under it by removing MidImpassable from their mask.
+  - type: Fixtures
+    fixtures:
+      fix1:
+        layer:
+        - TableLayer
   # Begin Shitmed Changes
   - type: Construction
     graph: Machine
