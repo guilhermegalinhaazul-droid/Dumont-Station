@@ -82,6 +82,16 @@
   - type: PainNumbness
 
 - type: structuralEnzymes
+  id: GeneticsMegacephalyBasic
+  name: Megacefalia
+  abbreviation: Megacefalia
+  message: genetics-megacephaly-message
+  typeDeviation: Base
+  costInstability: 10
+  addComponent:
+  - type: Megacephaly
+
+- type: structuralEnzymes
   id: GeneticsHulkBasic
   name: Hulk
   abbreviation: Hulk

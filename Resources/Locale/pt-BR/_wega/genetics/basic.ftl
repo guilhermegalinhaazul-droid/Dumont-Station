@@ -3,6 +3,7 @@ matter-eater-succes = Você devorou {$eat}
 # Messages
 genetics-empathetic-thought-message = De repente, você começou a notar mais nos outros do que antes.
 genetics-congenital-analgesia-message = Seu corpo parece incapaz de sentir dor, calor extremo ou frio extremo.
+genetics-megacephaly-message = Sua cabeça aumentou de tamanho de forma anormal.
 genetics-hulk-message = Seus músculos estão latejando de dor.
 genetics-laser-eyes-message = Seus olhos começaram a emitir um brilho vermelho intenso.
 genetics-acid-spit-message = Sua boca começa a produzir uma saliva corrosiva.
