@@ -48,7 +48,9 @@ public sealed class PainNumbnessSystem : EntitySystem
         // Do not expose the normal health, soft-critical, or hard-critical
         // alerts. The real damage and thresholds are unchanged; the person
         // only learns about the condition through medical examination or death.
-        if (args.CurrentAlert is "HumanHealth" or "HumanSoftCrit" or "HumanHardCrit")
+        if (args.CurrentAlert == "HumanHealth"
+            || args.CurrentAlert == "HumanSoftCrit"
+            || args.CurrentAlert == "HumanHardCrit")
             args.CancelUpdate = true;
     }
 }
