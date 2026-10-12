@@ -120,8 +120,8 @@
 
 - type: structuralEnzymes
   id: GeneticsLoudDisease
-  name: Alto
-  abbreviation: Alto
+  name: Boca de Trombone
+  abbreviation: Boca de Trombone
   message: genetics-loud-message
   typeDeviation: Disease
   addComponent:
