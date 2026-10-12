@@ -21,7 +21,7 @@
   - type: Action
     icon: { sprite: Mobs/Aliens/laser_raptor.rsi, state: laser_raptor }
     itemIconStyle: BigAction
-    useDelay: 5
+    useDelay: 2.5
   - type: TargetAction
     range: 12
   - type: WorldTargetAction

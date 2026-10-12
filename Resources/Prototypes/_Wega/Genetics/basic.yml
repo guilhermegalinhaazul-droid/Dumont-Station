@@ -34,7 +34,8 @@
     - SemiAuto
     soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
   - type: RechargeBasicEntityAmmo
-    rechargeCooldown: 120
+    # Keep the gun's internal recharge in sync with the action cooldown.
+    rechargeCooldown: 5
   - type: BasicEntityAmmoProvider
     proto: BulletAcid
     capacity: 1
