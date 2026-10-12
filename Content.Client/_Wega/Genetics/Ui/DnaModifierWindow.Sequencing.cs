@@ -721,9 +721,9 @@ public sealed partial class DnaModifierWindow
     {
         private const float ScrollSpeed = 20f;
         private const float PauseAtEdge = 0.25f;
-        // Keep a larger inset so antialiased glyph edges cannot touch the
-        // button border while the name is moving.
-        private const float SafetyMargin = 12f;
+        // Leave room on both sides for antialiased glyph edges, especially
+        // accents and descenders, while the label is moving.
+        private const float SafetyMargin = 9f;
 
         private float _scrollOffset;
         private float _pause;
@@ -809,13 +809,14 @@ public sealed partial class DnaModifierWindow
         {
             Label.Measure(Vector2Helpers.Infinity);
             var textWidth = Label.DesiredSize.X;
-            var viewportWidth = Label.Size.X;
-            if (textWidth <= 0f || viewportWidth <= 1f)
+            var contentBox = GetButtonContentBox();
+            var viewportWidth = MathF.Max(1f, contentBox.Width - SafetyMargin * 2f);
+            if (textWidth <= 0f || contentBox.Width <= 1f)
                 return;
 
             if (!_metricsReady)
             {
-                _labelOriginX = Label.Position.X;
+                _labelOriginX = contentBox.Left + SafetyMargin;
                 _metricsReady = true;
             }
             else if (Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
@@ -823,7 +824,7 @@ public sealed partial class DnaModifierWindow
                 // Layout changes can move the label while it is idle. Keep the
                 // original left edge and recalculate only the scroll distance.
                 if (!_hovered)
-                    _labelOriginX = Label.Position.X;
+                    _labelOriginX = contentBox.Left + SafetyMargin;
                 _scrollOffset = 0f;
                 _direction = -1;
                 _pause = _hovered ? PauseAtEdge : 0f;
@@ -831,9 +832,10 @@ public sealed partial class DnaModifierWindow
 
             _textWidth = textWidth;
             _lastViewportWidth = viewportWidth;
-            // Reserve a small internal margin at the far edge so glyphs never
-            // touch or cross the button border while the label is moving.
-            _overflow = MathF.Max(0f, _textWidth - MathF.Max(1f, viewportWidth - SafetyMargin));
+            // The usable width excludes the safety margin at both edges. The
+            // animation endpoint therefore stops before glyph bounds can reach
+            // the button border.
+            _overflow = MathF.Max(0f, _textWidth - viewportWidth);
 
             if (_overflow <= 0f)
                 ResetScroll();
@@ -853,6 +855,14 @@ public sealed partial class DnaModifierWindow
         private void SetLabelPosition()
         {
             LayoutContainer.SetPosition(Label, new Vector2(_labelOriginX + _scrollOffset, Label.Position.Y));
+        }
+
+        private UIBox2 GetButtonContentBox()
+        {
+            if (TryGetStyleProperty<StyleBox>(ContainerButton.StylePropertyStyleBox, out var style))
+                return style.GetContentBox(UIBox2.FromDimensions(Vector2.Zero, Size), 1f);
+
+            return UIBox2.FromDimensions(Vector2.Zero, Size);
         }
     }
 }
