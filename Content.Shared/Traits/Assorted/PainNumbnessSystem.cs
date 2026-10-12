@@ -45,7 +45,10 @@ public sealed class PainNumbnessSystem : EntitySystem
 
     private void OnAlertSeverityCheck(Entity<PainNumbnessComponent> ent, ref BeforeAlertSeverityCheckEvent args)
     {
-        if (args.CurrentAlert == "HumanHealth")
+        // Do not expose the normal health, soft-critical, or hard-critical
+        // alerts. The real damage and thresholds are unchanged; the person
+        // only learns about the condition through medical examination or death.
+        if (args.CurrentAlert is "HumanHealth" or "HumanSoftCrit" or "HumanHardCrit")
             args.CancelUpdate = true;
     }
 }

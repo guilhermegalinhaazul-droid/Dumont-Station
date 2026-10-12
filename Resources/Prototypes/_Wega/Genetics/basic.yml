@@ -72,6 +72,16 @@
   - type: EmpatheticThoughtGen
 
 - type: structuralEnzymes
+  id: GeneticsCongenitalAnalgesiaBasic
+  name: Analgesia Congênita
+  abbreviation: Analgesia Congênita
+  message: genetics-congenital-analgesia-message
+  typeDeviation: Base
+  costInstability: 15
+  addComponent:
+  - type: PainNumbness
+
+- type: structuralEnzymes
   id: GeneticsHulkBasic
   name: Hulk
   abbreviation: Hulk

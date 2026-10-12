@@ -16,6 +16,7 @@ using Content.Goobstation.Maths.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Stunnable;
+using Content.Shared.Traits.Assorted;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -60,6 +61,11 @@ public sealed class DamageForceSaySystem : EntitySystem
 
     private void TryForceSay(EntityUid uid, DamageForceSayComponent component, bool useSuffix=true)
     {
+        // Analgesia removes involuntary pain vocalisations entirely. Damage
+        // still applies and remains available to medical systems.
+        if (HasComp<PainNumbnessComponent>(uid))
+            return;
+
         if (!TryComp<ActorComponent>(uid, out var actor))
             return;
 

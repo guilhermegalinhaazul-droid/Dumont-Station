@@ -112,6 +112,15 @@ public sealed class DamageOverlayUiController : UIController
             && damageable == null && !EntityManager.TryGetComponent(entity, out damageable))
             return;
 
+        // Congenital analgesia removes the character's subjective damage
+        // feedback. Damage still accumulates normally and remains visible to
+        // medical analyzers, but the local pain/critical overlay is hidden.
+        if (EntityManager.HasComponent<PainNumbnessComponent>(entity))
+        {
+            ClearOverlay();
+            return;
+        }
+
         if (!thresholds.ShowOverlays)
         {
             ClearOverlay();
