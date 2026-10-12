@@ -176,6 +176,10 @@ public sealed partial class DnaModifierWindow
         DnaModifierBoundUserInterfaceState state)
     {
         const float sequenceButtonWidth = 180f;
+        // Keep the slider rows at the same height as the sequence button. If
+        // the controls are allowed to measure independently, a wrapped button
+        // label can make only that row taller and stretch its slider.
+        const float appearanceControlHeight = 32f;
         var group = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -283,7 +287,13 @@ public sealed partial class DnaModifierWindow
                     MaxValue = max,
                     MinWidth = 220,
                     MaxWidth = 220,
-                    SetWidth = 220
+                    SetWidth = 220,
+                    MinHeight = appearanceControlHeight,
+                    MaxHeight = appearanceControlHeight,
+                    SetHeight = appearanceControlHeight,
+                    // Leave a clear gap after the characteristic name/value
+                    // column without changing the button or slider style.
+                    Margin = new Thickness(10, 0, 0, 0)
                 };
                 var value = new Label
                 {
@@ -318,7 +328,10 @@ public sealed partial class DnaModifierWindow
                     Text = Loc.GetString("dna-eu-sequence"),
                     MinWidth = sequenceButtonWidth,
                     MaxWidth = sequenceButtonWidth,
-                    SetWidth = sequenceButtonWidth
+                    SetWidth = sequenceButtonWidth,
+                    MinHeight = appearanceControlHeight,
+                    MaxHeight = appearanceControlHeight,
+                    SetHeight = appearanceControlHeight
                 };
                 if (IsRgbColorField(field))
                 {
@@ -353,7 +366,10 @@ public sealed partial class DnaModifierWindow
                 {
                     MinWidth = sequenceButtonWidth,
                     MaxWidth = sequenceButtonWidth,
-                    SetWidth = sequenceButtonWidth
+                    SetWidth = sequenceButtonWidth,
+                    MinHeight = appearanceControlHeight,
+                    MaxHeight = appearanceControlHeight,
+                    SetHeight = appearanceControlHeight
                 });
             }
             group.AddChild(row);
