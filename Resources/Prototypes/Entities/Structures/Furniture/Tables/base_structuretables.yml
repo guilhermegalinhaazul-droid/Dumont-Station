@@ -57,6 +57,9 @@
     key: state
     base: state_
   - type: Climbable
+    # Tables block standing movement. Crawling entities still pass underneath
+    # them through the standing/crawling collision masks.
+    vaultable: false
   - type: Bonkable
     bonkDamage:
       types:

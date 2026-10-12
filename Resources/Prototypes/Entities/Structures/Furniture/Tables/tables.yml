@@ -285,6 +285,7 @@
     graph: Table
     node: TableReinforced
   - type: Climbable
+    vaultable: false
     # Reinforced tables are extra tough
   - type: Bonkable
     bonkDamage:
