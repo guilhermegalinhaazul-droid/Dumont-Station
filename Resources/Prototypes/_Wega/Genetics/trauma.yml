@@ -329,8 +329,8 @@
     softness: 5
 - type: structuralEnzymes
   id: MutationGlowy
-  name: Luminoso
-  abbreviation: Luminoso
+  name: Bioluminescência
+  abbreviation: Bioluminescência
   difficulty: 8
   typeDeviation: Base
   costInstability: 5
@@ -338,16 +338,17 @@
   - MutationAntiGlow
   addComponent:
   - type: PointLight
-    radius: 3
+    color: '#186dc4'
+    energy: 2.5
+    radius: 4
     softness: 5
+    falloff: 6.8
     enabled: true
-  - type: RandomPointLight
-    minEnergy: 0.5
-    maxEnergy: 2.0
+    autoRot: true
 - type: structuralEnzymes
   id: MutationAntiGlow
-  name: Anti-Luminoso
-  abbreviation: Anti-Luminoso
+  name: Bioscotocronia
+  abbreviation: Bioscotocronia
   difficulty: 8
   typeDeviation: Base
   costInstability: 10
@@ -355,10 +356,9 @@
   - MutationGlowy
   addComponent:
   - type: PointLight
-    energy: -3
-    radius: 3
-    softness: 5
-    enabled: true
+    energy: 0
+    radius: 0
+    enabled: false
 - type: structuralEnzymes
   id: MutationAntenna
   name: Antena
