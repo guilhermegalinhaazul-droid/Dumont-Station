@@ -6,7 +6,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Action
-    icon: { sprite: Mobs/Pets/corgi.rsi, state: ian }
+    icon: { sprite: Mobs/Pets/walter.rsi, state: walter }
   - type: TargetAction
     range: 7
   - type: EntityTargetAction
