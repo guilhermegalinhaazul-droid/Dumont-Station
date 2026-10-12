@@ -9,7 +9,7 @@
   - type: Sprite
     drawdepth: Effects
     noRot: true
-    scale: 1.15, 1.15
+    scale: 0.55, 0.55
     color: "#d9f29b"
     layers:
     - shader: unshaded

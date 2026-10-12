@@ -1,6 +1,7 @@
 using Content.Shared.Popups;
 using Content.Shared.DoAfter;
 using Content.Shared.Actions;
+using Content.Shared.Actions.Components;
 using Content.Shared._EinsteinEngines.Forensics;
 using Content.Shared.Forensics.Components;
 using Content.Shared.Verbs;
@@ -13,6 +14,7 @@ public abstract class SharedScentTrackerSystem : EntitySystem
 {
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<ScentTrackerComponent, GetVerbsEvent<InnateVerb>>(AddVerbs);
@@ -81,7 +83,6 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         if (entity.Comp.Scent != string.Empty)
         {
             StopTrackScent(entity.Owner, entity.Comp);
-            args.Toggle = true;
             args.Handled = true;
             return;
         }
@@ -90,7 +91,7 @@ public abstract class SharedScentTrackerSystem : EntitySystem
             return;
 
         AttemptTrackScent(entity.Owner, args.Target, entity.Comp);
-        args.Toggle = true;
+        SetScentActionToggled(entity.Owner, true);
         args.Handled = true;
     }
 
@@ -129,10 +130,14 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         if (forcomp.Scent != string.Empty)
         {
             component.Scent = forcomp.Scent;
+            SetScentActionToggled(uid, true);
             _popupSystem.PopupPredicted(Loc.GetString("tracking-scent", ("target", Identity.Name(target, EntityManager))), uid, uid);
         }
         else
+        {
+            SetScentActionToggled(uid, false);
             _popupSystem.PopupPredicted(Loc.GetString("no-scent"), uid, uid);
+        }
 
         Dirty(uid, component);
     }
@@ -143,9 +148,27 @@ public abstract class SharedScentTrackerSystem : EntitySystem
             return;
 
         component.Scent = string.Empty;
+        SetScentActionToggled(uid, false);
         _popupSystem.PopupPredicted(Loc.GetString("stopped-tracking-scent"), uid, uid);
 
         Dirty(uid, component);
+    }
+
+    private void SetScentActionToggled(EntityUid uid, bool toggled)
+    {
+        if (!TryComp<ActionsComponent>(uid, out var actions))
+            return;
+
+        foreach (var action in actions.Actions)
+        {
+            if (!TryComp<ActionComponent>(action, out var actionComp)
+                || !TryComp<EntityTargetActionComponent>(action, out var targetAction)
+                || targetAction.Event is not ScentTrackerActionEvent)
+                continue;
+
+            _actionsSystem.SetToggled((action, actionComp), toggled);
+            break;
+        }
     }
 
     #endregion
