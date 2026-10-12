@@ -419,9 +419,25 @@ public sealed partial class DnaModifierConsoleSystem
         {
             // Recipe results cannot be sequenced directly. Combining the ingredients
             // is the only way to reveal and activate the crafted gene.
-            _discoveredGenes.Add(result.EnzymesPrototypeId);
+            var newlyDiscovered = _discoveredGenes.Add(result.EnzymesPrototypeId);
+
+            // A crafted gene is still a scientific discovery. Reward it through
+            // the same research path used by ordinary sequencing, but only once.
+            if (newlyDiscovered && TryComp<ResearchClientComponent>(uid, out var client) && client.Server is { } server)
+            {
+                var points = Difficulty(result.EnzymesPrototypeId) * 500;
+                _research.ModifyServerPoints(server, points);
+                _popup.PopupEntity(Loc.GetString("dna-sequence-research-reward", ("points", points)), uid, args.Actor);
+                _radio.SendRadioMessage(uid,
+                    Loc.GetString("dna-sequence-research-radio", ("gene", GeneName(result.EnzymesPrototypeId)), ("points", points)),
+                    "Science", uid, escapeMarkup: false);
+            }
+
             _dnaModifier.SetGeneActive(subject, result, true);
-            _geneticStatus[uid] = Loc.GetString("dna-combine-success", ("number", result.Order));
+
+            // Recipe genes cannot be sequenced, so do not display the usual
+            // "sequence to identify" style status message after combining.
+            _geneticStatus[uid] = string.Empty;
         }
         UpdateUserInterface(uid, component);
     }
