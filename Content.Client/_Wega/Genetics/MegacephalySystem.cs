@@ -2,6 +2,7 @@
 
 using Content.Client.Inventory;
 using Content.Shared.Clothing;
+using Content.Shared.Clothing.Components;
 using Content.Shared.Genetics;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
@@ -41,7 +42,7 @@ public sealed class MegacephalySystem : EntitySystem
     {
         SubscribeLocalEvent<MegacephalyComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<MegacephalyComponent, ComponentRemove>(OnRemove);
-        SubscribeLocalEvent<EquipmentVisualsUpdatedEvent>(OnEquipmentVisualsUpdated);
+        SubscribeLocalEvent<ClothingComponent, EquipmentVisualsUpdatedEvent>(OnEquipmentVisualsUpdated);
     }
 
     private void OnInit(Entity<MegacephalyComponent> ent, ref ComponentInit args)
@@ -54,7 +55,7 @@ public sealed class MegacephalySystem : EntitySystem
         Restore(ent.Owner);
     }
 
-    private void OnEquipmentVisualsUpdated(EntityUid equipment, ref EquipmentVisualsUpdatedEvent args)
+    private void OnEquipmentVisualsUpdated(Entity<ClothingComponent> equipment, ref EquipmentVisualsUpdatedEvent args)
     {
         if (!HeadSlots.Contains(args.Slot) || !HasComp<MegacephalyComponent>(args.Equipee))
             return;
@@ -120,8 +121,11 @@ public sealed class MegacephalySystem : EntitySystem
 
         foreach (var (layer, original) in originals)
         {
-            layer.Scale = original.Scale;
-            layer.Offset = original.Offset;
+            if (layer is not SpriteComponent.Layer concrete)
+                continue;
+
+            _sprite.LayerSetScale(concrete, original.Scale);
+            _sprite.LayerSetOffset(concrete, original.Offset);
         }
     }
 
