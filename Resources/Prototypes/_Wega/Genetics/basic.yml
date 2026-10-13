@@ -34,7 +34,7 @@
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
-    soundGunshot: /Audio/Weapons/Xeno/alien_spitacid.ogg
+    soundGunshot: /Audio/Effects/spray3.ogg
   - type: RechargeBasicEntityAmmo
     # Keep the gun's internal recharge in sync with the action cooldown.
     rechargeCooldown: 5
