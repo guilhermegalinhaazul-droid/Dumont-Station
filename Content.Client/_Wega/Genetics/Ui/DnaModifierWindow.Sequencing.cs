@@ -239,6 +239,10 @@ public sealed partial class DnaModifierWindow
             row.AddChild(new Label
             {
                 Text = label,
+                // Keep the characteristic title aligned slightly to the
+                // left of the control column so its beginning remains
+                // visible in the EU panel.
+                Margin = new Thickness(-5, 0, 0, 0),
                 MinWidth = 220,
                 MaxWidth = 220,
                 SetWidth = 220,
@@ -341,7 +345,9 @@ public sealed partial class DnaModifierWindow
                     SetHeight = appearanceControlHeight,
                     // Keep the sequence control separated from the value
                     // column without compressing the characteristic label.
-                    Margin = new Thickness(10, 0, 0, 0)
+                    // Move characteristic action buttons 10 px left while
+                    // preserving their dimensions and visual style.
+                    Margin = new Thickness(0, 0, 0, 0)
                 };
                 if (IsRgbColorField(field))
                 {
@@ -380,7 +386,7 @@ public sealed partial class DnaModifierWindow
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
-                    Margin = new Thickness(10, 0, 0, 0)
+                    Margin = new Thickness(0, 0, 0, 0)
                 });
             }
             group.AddChild(row);
