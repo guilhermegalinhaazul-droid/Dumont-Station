@@ -24,15 +24,34 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
 
+    // Scent markers are client-side effects. Keep the ones created by this
+    // tracker so toggling the action can remove already-visible markers
+    // immediately instead of waiting for their five-minute lifetime.
+    private readonly HashSet<EntityUid> _trackedEffects = new();
+    private string _lastScent = string.Empty;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
         // Goobstation - move trycomp, scent = empty outside of the while loop
         // If the player can't track scents, continuing beyond this point is a waste of processing power.
-        if (!TryComp<ScentTrackerComponent>(_playerManager.LocalEntity, out var scentcomp)
-            || scentcomp.Scent == string.Empty
-            || !scentcomp.VisualsEnabled)
+        if (!TryComp<ScentTrackerComponent>(_playerManager.LocalEntity, out var scentcomp))
+        {
+            ClearTrackedEffects();
+            _lastScent = string.Empty;
+            return;
+        }
+
+        // Changing the tracked target must not leave the previous trail on
+        // screen, and disabling the action must hide the current trail now.
+        if (_lastScent != scentcomp.Scent || !scentcomp.VisualsEnabled || scentcomp.Scent == string.Empty)
+        {
+            ClearTrackedEffects();
+            _lastScent = scentcomp.Scent;
+        }
+
+        if (!scentcomp.VisualsEnabled || scentcomp.Scent == string.Empty)
             return;
 
         // Restrict the scan to entities with a transform. This avoids trying to
@@ -51,7 +70,19 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
             // intentionally persistent for the full scent-tracking window.
             comp.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(1.5f);
             var coordinates = _transform.GetMapCoordinates(uid);
-            Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.18f) + new Vector2(0f, 0.4f)));
+            var effect = Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.18f) + new Vector2(0f, 0.4f)));
+            _trackedEffects.Add(effect);
         }
+    }
+
+    private void ClearTrackedEffects()
+    {
+        foreach (var effect in _trackedEffects)
+        {
+            if (Exists(effect))
+                QueueDel(effect);
+        }
+
+        _trackedEffects.Clear();
     }
 }
