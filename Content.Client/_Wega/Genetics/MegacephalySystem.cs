@@ -6,6 +6,10 @@ using Content.Shared.Clothing;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Genetics;
 using Content.Shared.Humanoid;
+using Content.Shared.Humanoid.Markings;
+using Content.Shared.Body.Components;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
 using Robust.Client.GameObjects;
 using System.Linq;
 using System.Numerics;
@@ -37,8 +41,11 @@ public sealed class MegacephalySystem : EntitySystem
     private static readonly string[] HeadSlots = ["head", "mask", "eyes", "ears"];
 
     private readonly Dictionary<EntityUid, Dictionary<ISpriteLayer, LayerState>> _originalLayers = new();
+    private readonly Dictionary<EntityUid, Dictionary<EntityUid, Vector2>> _originalBodyPartScales = new();
 
     [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private readonly MarkingManager _markingManager = default!;
+    [Dependency] private readonly SharedBodySystem _body = default!;
 
     public override void Initialize()
     {
@@ -77,6 +84,8 @@ public sealed class MegacephalySystem : EntitySystem
 
     private void ApplyScale(EntityUid uid)
     {
+        ApplyBodyHeadScale(uid);
+
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
@@ -141,11 +150,69 @@ public sealed class MegacephalySystem : EntitySystem
             }
         }
 
+        // Hair, horns, ears and similar features are marking layers rather
+        // than HumanoidVisualLayers. Include the marking sprite layers whose
+        // body part is attached to the head.
+        if (TryComp<HumanoidAppearanceComponent>(uid, out var humanoid))
+        {
+            foreach (var markings in humanoid.MarkingSet.Markings.Values)
+            {
+                foreach (var marking in markings)
+                {
+                    if (!_markingManager.TryGetMarking(marking, out var prototype) ||
+                        !HeadLayers.Contains(prototype.BodyPart))
+                        continue;
+
+                    foreach (var markingSprite in prototype.Sprites)
+                    {
+                        if (markingSprite is not SpriteSpecifier.Rsi rsi)
+                            continue;
+
+                        var layerId = $"{prototype.ID}-{rsi.RsiState}";
+                        if (_sprite.LayerMapTryGet((uid, sprite), layerId, out var index, false))
+                            indices.Add(index);
+                    }
+                }
+            }
+        }
+
         return indices;
+    }
+
+    private void ApplyBodyHeadScale(EntityUid uid)
+    {
+        if (!TryComp<BodyComponent>(uid, out var body))
+            return;
+
+        if (!_originalBodyPartScales.TryGetValue(uid, out var originals))
+        {
+            originals = new Dictionary<EntityUid, Vector2>();
+            _originalBodyPartScales[uid] = originals;
+        }
+
+        foreach (var (headUid, _) in _body.GetBodyChildrenOfType(uid, BodyPartType.Head, body))
+        {
+            if (!TryComp<SpriteComponent>(headUid, out var headSprite))
+                continue;
+
+            if (!originals.ContainsKey(headUid))
+                originals[headUid] = headSprite.Scale;
+
+            _sprite.SetScale((headUid, headSprite), originals[headUid] * HeadScale);
+        }
     }
 
     private void Restore(EntityUid uid)
     {
+        if (_originalBodyPartScales.Remove(uid, out var bodyPartOriginals))
+        {
+            foreach (var (bodyPart, originalScale) in bodyPartOriginals)
+            {
+                if (TryComp<SpriteComponent>(bodyPart, out var sprite))
+                    _sprite.SetScale((bodyPart, sprite), originalScale);
+            }
+        }
+
         if (!_originalLayers.Remove(uid, out var originals))
             return;
 
