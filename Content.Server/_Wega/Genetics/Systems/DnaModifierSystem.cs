@@ -863,7 +863,13 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         var instability = ent.Comp.AppliedGenes.Sum(id => _prototype.Index<StructuralEnzymesPrototype>(id).CostInstability);
         UpdateInstability(ent, ent.Comp, instability);
         var species = genes.FirstOrDefault(g => g.EnzymesPrototypeId == StructuralEnzymesIndexerSystem.SpeciesGene);
-        if (species != null)
+        // The synthetic species gene is the only thing allowed to create the
+        // humanoid form. Ordinary gene injections must never humanize an
+        // animal merely because it has an upper/lowest pair configured.
+        // Keep the inactive path only for a form previously created by this
+        // gene, so disabling Species can still restore the original animal.
+        var restoringAnimal = species is { Active: false } && HasComp<DnaLowestComponent>(ent);
+        if (species is not null && (species.Active || restoringAnimal))
             TryChangeLastBlock(ent, ent.Comp, species);
     }
 
