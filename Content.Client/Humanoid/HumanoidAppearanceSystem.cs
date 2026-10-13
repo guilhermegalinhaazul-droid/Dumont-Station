@@ -58,6 +58,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     private void OnHandleState(EntityUid uid, HumanoidAppearanceComponent component, ref AfterAutoHandleStateEvent args)
     {
         UpdateSprite((uid, component, Comp<SpriteComponent>(uid)));
+        RaiseLocalEvent(uid, new HumanoidAppearanceUpdatedEvent());
     }
 
     private void OnCvarChanged(bool value)
@@ -480,3 +481,8 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         }
     }
 }
+
+/// <summary>
+/// Raised after the humanoid sprite layers have been rebuilt from replicated appearance state.
+/// </summary>
+public readonly record struct HumanoidAppearanceUpdatedEvent;

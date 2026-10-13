@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Client.Inventory;
+using Content.Client.Humanoid;
 using Content.Shared.Clothing;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Genetics;
@@ -46,7 +47,7 @@ public sealed class MegacephalySystem : EntitySystem
         // Humanoid layers (including animal heads) are rebuilt after the
         // appearance state arrives. Reapply after that rebuild so snouts,
         // hair, horns and other attached layers do not lose their scale.
-        SubscribeLocalEvent<HumanoidAppearanceComponent, AfterAutoHandleStateEvent>(OnHumanoidAppearanceState);
+        SubscribeLocalEvent<HumanoidAppearanceComponent, HumanoidAppearanceUpdatedEvent>(OnHumanoidAppearanceState);
         SubscribeLocalEvent<ClothingComponent, EquipmentVisualsUpdatedEvent>(OnEquipmentVisualsUpdated);
     }
 
@@ -60,7 +61,7 @@ public sealed class MegacephalySystem : EntitySystem
         Restore(ent.Owner);
     }
 
-    private void OnHumanoidAppearanceState(Entity<HumanoidAppearanceComponent> ent, ref AfterAutoHandleStateEvent args)
+    private void OnHumanoidAppearanceState(Entity<HumanoidAppearanceComponent> ent, ref HumanoidAppearanceUpdatedEvent args)
     {
         if (HasComp<MegacephalyComponent>(ent.Owner))
             ApplyScale(ent.Owner);
