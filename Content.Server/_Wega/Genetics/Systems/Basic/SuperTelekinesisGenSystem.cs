@@ -19,21 +19,10 @@ public sealed class SuperTelekinesisGenSystem : EntitySystem
 
     private void OnStartup(EntityUid uid, SuperTelekinesisGenComponent component, ComponentStartup args)
     {
-        if (!TryComp<HandsComponent>(uid, out var hands))
+        if (!HasComp<HandsComponent>(uid))
             return;
 
         _hands.AddHand(uid, component.HandId, HandLocation.Left);
-
-        // AddHand appends dynamically-created hands. Put this one before the
-        // character's normal left hand so it is rendered as the outer hand.
-        var index = hands.SortedHands.FindIndex(name =>
-            name != component.HandId && hands.Hands.TryGetValue(name, out var hand) && hand.Location == HandLocation.Left);
-        if (index >= 0)
-        {
-            hands.SortedHands.Remove(component.HandId);
-            hands.SortedHands.Insert(index, component.HandId);
-            Dirty(uid, hands);
-        }
 
         var item = Spawn(component.ItemPrototype, Transform(uid).Coordinates);
         component.TelekinesisItem = item;

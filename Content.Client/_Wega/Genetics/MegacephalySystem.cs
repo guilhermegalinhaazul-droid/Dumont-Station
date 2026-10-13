@@ -6,6 +6,7 @@ using Content.Shared.Clothing.Components;
 using Content.Shared.Genetics;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
+using System.Linq;
 using System.Numerics;
 
 namespace Content.Client.Genetics;
