@@ -83,8 +83,8 @@
 
 - type: structuralEnzymes
   id: GeneticsMindCommunicationIntermediate
-  name: Comunicação Mental
-  abbreviation: Comunicação Mental
+  name: Telepatia
+  abbreviation: Telepatia
   message: genetics-mind-communication-message
   typeDeviation: Intermediate
   costInstability: 5

@@ -91,9 +91,11 @@ public sealed partial class DnaModifierSystem
         {
             foreach (var incoming in ent.Comp.EnzymesPrototypes)
             {
-                // Crafted genes are unlocked and activated only by the
-                // combination system, never by an injector payload.
-                if (IsRecipeResult(incoming.EnzymesPrototypeId))
+                // Recipe genes remain recipe-only, except Super Telekinesis:
+                // once the crafted gene is placed in an injector, injecting it
+                // must activate the gene and let ChangeDna create its hand.
+                if (IsRecipeResult(incoming.EnzymesPrototypeId) &&
+                    incoming.EnzymesPrototypeId != "GeneticsSuperTelekinesisRecipe")
                     continue;
 
                 var existing = dnaModifier.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == incoming.EnzymesPrototypeId);
