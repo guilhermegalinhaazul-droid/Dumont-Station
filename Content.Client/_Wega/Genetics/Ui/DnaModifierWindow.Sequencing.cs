@@ -814,6 +814,31 @@ public sealed partial class DnaModifierWindow
             SetLabelPosition();
         }
 
+        protected override Vector2 ArrangeOverride(Vector2 finalSize)
+        {
+            var arranged = base.ArrangeOverride(finalSize);
+
+            // ContainerButton normally arranges every child to the content
+            // width. That makes a long label itself as narrow as the button,
+            // so centering its text centers only the clipped prefix. Give the
+            // label its measured width, then let the button's clip rectangle
+            // provide the visible viewport for both short and long names.
+            Label.Measure(Vector2Helpers.Infinity);
+            var textWidth = Label.DesiredSize.X;
+            if (textWidth <= 0f)
+                return arranged;
+
+            var contentBox = GetButtonContentBox();
+            var viewportWidth = MathF.Max(1f, contentBox.Width - SafetyMargin * 2f);
+            var origin = _metricsReady
+                ? _labelOriginX
+                : GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+            Label.Arrange(UIBox2.FromDimensions(
+                new Vector2(origin, contentBox.Top),
+                new Vector2(textWidth, contentBox.Height)));
+            return arranged;
+        }
+
         private void RefreshMetrics()
         {
             Label.Measure(Vector2Helpers.Infinity);
