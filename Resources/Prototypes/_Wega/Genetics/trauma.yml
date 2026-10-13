@@ -356,9 +356,16 @@
   - MutationGlowy
   addComponent:
   - type: PointLight
-    energy: 0
-    radius: 0
-    enabled: false
+    # Point lights are composited additively by the lighting pass. A negative
+    # energy therefore subtracts light around the carrier instead of merely
+    # removing their own glow.
+    color: '#FFFFFF'
+    energy: -1.0
+    radius: 3.5
+    softness: 5
+    falloff: 6.8
+    castShadows: false
+    enabled: true
 - type: structuralEnzymes
   id: MutationAntenna
   name: Antena
