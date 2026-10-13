@@ -30,7 +30,9 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
 
         // Goobstation - move trycomp, scent = empty outside of the while loop
         // If the player can't track scents, continuing beyond this point is a waste of processing power.
-        if (!TryComp<ScentTrackerComponent>(_playerManager.LocalEntity, out var scentcomp) || scentcomp.Scent == string.Empty)
+        if (!TryComp<ScentTrackerComponent>(_playerManager.LocalEntity, out var scentcomp)
+            || scentcomp.Scent == string.Empty
+            || !scentcomp.VisualsEnabled)
             return;
 
         // Restrict the scan to entities with a transform. This avoids trying to
@@ -47,7 +49,7 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
             // Leave enough time between markers to create a readable trail
             // without spawning one effect every update tick. Each marker is
             // intentionally persistent for the full scent-tracking window.
-            comp.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(3f);
+            comp.TargetTime = _timing.CurTime + TimeSpan.FromSeconds(1.5f);
             var coordinates = _transform.GetMapCoordinates(uid);
             Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.18f) + new Vector2(0f, 0.4f)));
         }

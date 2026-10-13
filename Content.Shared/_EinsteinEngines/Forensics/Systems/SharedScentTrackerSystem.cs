@@ -77,21 +77,17 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         if (args.Handled)
             return;
 
-        // A second use of the ability stops the current tracking state. The
-        // action system consumes Toggle after this event and updates the
-        // action button without requiring a separate cancel ability.
-        if (entity.Comp.Scent != string.Empty)
+        // The target is selected through the tracking verb. The action itself
+        // only controls whether the already tracked trail is rendered.
+        if (entity.Comp.Scent == string.Empty)
         {
-            StopTrackScent(entity.Owner, entity.Comp);
             args.Handled = true;
             return;
         }
 
-        if (args.Target == entity.Owner)
-            return;
-
-        AttemptTrackScent(entity.Owner, args.Target, entity.Comp);
-        SetScentActionToggled(entity.Owner, true);
+        entity.Comp.VisualsEnabled = !entity.Comp.VisualsEnabled;
+        SetScentActionToggled(entity.Owner, entity.Comp.VisualsEnabled);
+        Dirty(entity.Owner, entity.Comp);
         args.Handled = true;
     }
 
@@ -130,6 +126,7 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         if (forcomp.Scent != string.Empty)
         {
             component.Scent = forcomp.Scent;
+            component.VisualsEnabled = true;
             SetScentActionToggled(uid, true);
             _popupSystem.PopupPredicted(Loc.GetString("tracking-scent", ("target", Identity.Name(target, EntityManager))), uid, uid);
         }
@@ -148,6 +145,7 @@ public abstract class SharedScentTrackerSystem : EntitySystem
             return;
 
         component.Scent = string.Empty;
+        component.VisualsEnabled = false;
         SetScentActionToggled(uid, false);
         _popupSystem.PopupPredicted(Loc.GetString("stopped-tracking-scent"), uid, uid);
 
@@ -162,8 +160,8 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         foreach (var action in actions.Actions)
         {
             if (!TryComp<ActionComponent>(action, out var actionComp)
-                || !TryComp<EntityTargetActionComponent>(action, out var targetAction)
-                || targetAction.Event is not ScentTrackerActionEvent)
+                || !TryComp<InstantActionComponent>(action, out var instantAction)
+                || instantAction.Event is not ScentTrackerActionEvent)
                 continue;
 
             _actionsSystem.SetToggled((action, actionComp), toggled);

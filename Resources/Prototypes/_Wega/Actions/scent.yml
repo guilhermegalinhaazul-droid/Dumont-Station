@@ -7,7 +7,5 @@
   components:
   - type: Action
     icon: { sprite: Mobs/Pets/walter.rsi, state: walter }
-  - type: TargetAction
-    range: 7
-  - type: EntityTargetAction
+  - type: InstantAction
     event: !type:ScentTrackerActionEvent

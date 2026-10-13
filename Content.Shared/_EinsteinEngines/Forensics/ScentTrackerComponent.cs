@@ -17,6 +17,13 @@ namespace Content.Shared._EinsteinEngines.Forensics
         public string Scent = string.Empty;
 
         /// <summary>
+        /// Whether the tracked scent trail is currently shown to this player.
+        /// The tracked target remains selected while the trail is hidden.
+        /// </summary>
+        [DataField, AutoNetworkedField]
+        public bool VisualsEnabled;
+
+        /// <summary>
         ///     The time (in seconds) that it takes to sniff an entity.
         /// </summary>
         [DataField]
