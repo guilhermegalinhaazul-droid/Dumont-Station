@@ -324,9 +324,11 @@
     intensity: 0.2
   - type: PointLight
     color: '#06DF24'
-    energy: 0.9
-    radius: 3
+    energy: 3
+    radius: 4
     softness: 5
+    castShadows: false
+    enabled: true
 - type: structuralEnzymes
   id: MutationGlowy
   name: Bioluminescência

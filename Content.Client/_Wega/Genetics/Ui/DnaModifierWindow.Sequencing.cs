@@ -133,7 +133,7 @@ public sealed partial class DnaModifierWindow
                 var row = new BoxContainer { Margin = new Thickness(1) };
                 // Keep the gene name button directly beside its block number.
                 row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
-                var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 110 };
+                var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button
@@ -725,6 +725,7 @@ public sealed partial class DnaModifierWindow
 
     private sealed class GeneNameButton : Button
     {
+        private const float NameButtonWidth = 105f;
         private const float ScrollSpeed = 20f;
         private const float PauseAtEdge = 0.25f;
         // Leave room on both sides for antialiased glyph edges, especially
@@ -744,17 +745,14 @@ public sealed partial class DnaModifierWindow
         public GeneNameButton(string name)
         {
             Text = name;
-            SetWidth = 110;
-            MaxWidth = 110;
+            SetWidth = NameButtonWidth;
+            MaxWidth = NameButtonWidth;
             ToolTip = name;
 
-            // Preserve the existing button and label styling. The button's
-            // existing clipping is used as the final boundary for the text.
+            // Keep the original button style while clipping the label itself
+            // to the button content box in every state (including idle).
             RectClipContent = true;
-            // Let the button's own content clipping handle the moving label.
-            // Clipping the internal Label causes its text/placeholder to be
-            // measured as empty on some UI layouts, hiding both names and ???.
-            Label.ClipText = false;
+            Label.ClipText = true;
             Label.HorizontalAlignment = HAlignment.Left;
             Label.HorizontalExpand = false;
             Label.Measure(Vector2Helpers.Infinity);
@@ -793,16 +791,17 @@ public sealed partial class DnaModifierWindow
             }
             else
             {
+                var halfOverflow = _overflow / 2f;
                 _scrollOffset += _direction * ScrollSpeed * args.DeltaSeconds;
-                if (_scrollOffset <= -_overflow)
+                if (_scrollOffset <= -halfOverflow)
                 {
-                    _scrollOffset = -_overflow;
+                    _scrollOffset = -halfOverflow;
                     _direction = 1;
                     _pause = PauseAtEdge;
                 }
-                else if (_scrollOffset >= 0f)
+                else if (_scrollOffset >= halfOverflow)
                 {
-                    _scrollOffset = 0f;
+                    _scrollOffset = halfOverflow;
                     _direction = -1;
                     _pause = PauseAtEdge;
                 }
@@ -822,15 +821,14 @@ public sealed partial class DnaModifierWindow
 
             if (!_metricsReady)
             {
-                _labelOriginX = contentBox.Left + SafetyMargin;
+                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
                 _metricsReady = true;
             }
             else if (Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
             {
-                // Layout changes can move the label while it is idle. Keep the
-                // original left edge and recalculate only the scroll distance.
-                if (!_hovered)
-                    _labelOriginX = contentBox.Left + SafetyMargin;
+                // Layout changes can move the label while it is idle. Recenter
+                // the text and recalculate the scroll distance.
+                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
                 _scrollOffset = 0f;
                 _direction = -1;
                 _pause = _hovered ? PauseAtEdge : 0f;
@@ -847,6 +845,11 @@ public sealed partial class DnaModifierWindow
                 ResetScroll();
             else if (!_hovered)
                 SetLabelPosition();
+        }
+
+        private static float GetCenteredOrigin(float contentLeft, float viewportWidth, float textWidth)
+        {
+            return contentLeft + SafetyMargin + (viewportWidth - textWidth) / 2f;
         }
 
         private void ResetScroll()
