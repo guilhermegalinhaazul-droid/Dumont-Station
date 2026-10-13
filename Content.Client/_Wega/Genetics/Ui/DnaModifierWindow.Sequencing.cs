@@ -301,9 +301,6 @@ public sealed partial class DnaModifierWindow
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
-                    // Leave a clear gap after the characteristic name/value
-                    // column without changing the button or slider style.
-                    Margin = new Thickness(10, 0, 0, 0)
                 };
                 var value = new Label
                 {
@@ -341,7 +338,10 @@ public sealed partial class DnaModifierWindow
                     SetWidth = sequenceButtonWidth,
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
-                    SetHeight = appearanceControlHeight
+                    SetHeight = appearanceControlHeight,
+                    // Keep the sequence control separated from the value
+                    // column without compressing the characteristic label.
+                    Margin = new Thickness(10, 0, 0, 0)
                 };
                 if (IsRgbColorField(field))
                 {
@@ -379,7 +379,8 @@ public sealed partial class DnaModifierWindow
                     SetWidth = sequenceButtonWidth,
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
-                    SetHeight = appearanceControlHeight
+                    SetHeight = appearanceControlHeight,
+                    Margin = new Thickness(10, 0, 0, 0)
                 });
             }
             group.AddChild(row);
