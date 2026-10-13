@@ -731,7 +731,9 @@ public sealed partial class DnaModifierWindow
         private const float PauseAtEdge = 0.25f;
         // Leave room on both sides for antialiased glyph edges, especially
         // accents and descenders, while the label is moving.
-        private const float SafetyMargin = 9f;
+        // Keep a few extra pixels between the glyph bounds and the button
+        // edge so antialiased accents never appear to leak through the clip.
+        private const float SafetyMargin = 12f;
 
         private float _scrollOffset;
         private float _pause;
