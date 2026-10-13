@@ -753,7 +753,10 @@ public sealed partial class DnaModifierWindow
             // Keep the original button style while clipping the label itself
             // to the button content box in every state (including idle).
             RectClipContent = true;
-            Label.ClipText = true;
+            // Let the button's content clipping be the final boundary. The
+            // Label control's own ClipText mode can measure its content as
+            // empty in this dynamic layout, hiding both gene names and ???.
+            Label.ClipText = false;
             Label.HorizontalAlignment = HAlignment.Left;
             Label.HorizontalExpand = false;
             Label.Measure(Vector2Helpers.Infinity);
