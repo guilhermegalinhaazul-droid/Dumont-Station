@@ -42,6 +42,10 @@ public sealed class MegacephalySystem : EntitySystem
     {
         SubscribeLocalEvent<MegacephalyComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<MegacephalyComponent, ComponentRemove>(OnRemove);
+        // Humanoid layers (including animal heads) are rebuilt after the
+        // appearance state arrives. Reapply after that rebuild so snouts,
+        // hair, horns and other attached layers do not lose their scale.
+        SubscribeLocalEvent<HumanoidAppearanceComponent, AfterAutoHandleStateEvent>(OnHumanoidAppearanceState);
         SubscribeLocalEvent<ClothingComponent, EquipmentVisualsUpdatedEvent>(OnEquipmentVisualsUpdated);
     }
 
@@ -53,6 +57,12 @@ public sealed class MegacephalySystem : EntitySystem
     private void OnRemove(Entity<MegacephalyComponent> ent, ref ComponentRemove args)
     {
         Restore(ent.Owner);
+    }
+
+    private void OnHumanoidAppearanceState(Entity<HumanoidAppearanceComponent> ent, ref AfterAutoHandleStateEvent args)
+    {
+        if (HasComp<MegacephalyComponent>(ent.Owner))
+            ApplyScale(ent.Owner);
     }
 
     private void OnEquipmentVisualsUpdated(Entity<ClothingComponent> equipment, ref EquipmentVisualsUpdatedEvent args)
@@ -74,7 +84,23 @@ public sealed class MegacephalySystem : EntitySystem
             _originalLayers.Add(uid, originals);
         }
 
-        foreach (var index in FindHeadLayerIndices(uid, sprite))
+        var indices = FindHeadLayerIndices(uid, sprite).ToArray();
+        if (indices.Length == 0)
+            return;
+
+        // Sprite layer offsets are translations and are not affected by a
+        // layer's Scale. Scale each attached layer around the original head
+        // anchor, otherwise accessories stay behind while the head grows.
+        var headAnchor = Vector2.Zero;
+        if (_sprite.LayerMapTryGet((uid, sprite), HumanoidVisualLayers.Head, out var headIndex, false))
+        {
+            var headLayer = sprite[headIndex];
+            if (!originals.ContainsKey(headLayer))
+                originals[headLayer] = new LayerState(headLayer.Scale, GetOffset(headLayer));
+            headAnchor = originals[headLayer].Offset;
+        }
+
+        foreach (var index in indices)
         {
             var layer = sprite[index];
             if (!originals.ContainsKey(layer))
@@ -82,7 +108,9 @@ public sealed class MegacephalySystem : EntitySystem
 
             var original = originals[layer];
             _sprite.LayerSetScale((uid, sprite), index, original.Scale * HeadScale);
-            _sprite.LayerSetOffset((uid, sprite), index, original.Offset + new Vector2(0f, -HeadDrop));
+            var relativeOffset = original.Offset - headAnchor;
+            var scaledOffset = headAnchor + relativeOffset * HeadScale;
+            _sprite.LayerSetOffset((uid, sprite), index, scaledOffset + new Vector2(0f, -HeadDrop));
         }
     }
 

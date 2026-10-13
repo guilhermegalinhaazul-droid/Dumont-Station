@@ -6,20 +6,22 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Gun
-    fireRate: 1.5
+    fireRate: 0.4
     useKey: false
     clumsyProof: true
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
+    soundGunshot: /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg
   - type: HitscanBatteryAmmoProvider
     proto: RedLightLaser
+    fireCost: 50
   - type: Battery
     maxCharge: 100
     startingCharge: 100
   - type: BatterySelfRecharger
     autoRecharge: true
-    autoRechargeRate: 25
+    autoRechargeRate: 50
 
 - type: entity
   id: GeneticAcidSpitGun
