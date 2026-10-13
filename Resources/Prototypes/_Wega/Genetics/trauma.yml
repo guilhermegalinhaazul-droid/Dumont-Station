@@ -362,8 +362,8 @@
     # energy therefore subtracts light around the carrier instead of merely
     # removing their own glow.
     color: '#FFFFFF'
-    energy: -1.0
-    radius: 3.5
+    energy: -3.0
+    radius: 5.5
     softness: 5
     falloff: 6.8
     castShadows: false
