@@ -28,3 +28,4 @@ genetics-thermal-vision-message = Você consegue ver o calor de outros seres viv
 genetics-remote-viewing-message = Você sente outras consciências tal qual a sua à distância.
 genetics-morphism-message = Você sente que pode mudar sua aparência.
 genetics-cryokinesis-message = Suas pontas dos dedos formigam levemente com o frio.
+genetics-super-telekinesis-message = Sua mente consegue agarrar e mover outros seres vivos.

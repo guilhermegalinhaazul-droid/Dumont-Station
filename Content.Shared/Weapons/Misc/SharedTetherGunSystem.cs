@@ -20,6 +20,8 @@ using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Genetics;
 using Content.Shared.Movement.Events;
 using Content.Shared.Throwing;
 using Content.Shared.Toggleable;
@@ -197,6 +199,12 @@ public abstract partial class SharedTetherGunSystem : EntitySystem
             return false;
 
         if (physics.Mass > component.MassLimit)
+            return false;
+
+        // Super telekinesis is deliberately limited to mob entities. This
+        // keeps it from pulling loose items or map objects while retaining the
+        // normal tether behaviour for the regular telekinesis hand.
+        if (HasComp<SuperTelekinesisTargetingComponent>(uid) && !HasComp<MobStateComponent>(target))
             return false;
 
         if (!component.CanTetherAlive && _mob.IsAlive(target))

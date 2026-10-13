@@ -131,3 +131,13 @@
   costInstability: 10
   addComponent:
   - type: CryokinesisGen 
+
+- type: structuralEnzymes
+  id: GeneticsSuperTelekinesisRecipe
+  name: Super Telecinese
+  abbreviation: Super Telecinese
+  message: genetics-super-telekinesis-message
+  typeDeviation: Intermediate
+  costInstability: 20
+  addComponent:
+  - type: SuperTelekinesisGen

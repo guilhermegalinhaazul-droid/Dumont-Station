@@ -24,3 +24,10 @@
   required:
   - MutationColdWeakness
   - MutationHeatWeakness
+
+- type: geneticRecipe
+  id: SuperTelekinesis
+  result: GeneticsSuperTelekinesisRecipe
+  required:
+  - GeneticsTelekinesisBasic
+  - GeneticsMindCommunicationIntermediate

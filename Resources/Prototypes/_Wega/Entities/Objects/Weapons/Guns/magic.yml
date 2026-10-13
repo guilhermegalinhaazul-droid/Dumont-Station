@@ -26,3 +26,24 @@
     canBeEaten: false
   - type: ItemToggle
     onUse: false
+
+- type: entity
+  parent: HandTelekinesisGun
+  id: HandSuperTelekinesisGun
+  name: super telekinetic hand
+  components:
+  - type: Sprite
+    color: "#48a9ff"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left
+        color: "#48a9ff"
+      right:
+      - state: inhand-right
+        color: "#48a9ff"
+  - type: TetherGun
+    canTetherAlive: true
+    frequency: 5
+    dampingRatio: 4
+  - type: SuperTelekinesisTargeting
