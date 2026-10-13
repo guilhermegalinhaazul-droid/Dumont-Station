@@ -9,6 +9,7 @@ public sealed class AcidSpitGenSystem : EntitySystem
 {
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly GunSystem _gun = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -22,6 +23,9 @@ public sealed class AcidSpitGenSystem : EntitySystem
     {
         ent.Comp.ActionEntity = _actions.AddAction(ent, ent.Comp.ActionId);
         ent.Comp.GunEntity = Spawn("GeneticAcidSpitGun", Transform(ent).Coordinates);
+        // The gun is hidden, but must follow the owner for the shot sound and
+        // effects to remain local to the character using the ability.
+        _transform.SetParent(ent.Comp.GunEntity.Value, ent.Owner);
     }
 
     private void OnShutdown(Entity<AcidSpitGenComponent> ent, ref ComponentShutdown args)

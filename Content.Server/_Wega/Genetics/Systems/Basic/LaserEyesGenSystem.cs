@@ -10,6 +10,7 @@ public sealed class LaserEyesGenSystem : EntitySystem
 {
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly GunSystem _gun = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -23,6 +24,9 @@ public sealed class LaserEyesGenSystem : EntitySystem
     {
         ent.Comp.ActionEntity = _actions.AddAction(ent, ent.Comp.ActionId);
         ent.Comp.GunEntity = Spawn("GeneticLaserEyesGun", Transform(ent).Coordinates);
+        // Keep the private gun at the owner so its predicted shot sound stays
+        // audible after the owner moves away from the spawn point.
+        _transform.SetParent(ent.Comp.GunEntity.Value, ent.Owner);
     }
 
     private void OnShutdown(Entity<LaserEyesGenComponent> ent, ref ComponentShutdown args)
