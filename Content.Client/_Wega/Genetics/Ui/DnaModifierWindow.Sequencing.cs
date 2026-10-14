@@ -24,13 +24,11 @@ public sealed partial class DnaModifierWindow
     private readonly BoxContainer _uniqueGenes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _structuralGenes = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _geneTools = new() { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-    // Keep the EU controls together while giving the whole group a small
-    // left offset. Individual control sizes and their internal spacing remain
-    // unchanged.
+    // Keep the EU controls aligned with the panel's default left margin.
     private readonly BoxContainer _appearanceEditor = new()
     {
         Orientation = BoxContainer.LayoutOrientation.Vertical,
-        Margin = new Thickness(-10, 0, 0, 0)
+        Margin = new Thickness(0)
     };
     private readonly BoxContainer _appearancePuzzle = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
     private readonly BoxContainer _structuralPuzzle = new() { Orientation = BoxContainer.LayoutOrientation.Vertical };
