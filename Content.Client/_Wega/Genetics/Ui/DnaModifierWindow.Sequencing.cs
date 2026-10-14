@@ -239,10 +239,9 @@ public sealed partial class DnaModifierWindow
             row.AddChild(new Label
             {
                 Text = label,
-                // Keep the characteristic title aligned slightly to the
-                // left of the control column so its beginning remains
-                // visible in the EU panel.
-                Margin = new Thickness(-5, 0, 0, 0),
+                // Keep the full characteristic title inside the panel so
+                // its first letters are not clipped by the row container.
+                Margin = new Thickness(0, 0, 0, 0),
                 MinWidth = 220,
                 MaxWidth = 220,
                 SetWidth = 220,
