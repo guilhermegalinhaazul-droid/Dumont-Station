@@ -765,9 +765,9 @@ public sealed partial class DnaModifierWindow
         private const float NameButtonWidth = 105f;
         private const float ScrollSpeed = 20f;
         private const float PauseAtEdge = 0.25f;
-        // Keep the text viewport one pixel inside the button content box.
+        // Keep the text viewport half a pixel inside the button content box.
         // The viewport itself clips every glyph, including antialiased accents.
-        private const float SafetyMargin = 1f;
+        private const float SafetyMargin = 0.5f;
 
         private float _scrollOffset;
         private float _pause;
@@ -805,9 +805,12 @@ public sealed partial class DnaModifierWindow
                 RectClipContent = true,
                 MouseFilter = Control.MouseFilterMode.Ignore
             };
+            _textViewport.Visible = true;
             RemoveChild(Label);
             _textViewport.AddChild(Label);
             AddChild(_textViewport);
+            Label.Visible = true;
+            OnResized += RefreshMetrics;
 
             OnMouseEntered += _ =>
             {
