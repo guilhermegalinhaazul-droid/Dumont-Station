@@ -37,9 +37,12 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
         var localEntity = _playerManager.LocalEntity;
         CleanupUnownedEffects(localEntity);
 
+        if (localEntity is not { } trackerEntity)
+            return;
+
         // Goobstation - move trycomp, scent = empty outside of the while loop
         // If the player can't track scents, continuing beyond this point is a waste of processing power.
-        if (!TryComp<ScentTrackerComponent>(localEntity, out var scentcomp))
+        if (!TryComp<ScentTrackerComponent>(trackerEntity, out var scentcomp))
         {
             ClearTrackedEffects();
             _lastScent = string.Empty;
@@ -75,7 +78,7 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
             var coordinates = _transform.GetMapCoordinates(uid);
             var effect = Spawn("ScentTrackEffect", coordinates.Offset(_random.NextVector2(0.18f) + new Vector2(0f, 0.4f)));
             var marker = EnsureComp<ScentTrackEffectComponent>(effect);
-            marker.Tracker = localEntity;
+            marker.Tracker = trackerEntity;
             marker.Scent = scentcomp.Scent;
             _trackedEffects.Add(effect);
         }
