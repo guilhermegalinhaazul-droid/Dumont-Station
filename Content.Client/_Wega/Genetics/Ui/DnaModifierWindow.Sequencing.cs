@@ -731,11 +731,9 @@ public sealed partial class DnaModifierWindow
         private const float NameButtonWidth = 105f;
         private const float ScrollSpeed = 20f;
         private const float PauseAtEdge = 0.25f;
-        // Leave room on both sides for antialiased glyph edges, especially
-        // accents and descenders, while the label is moving.
-        // Keep a few extra pixels between the glyph bounds and the button
-        // edge so antialiased accents never appear to leak through the clip.
-        private const float SafetyMargin = 12f;
+        // Keep the text viewport one pixel inside the button content box.
+        // The viewport itself clips every glyph, including antialiased accents.
+        private const float SafetyMargin = 1f;
 
         private float _scrollOffset;
         private float _pause;
@@ -852,6 +850,23 @@ public sealed partial class DnaModifierWindow
                 new Vector2(contentBox.Left + SafetyMargin, contentBox.Top),
                 new Vector2(viewportWidth, contentBox.Height));
             _textViewport.Arrange(viewportBox);
+
+            // ArrangeOverride is the first reliable point at which the button
+            // has its final size. Initialize the metrics here so names are
+            // visible immediately, instead of waiting for mouse hover to run
+            // RefreshMetrics.
+            if (!_metricsReady || Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
+            {
+                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+                _scrollOffset = 0f;
+                _direction = -1;
+                _pause = 0f;
+            }
+
+            _textWidth = textWidth;
+            _lastViewportWidth = viewportWidth;
+            _overflow = MathF.Max(0f, textWidth - viewportWidth);
+            _metricsReady = true;
             var origin = _metricsReady
                 ? _labelOriginX
                 : GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
