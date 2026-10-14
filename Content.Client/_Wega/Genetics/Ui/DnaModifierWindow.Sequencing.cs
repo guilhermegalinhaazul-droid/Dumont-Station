@@ -342,9 +342,8 @@ public sealed partial class DnaModifierWindow
                     SetHeight = appearanceControlHeight,
                     // Keep the sequence control separated from the value
                     // column without compressing the characteristic label.
-                    // Move characteristic action buttons 10 px left while
-                    // preserving their dimensions and visual style.
-                    Margin = new Thickness(0, 0, 0, 0)
+                    // Shift only the EU action-button column to the right.
+                    Margin = new Thickness(20, 0, 0, 0)
                 };
                 if (IsRgbColorField(field))
                 {
@@ -383,7 +382,7 @@ public sealed partial class DnaModifierWindow
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
-                    Margin = new Thickness(0, 0, 0, 0)
+                    Margin = new Thickness(20, 0, 0, 0)
                 });
             }
             group.AddChild(row);
