@@ -44,6 +44,9 @@
         color: "#48a9ff"
   - type: TetherGun
     canTetherAlive: true
-    frequency: 5
-    dampingRatio: 4
+    # Living targets are heavier than loose objects. Give the crafted hand
+    # enough joint force and responsiveness to move them without dragging.
+    maxForce: 1000
+    frequency: 12
+    dampingRatio: 1.5
   - type: SuperTelekinesisTargeting
