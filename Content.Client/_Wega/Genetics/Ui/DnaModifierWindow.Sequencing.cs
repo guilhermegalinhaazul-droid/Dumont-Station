@@ -249,7 +249,12 @@ public sealed partial class DnaModifierWindow
             Func<string> selected;
             if (state.AppearanceOptions.TryGetValue(field, out var markings))
             {
-                var list = new ItemList { MinSize = new Vector2(220, 64), MaxSize = new Vector2(220, 96) };
+                var list = new ItemList
+                {
+                    MinSize = new Vector2(220, 64),
+                    MaxSize = new Vector2(220, 96),
+                    Margin = new Thickness(15, 0, 0, 0)
+                };
                 var selectedValue = markings.Count > 0 ? markings[0] : string.Empty;
                 foreach (var id in markings)
                 {
@@ -268,24 +273,39 @@ public sealed partial class DnaModifierWindow
                 };
                 selected = () => selectedValue;
                 row.AddChild(list);
+                row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
             }
             else if (field == nameof(UniqueIdentifiersData.Gender))
             {
-                var options = new OptionButton { MinWidth = 220, MaxWidth = 220, SetWidth = 220 };
+                var options = new OptionButton
+                {
+                    MinWidth = 220,
+                    MaxWidth = 220,
+                    SetWidth = 220,
+                    Margin = new Thickness(15, 0, 0, 0)
+                };
                 options.AddItem(Loc.GetString("dna-eu-female"), 0);
                 options.AddItem(Loc.GetString("dna-eu-male"), 1);
                 options.AddItem(Loc.GetString("dna-eu-neuter"), 2);
                 selected = () => options.SelectedId.ToString();
                 options.OnItemSelected += args => PreviewAppearance(field, args.Id.ToString());
                 row.AddChild(options);
+                row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
             }
             else if (field == AppearanceGene.Name)
             {
-                var input = new LineEdit { MinWidth = 220, MaxWidth = 220, SetWidth = 220 };
+                var input = new LineEdit
+                {
+                    MinWidth = 220,
+                    MaxWidth = 220,
+                    SetWidth = 220,
+                    Margin = new Thickness(15, 0, 0, 0)
+                };
                 input.Text = state.ScannerBodyInfo ?? string.Empty;
                 selected = () => input.Text;
                 input.OnTextChanged += args => PreviewAppearance(field, args.Text);
                 row.AddChild(input);
+                row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
             }
             else
             {
@@ -302,6 +322,7 @@ public sealed partial class DnaModifierWindow
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
+                    Margin = new Thickness(15, 0, 0, 0),
                 };
                 var value = new Label
                 {
@@ -392,6 +413,19 @@ public sealed partial class DnaModifierWindow
             RefreshColorGroup(field);
 
         parent.AddChild(group);
+    }
+
+    private static Control CreateAppearanceValueSpacer(float height)
+    {
+        return new Control
+        {
+            MinWidth = 35,
+            MaxWidth = 35,
+            SetWidth = 35,
+            MinHeight = height,
+            MaxHeight = height,
+            SetHeight = height
+        };
     }
 
     private void PreviewAppearance(string field, string value)
