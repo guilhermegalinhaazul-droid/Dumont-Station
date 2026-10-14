@@ -1172,6 +1172,9 @@
     damage:
       types:
         Caustic: 5
+    # The acid ability already plays its spit sound when fired. Do not inherit
+    # BaseBullet's generic bullet-impact sound on contact.
+    soundHit: null
   - type: Sprite
     sprite: Objects/Weapons/Guns/Projectiles/xeno_toxic.rsi
     layers:
