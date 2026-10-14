@@ -86,7 +86,10 @@ public abstract class SharedScentTrackerSystem : EntitySystem
         }
 
         entity.Comp.VisualsEnabled = !entity.Comp.VisualsEnabled;
-        SetScentActionToggled(entity.Owner, entity.Comp.VisualsEnabled);
+        // Instant actions do not toggle themselves unless requested by the
+        // event. The action system applies this toggle after the event, so do
+        // not call SetToggled here or the state would be flipped twice.
+        args.Toggle = true;
         Dirty(entity.Owner, entity.Comp);
         args.Handled = true;
     }

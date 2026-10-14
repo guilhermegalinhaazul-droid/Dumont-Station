@@ -6,6 +6,7 @@
 - type: entity
   id: ScentTrackEffect
   components:
+  - type: ScentTrackEffect
   - type: TimedDespawn
     lifetime: 300
   - type: Sprite
