@@ -835,6 +835,12 @@ public sealed partial class DnaModifierWindow
             if (textWidth <= 0f)
                 return arranged;
 
+            // ContainerButton initially measures its label using the button's
+            // narrow content width. Preserve the full measured text width so
+            // long names still have a real overflow distance to animate.
+            if (Label.MinWidth < textWidth)
+                Label.MinWidth = textWidth;
+
             var contentBox = GetButtonContentBox();
             var viewportWidth = MathF.Max(1f, contentBox.Width - SafetyMargin * 2f);
             var origin = _metricsReady
@@ -854,6 +860,9 @@ public sealed partial class DnaModifierWindow
             var viewportWidth = MathF.Max(1f, contentBox.Width - SafetyMargin * 2f);
             if (textWidth <= 0f || contentBox.Width <= 1f)
                 return;
+
+            if (Label.MinWidth < textWidth)
+                Label.MinWidth = textWidth;
 
             if (!_metricsReady)
             {
