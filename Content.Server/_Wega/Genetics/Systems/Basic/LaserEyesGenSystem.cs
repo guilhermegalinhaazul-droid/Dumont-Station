@@ -3,14 +3,20 @@ using Content.Shared.Actions;
 using Content.Shared.Genetics;
 using Content.Shared._Goobstation.Wizard.Mutate;
 using Content.Shared.Weapons.Ranged.Components;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 
 namespace Content.Server.Genetics.System;
 
 public sealed class LaserEyesGenSystem : EntitySystem
 {
     [Dependency] private readonly SharedActionsSystem _actions = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly GunSystem _gun = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+
+    private static readonly SoundSpecifier LaserShotSound =
+        new SoundPathSpecifier("/Audio/Weapons/Guns/Gunshots/laser_cannon.ogg");
 
     public override void Initialize()
     {
@@ -50,6 +56,10 @@ public sealed class LaserEyesGenSystem : EntitySystem
             return;
 
         _gun.AttemptShoot(ent, gunEntity, gun, args.Target);
+        // Genetic eyes use a hidden gun entity. Play the shot from the gene
+        // owner so the sound is always delivered to the firing client and
+        // nearby listeners, just like the laser raptor's eye weapon.
+        _audio.PlayPvs(LaserShotSound, ent.Owner);
     }
 
 }
