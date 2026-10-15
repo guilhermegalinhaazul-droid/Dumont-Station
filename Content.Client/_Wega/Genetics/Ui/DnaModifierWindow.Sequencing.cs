@@ -910,6 +910,11 @@ public sealed partial class DnaModifierWindow
             Label.Arrange(UIBox2.FromDimensions(
                 new Vector2(origin - viewportBox.Left, 0f),
                 new Vector2(textWidth, viewportBox.Height)));
+            // Arrange() establishes the child bounds, while the layout
+            // helper applies the actual position used by the renderer. Do
+            // this during the initial layout as well as on hover so the name
+            // is visible before the pointer enters the button.
+            SetLabelPosition();
             return arranged;
         }
 
