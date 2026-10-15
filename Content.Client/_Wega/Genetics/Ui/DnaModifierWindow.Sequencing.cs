@@ -778,7 +778,6 @@ public sealed partial class DnaModifierWindow
         private float _lastViewportWidth;
         private bool _metricsReady;
         private bool _hovered;
-        private readonly Control _textViewport;
 
         public GeneNameButton(string name)
         {
@@ -787,9 +786,8 @@ public sealed partial class DnaModifierWindow
             MaxWidth = NameButtonWidth;
             ToolTip = name;
 
-            // Keep the original button style. The label is placed in a
-            // dedicated inset viewport so clipping happens before glyphs are
-            // rendered, including antialiased accents and descenders.
+            // Keep the original button style and clip the original label
+            // directly through the button's content bounds.
             RectClipContent = true;
             // Let the button's content clipping be the final boundary. The
             // Label control's own ClipText mode can measure its content as
@@ -800,15 +798,6 @@ public sealed partial class DnaModifierWindow
             Label.Measure(Vector2Helpers.Infinity);
             _textWidth = Label.DesiredSize.X;
 
-            _textViewport = new Control
-            {
-                RectClipContent = true,
-                MouseFilter = Control.MouseFilterMode.Ignore
-            };
-            _textViewport.Visible = true;
-            RemoveChild(Label);
-            _textViewport.AddChild(Label);
-            AddChild(_textViewport);
             Label.Visible = true;
             OnResized += RefreshMetrics;
 
@@ -878,15 +867,14 @@ public sealed partial class DnaModifierWindow
             if (textWidth <= 0f)
                 return arranged;
 
+            if (Label.MinWidth < textWidth)
+                Label.MinWidth = textWidth;
+
             // ContainerButton initially measures its label using the button's
             // narrow content width. Preserve the full measured text width so
             // long names still have a real overflow distance to animate.
             var contentBox = GetButtonContentBox();
             var viewportWidth = MathF.Max(1f, contentBox.Width - SafetyMargin * 2f);
-            var viewportBox = UIBox2.FromDimensions(
-                new Vector2(contentBox.Left + SafetyMargin, contentBox.Top),
-                new Vector2(viewportWidth, contentBox.Height));
-            _textViewport.Arrange(viewportBox);
 
             // ArrangeOverride is the first reliable point at which the button
             // has its final size. Initialize the metrics here so names are
@@ -908,8 +896,8 @@ public sealed partial class DnaModifierWindow
                 ? _labelOriginX
                 : GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
             Label.Arrange(UIBox2.FromDimensions(
-                new Vector2(origin - viewportBox.Left, 0f),
-                new Vector2(textWidth, viewportBox.Height)));
+                new Vector2(origin, contentBox.Top),
+                new Vector2(textWidth, contentBox.Height)));
             // Arrange() establishes the child bounds, while the layout
             // helper applies the actual position used by the renderer. Do
             // this during the initial layout as well as on hover so the name
@@ -972,7 +960,7 @@ public sealed partial class DnaModifierWindow
         private void SetLabelPosition()
         {
             LayoutContainer.SetPosition(Label, new Vector2(
-                _labelOriginX + _scrollOffset - _textViewport.Position.X,
+                _labelOriginX + _scrollOffset,
                 Label.Position.Y));
         }
 
