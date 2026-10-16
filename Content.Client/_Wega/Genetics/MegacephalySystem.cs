@@ -96,8 +96,7 @@ public sealed class MegacephalySystem : EntitySystem
             _originalLayers.Add(uid, originals);
         }
 
-        var preservedHairIndices = new HashSet<int>();
-        var indices = FindHeadLayerIndices(uid, sprite, preservedHairIndices).ToArray();
+        var indices = FindHeadLayerIndices(uid, sprite).ToArray();
         if (indices.Length == 0)
             return;
 
@@ -120,19 +119,6 @@ public sealed class MegacephalySystem : EntitySystem
                 originals[layer] = new LayerState(layer.Scale, GetOffset(layer));
 
             var original = originals[layer];
-
-            // Hair textures commonly contain a rear section that is hidden
-            // behind the torso. Scaling that whole texture reveals the hidden
-            // pixels and makes the lower hair float. Keep the texture at its
-            // original size while moving it with the enlarged head; the head
-            // itself and the other attached markings still scale normally.
-            if (preservedHairIndices.Contains(index))
-            {
-                _sprite.LayerSetScale((uid, sprite), index, original.Scale);
-                _sprite.LayerSetOffset((uid, sprite), index, original.Offset + new Vector2(0f, -HeadDrop));
-                continue;
-            }
-
             _sprite.LayerSetScale((uid, sprite), index, original.Scale * HeadScale);
             var relativeOffset = original.Offset - headAnchor;
             var scaledOffset = headAnchor + relativeOffset * HeadScale;
@@ -140,18 +126,14 @@ public sealed class MegacephalySystem : EntitySystem
         }
     }
 
-    private IEnumerable<int> FindHeadLayerIndices(EntityUid uid, SpriteComponent sprite, HashSet<int> preservedHairIndices)
+    private IEnumerable<int> FindHeadLayerIndices(EntityUid uid, SpriteComponent sprite)
     {
         var indices = new HashSet<int>();
 
         foreach (var layer in HeadLayers)
         {
             if (_sprite.LayerMapTryGet((uid, sprite), layer, out var index, false))
-            {
                 indices.Add(index);
-                if (layer is HumanoidVisualLayers.Hair or HumanoidVisualLayers.FacialHair)
-                    preservedHairIndices.Add(index);
-            }
         }
 
         if (TryComp<InventorySlotsComponent>(uid, out var inventorySlots))
@@ -189,11 +171,7 @@ public sealed class MegacephalySystem : EntitySystem
 
                         var layerId = $"{prototype.ID}-{rsi.RsiState}";
                         if (_sprite.LayerMapTryGet((uid, sprite), layerId, out var index, false))
-                        {
                             indices.Add(index);
-                            if (prototype.MarkingCategory is MarkingCategories.Hair or MarkingCategories.FacialHair)
-                                preservedHairIndices.Add(index);
-                        }
                     }
                 }
             }
