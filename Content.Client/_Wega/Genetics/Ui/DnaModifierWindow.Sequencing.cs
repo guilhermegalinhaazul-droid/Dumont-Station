@@ -287,8 +287,17 @@ public sealed partial class DnaModifierWindow
                 options.AddItem(Loc.GetString("dna-eu-female"), 0);
                 options.AddItem(Loc.GetString("dna-eu-male"), 1);
                 options.AddItem(Loc.GetString("dna-eu-neuter"), 2);
+                // OptionButton does not select an item when its popup entry is
+                // pressed. Initialize and update it explicitly so the label
+                // always reflects the entity's stored sex and the user's
+                // current choice.
+                options.SelectId(ReadAppearanceValue(state, field, 2));
                 selected = () => options.SelectedId.ToString();
-                options.OnItemSelected += args => PreviewAppearance(field, args.Id.ToString());
+                options.OnItemSelected += args =>
+                {
+                    options.SelectId(args.Id);
+                    PreviewAppearance(field, args.Id.ToString());
+                };
                 row.AddChild(options);
                 row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
             }
@@ -554,6 +563,21 @@ public sealed partial class DnaModifierWindow
             return 0;
 
         var encoded = value[0];
+        if (field == nameof(UniqueIdentifiersData.Gender))
+        {
+            if (value.Length < 3)
+                return 0;
+
+            var gender = (TryHexDigit(value[0]), TryHexDigit(value[1]), TryHexDigit(value[2]));
+            return gender switch
+            {
+                ( <= 0x5, <= 0x7, <= 0x3) => 0,
+                ( < 0x8, <= 0x7, < 0x9) => 1,
+                ( >= 0x8, >= 0x7, >= 0x9) => 2,
+                _ => 0
+            };
+        }
+
         if (field is nameof(UniqueIdentifiersData.SkinTone)
             or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
         {
