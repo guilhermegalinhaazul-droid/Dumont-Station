@@ -22,7 +22,9 @@ public sealed class SuperTelekinesisGenSystem : EntitySystem
         if (!HasComp<HandsComponent>(uid))
             return;
 
-        _hands.AddHand(uid, component.HandId, HandLocation.Left);
+        // Keep the super ability in the same dedicated slot used by regular
+        // telekinesis. The item prototype still supplies its own icon.
+        _hands.AddHand(uid, component.HandId, HandLocation.Middle);
 
         var item = Spawn(component.ItemPrototype, Transform(uid).Coordinates);
         component.TelekinesisItem = item;

@@ -35,18 +35,17 @@
   - type: Sprite
     color: "#48a9ff"
   - type: Item
+    # The hand is represented by the slot icon itself. Do not add an
+    # additional in-hand overlay to the player's wrist/fist.
     inhandVisuals:
-      left:
-      - state: inhand-left
-        color: "#48a9ff"
-      right:
-      - state: inhand-right
-        color: "#48a9ff"
+      left: []
+      right: []
   - type: TetherGun
     canTetherAlive: true
-    # Living targets are heavier than loose objects. Give the crafted hand
-    # enough joint force and responsiveness to move them without dragging.
-    maxForce: 1000
-    frequency: 12
-    dampingRatio: 1.5
+    # Living targets are heavier than loose objects. Increase the joint force
+    # and responsiveness so they can be moved without dragging behind.
+    maxForce: 5000
+    frequency: 20
+    dampingRatio: 1.0
+    lineColor: "#48a9ff"
   - type: SuperTelekinesisTargeting
