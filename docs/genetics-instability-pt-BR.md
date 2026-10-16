@@ -42,7 +42,7 @@ Os valores são somados somente para genes/mutações ativos. Genes inativos nã
 | Wega | `GeneticsChameleonIntermediate` | Camaleão | +10 |
 | Wega | `GeneticsCloakOfDarknessIntermediate` | Manto das Trevas | +10 |
 | Wega | `GeneticsColdResistanceIntermediate` | Resistência ao Frio | +10 |
-| Wega | `GeneticsFlashImmunityIntermediate` | Imunidade a Clarões | +10 |
+| Wega | `GeneticsFlashImmunityIntermediate` | Imunidade a Flashs | +10 |
 | Wega | `GeneticsNightVisionIntermediate` | Visão Noturna | +10 |
 | Wega | `GeneticsPolymorphismIntermediate` | Polimorfismo | +10 |
 | Wega | `GeneticsRegenerationIntermediate` | Regeneração | +10 |

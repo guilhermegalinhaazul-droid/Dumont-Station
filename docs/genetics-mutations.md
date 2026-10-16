@@ -21,7 +21,7 @@ As mutações do arquivo `trauma.yml` são a versão adaptada do Trauma; as dema
 - **Camaleão** — ativa o comportamento de camuflagem do Camaleão.
 - **Manto das Trevas** — concede uma habilidade de ocultação/manto de escuridão.
 - **Resistência ao Frio** — reduz os efeitos de temperaturas baixas.
-- **Imunidade a Clarões** — impede efeitos incapacitantes de flashes.
+- **Imunidade a Flashs** — impede efeitos incapacitantes de flashes.
 - **Visão Noturna** — permite enxergar no escuro.
 - **Polimorfismo** — permite copiar a aparência de outro humanoide.
 - **Regeneração** — recupera dano gradualmente.
