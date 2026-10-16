@@ -5,7 +5,7 @@ As mutações do arquivo `trauma.yml` são a versão adaptada do Trauma; as dema
 
 ## Wega — básicas
 
-- **Pensamento Empático** — permite perceber pensamentos ou estados mentais de outras entidades por meio do sistema de pensamento empático.
+- **Empatia** — permite perceber pensamentos ou estados mentais de outras entidades por meio do sistema de pensamento empático.
 - **Hulk** — concede o conjunto básico de força e transformação Hulk.
 - **Comedor de Matéria** — permite consumir matéria/objetos para obter alimento.
 - **Baixa Estatura** — reduz a altura do personagem.

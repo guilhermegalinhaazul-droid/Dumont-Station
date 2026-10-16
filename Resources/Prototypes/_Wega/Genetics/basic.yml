@@ -69,8 +69,8 @@
 
 - type: structuralEnzymes
   id: GeneticsEmpatheticThoughtBasic
-  name: Pensamento Empático
-  abbreviation: Pensamento Empático
+  name: Empatia
+  abbreviation: Empatia
   message: genetics-empathetic-thought-message
   typeDeviation: Base
   costInstability: 5

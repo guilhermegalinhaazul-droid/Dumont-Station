@@ -4,7 +4,7 @@ Os valores são somados somente para genes/mutações ativos. Genes inativos nã
 
 | Sistema | ID | Gene/mutação | Custo |
 |---|---|---|---:|
-| Wega | `GeneticsEmpatheticThoughtBasic` | Pensamento Empático | +5 |
+| Wega | `GeneticsEmpatheticThoughtBasic` | Empatia | +5 |
 | Wega | `GeneticsHulkBasic` | Hulk | +15 |
 | Wega | `GeneticsMatterEaterBasic` | Comedor de Matéria | +10 |
 | Wega | `GeneticsSmallHeightBasic` | Baixa Estatura | +0 |
