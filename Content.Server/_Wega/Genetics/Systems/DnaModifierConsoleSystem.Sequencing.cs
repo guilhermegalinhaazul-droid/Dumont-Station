@@ -236,6 +236,7 @@ public sealed partial class DnaModifierConsoleSystem
             UpdateUserInterface(uid, component);
             return;
         }
+        string? activatedGeneStatus = null;
         if (pending.Appearance is { } appearance && subject.Comp.UniqueIdentifiers is { } current)
         {
             // Merge only the chosen field, so another edit never gets reverted by a stale snapshot.
@@ -273,9 +274,13 @@ public sealed partial class DnaModifierConsoleSystem
             }
             var gene = subject.Comp.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == id);
             if (gene != null)
+            {
                 _dnaModifier.SetGeneActive(subject, gene, true);
+                activatedGeneStatus = Loc.GetString("dna-sequence-gene-activated",
+                    ("number", gene.Order), ("gene", GeneName(id)));
+            }
         }
-        _geneticStatus[uid] = Loc.GetString("dna-sequence-success");
+        _geneticStatus[uid] = activatedGeneStatus ?? Loc.GetString("dna-sequence-success");
         UpdateUserInterface(uid, component);
     }
 

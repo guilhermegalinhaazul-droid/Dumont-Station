@@ -740,9 +740,25 @@ public sealed partial class DnaModifierWindow
     private void UpdateCombiner(DnaModifierBoundUserInterfaceState state)
     {
         CombineContainer.RemoveAllChildren();
+
+        var title = new Label
+        {
+            Text = Loc.GetString("dna-combine-title"),
+            StyleClasses = { "LabelBig" }
+        };
+        CombineContainer.AddChild(title);
+        CombineContainer.AddChild(new Label
+        {
+            Text = Loc.GetString("dna-combine-instructions"),
+            StyleClasses = { "LabelSubText" },
+            HorizontalExpand = true
+        });
+
         var known = state.Genes.Where(g => g.Discovered).ToList();
         var first = new OptionButton();
         var second = new OptionButton();
+        first.MinWidth = 250;
+        second.MinWidth = 250;
         foreach (var gene in known)
         {
             first.AddItem($"{gene.Number} — {gene.Name}", gene.Number);
@@ -750,9 +766,33 @@ public sealed partial class DnaModifierWindow
         }
         first.OnItemSelected += args => first.SelectId(args.Id);
         second.OnItemSelected += args => second.SelectId(args.Id);
-        var combine = new Button { Text = Loc.GetString("dna-tab-combine"), Disabled = known.Count < 2 };
+
+        var firstColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        firstColumn.AddChild(new Label { Text = Loc.GetString("dna-combine-first") });
+        firstColumn.AddChild(first);
+        var secondColumn = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        secondColumn.AddChild(new Label { Text = Loc.GetString("dna-combine-second") });
+        secondColumn.AddChild(second);
+
+        var combine = new Button
+        {
+            Text = Loc.GetString("dna-combine-action"),
+            Disabled = known.Count < 2,
+            MinWidth = 170,
+            VerticalAlignment = VAlignment.Center
+        };
         combine.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticCombineMessage(first.SelectedId, second.SelectedId));
-        CombineContainer.AddChild(new BoxContainer { Children = { first, second, combine } });
+
+        var controls = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            SeparationOverride = 12,
+            HorizontalExpand = true
+        };
+        controls.AddChild(firstColumn);
+        controls.AddChild(secondColumn);
+        controls.AddChild(combine);
+        CombineContainer.AddChild(controls);
     }
 
     private sealed class GeneColorSlider : Slider
