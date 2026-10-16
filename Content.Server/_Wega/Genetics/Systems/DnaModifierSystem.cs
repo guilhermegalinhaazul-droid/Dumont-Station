@@ -7,6 +7,7 @@ using Content.Server.Inventory;
 using Content.Server.Prayer;
 using Content.Shared.Buckle;
 using Content.Shared.Chat.Prototypes;
+using Content.Shared.Cloning.Events;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -78,6 +79,21 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         SubscribeLocalEvent<DnaModifierComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<DnaModifierComponent, FlashAttemptEvent>(OnFlashAttempt);
+        SubscribeLocalEvent<DnaModifierComponent, CloningEvent>(OnCloning);
+    }
+
+    private void OnCloning(Entity<DnaModifierComponent> original, ref CloningEvent args)
+    {
+        // The DNA string is the unique-enzyme identifier shown by the genetics
+        // console. Cloning creates a new entity, so explicitly copy it after
+        // the clone components are initialized instead of allowing a new DNA
+        // value to be generated for the clone.
+        if (!TryComp<DnaComponent>(original, out var originalDna))
+            return;
+
+        var cloneDna = EnsureComp<DnaComponent>(args.CloneUid);
+        cloneDna.DNA = originalDna.DNA;
+        Dirty(args.CloneUid, cloneDna);
     }
 
     private void OnFlashAttempt(Entity<DnaModifierComponent> ent, ref FlashAttemptEvent args)
