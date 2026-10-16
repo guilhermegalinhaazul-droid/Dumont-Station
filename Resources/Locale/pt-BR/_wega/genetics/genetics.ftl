@@ -76,7 +76,7 @@ dna-eu-category-hair = Cabelo e barba
 dna-eu-category-colors = Cores
 dna-eu-category-details = Detalhes
 dna-eu-Height = Altura
-dna-eu-Width = Largura corporal
+dna-eu-Width = Peso
 
 dna-disk-sample = amostra-
 
