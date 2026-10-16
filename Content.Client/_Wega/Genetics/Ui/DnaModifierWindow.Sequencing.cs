@@ -789,9 +789,10 @@ public sealed partial class DnaModifierWindow
         private const float NameButtonWidth = 105f;
         private const float ScrollSpeed = 20f;
         private const float PauseAtEdge = 0.25f;
-        // Keep the text viewport half a pixel inside the button content box.
+        // Keep the text viewport a fraction of a pixel inside the button
+        // content box while retaining the original button dimensions.
         // The viewport itself clips every glyph, including antialiased accents.
-        private const float SafetyMargin = 0.1f;
+        private const float SafetyMargin = 0.2f;
 
         private float _scrollOffset;
         private float _pause;
@@ -845,7 +846,8 @@ public sealed partial class DnaModifierWindow
             base.FrameUpdate(args);
             RefreshMetrics();
 
-            // Names stay still until the pointer enters this specific button.
+            // Long names remain aligned to the left while idle and only
+            // scroll when the pointer is over this button.
             if (!_hovered || _overflow <= 0f)
             {
                 ResetScroll();
@@ -858,17 +860,16 @@ public sealed partial class DnaModifierWindow
             }
             else
             {
-                var halfOverflow = _overflow / 2f;
                 _scrollOffset += _direction * ScrollSpeed * args.DeltaSeconds;
-                if (_scrollOffset <= -halfOverflow)
+                if (_scrollOffset <= -_overflow)
                 {
-                    _scrollOffset = -halfOverflow;
+                    _scrollOffset = -_overflow;
                     _direction = 1;
                     _pause = PauseAtEdge;
                 }
-                else if (_scrollOffset >= halfOverflow)
+                else if (_scrollOffset >= 0f)
                 {
-                    _scrollOffset = halfOverflow;
+                    _scrollOffset = 0f;
                     _direction = -1;
                     _pause = PauseAtEdge;
                 }
@@ -906,10 +907,11 @@ public sealed partial class DnaModifierWindow
             // RefreshMetrics.
             if (!_metricsReady || Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
             {
-                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+                var overflow = MathF.Max(0f, textWidth - viewportWidth);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, overflow);
                 _scrollOffset = 0f;
                 _direction = -1;
-                _pause = 0f;
+                _pause = overflow > 0f ? PauseAtEdge : 0f;
             }
 
             _textWidth = textWidth;
@@ -918,7 +920,7 @@ public sealed partial class DnaModifierWindow
             _metricsReady = true;
             var origin = _metricsReady
                 ? _labelOriginX
-                : GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+                : GetTextOrigin(contentBox.Left, viewportWidth, textWidth, _overflow);
             Label.Arrange(UIBox2.FromDimensions(
                 new Vector2(origin, contentBox.Top),
                 new Vector2(textWidth, contentBox.Height)));
@@ -939,19 +941,21 @@ public sealed partial class DnaModifierWindow
             if (textWidth <= 0f || contentBox.Width <= 1f)
                 return;
 
+            var currentOverflow = MathF.Max(0f, textWidth - viewportWidth);
+
             if (!_metricsReady)
             {
-                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, currentOverflow);
                 _metricsReady = true;
             }
             else if (Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
             {
-                // Layout changes can move the label while it is idle. Recenter
+                // Layout changes can move the label while it is idle. Reposition
                 // the text and recalculate the scroll distance.
-                _labelOriginX = GetCenteredOrigin(contentBox.Left, viewportWidth, textWidth);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, currentOverflow);
                 _scrollOffset = 0f;
                 _direction = -1;
-                _pause = _hovered ? PauseAtEdge : 0f;
+                _pause = _hovered && currentOverflow > 0f ? PauseAtEdge : 0f;
             }
 
             _textWidth = textWidth;
@@ -967,8 +971,11 @@ public sealed partial class DnaModifierWindow
                 SetLabelPosition();
         }
 
-        private static float GetCenteredOrigin(float contentLeft, float viewportWidth, float textWidth)
+        private static float GetTextOrigin(float contentLeft, float viewportWidth, float textWidth, float overflow)
         {
+            if (overflow > 0f)
+                return contentLeft + SafetyMargin;
+
             return contentLeft + SafetyMargin + (viewportWidth - textWidth) / 2f;
         }
 

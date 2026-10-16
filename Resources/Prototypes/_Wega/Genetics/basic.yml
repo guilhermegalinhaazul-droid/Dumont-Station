@@ -38,6 +38,9 @@
   - type: RechargeBasicEntityAmmo
     # Keep the gun's internal recharge in sync with the action cooldown.
     rechargeCooldown: 5
+    # Do not use RechargeBasicEntityAmmo's default forcewall/magic sound.
+    # The shot itself supplies the acid-spit sound below.
+    rechargeSound: null
   - type: BasicEntityAmmoProvider
     proto: BulletAcid
     capacity: 1
