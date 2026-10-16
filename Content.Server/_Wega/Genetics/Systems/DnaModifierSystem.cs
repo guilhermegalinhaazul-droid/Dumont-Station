@@ -697,7 +697,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     private void TryChangeUniqueIdentifiers(Entity<DnaModifierComponent> ent, HumanoidAppearanceComponent? humanoid = null)
     {
         if (ent.Comp.UniqueIdentifiers?.EntityName is { } entityName)
-            _metaData.SetEntityName(ent, entityName);
+            // Genetics changes the entity's displayed name only. Suppress the
+            // rename event here so the shared ID card/PDA systems do not copy
+            // the genetic name onto the character's identification card.
+            _metaData.SetEntityName(ent, entityName, raiseEvents: false);
         if (!Resolve(ent, ref humanoid) || ent.Comp.UniqueIdentifiers == null)
             return;
 
