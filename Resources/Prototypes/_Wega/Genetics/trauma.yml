@@ -362,7 +362,9 @@
     # energy therefore subtracts light around the carrier instead of merely
     # removing their own glow.
     color: '#FFFFFF'
-    energy: -3.0
+    # Keep the subtractive field visible when several normal lights overlap
+    # it; the lighting pass composes all point lights additively.
+    energy: -8.0
     radius: 5.5
     softness: 5
     falloff: 6.8
