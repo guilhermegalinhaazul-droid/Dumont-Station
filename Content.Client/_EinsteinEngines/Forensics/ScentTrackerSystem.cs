@@ -13,6 +13,7 @@ using Content.Shared.Forensics.Components;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Client.Player;
+using Robust.Client.GameObjects;
 using Robust.Shared.Map;
 
 namespace Content.Client._EinsteinEngines.Forensics;
@@ -25,8 +26,8 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
     [Dependency] private readonly IPlayerManager _playerManager = default!;
 
     // Scent markers are client-side effects. Keep the ones created by this
-    // tracker so toggling the action can remove already-visible markers
-    // immediately instead of waiting for their five-minute lifetime.
+    // tracker so toggling the action can hide and restore the existing trail
+    // without resetting its five-minute lifetime.
     private readonly HashSet<EntityUid> _trackedEffects = new();
     private string _lastScent = string.Empty;
 
@@ -50,12 +51,15 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
         }
 
         // Changing the tracked target must not leave the previous trail on
-        // screen, and disabling the action must hide the current trail now.
-        if (_lastScent != scentcomp.Scent || !scentcomp.VisualsEnabled || scentcomp.Scent == string.Empty)
+        // screen. Toggling visibility only hides the existing markers so they
+        // can reappear when the action is enabled again.
+        if (_lastScent != scentcomp.Scent || scentcomp.Scent == string.Empty)
         {
             ClearTrackedEffects();
             _lastScent = scentcomp.Scent;
         }
+
+        SetTrackedEffectsVisible(scentcomp.VisualsEnabled);
 
         if (!scentcomp.VisualsEnabled || scentcomp.Scent == string.Empty)
             return;
@@ -103,5 +107,16 @@ public sealed class ScentTrackerSystem : SharedScentTrackerSystem
         }
 
         _trackedEffects.Clear();
+    }
+
+    private void SetTrackedEffectsVisible(bool visible)
+    {
+        foreach (var effect in _trackedEffects)
+        {
+            if (!Exists(effect) || !TryComp<SpriteComponent>(effect, out var sprite))
+                continue;
+
+            sprite.Visible = visible;
+        }
     }
 }

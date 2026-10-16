@@ -7,5 +7,6 @@
   components:
   - type: Action
     icon: { sprite: Mobs/Pets/walter.rsi, state: walter }
+    useDelay: 1
   - type: InstantAction
     event: !type:ScentTrackerActionEvent
