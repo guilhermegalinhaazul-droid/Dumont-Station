@@ -42,21 +42,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        // The combine view belongs between the data buffers and structural
-        // enzymes, matching the laboratory workflow.
-        var structuralTab = Tabs.GetChild(1);
-        var combineTab = Tabs.GetChild(2);
-        var transferTab = Tabs.GetChild(3);
-        var rejuvenatorTab = Tabs.GetChild(4);
-        Tabs.RemoveChild(structuralTab);
-        Tabs.RemoveChild(combineTab);
-        Tabs.RemoveChild(transferTab);
-        Tabs.RemoveChild(rejuvenatorTab);
-        Tabs.AddChild(structuralTab);
-        Tabs.AddChild(combineTab);
-        Tabs.AddChild(transferTab);
-        Tabs.AddChild(rejuvenatorTab);
-
+        // The XAML order is already the canonical order. Reparenting tabs at
+        // runtime leaves TabContainer's internal button list out of sync and
+        // causes tab labels/content to be painted on top of one another.
         Tabs.SetTabTitle(0, Loc.GetString("dna-modifier-tab-ui"));
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         Tabs.SetTabTitle(2, Loc.GetString("dna-tab-combine"));
