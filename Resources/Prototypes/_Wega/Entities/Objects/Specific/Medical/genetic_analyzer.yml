@@ -1,7 +1,7 @@
 - type: entity
   parent: BaseItem
   id: PortableGeneticAnalyzer
-  name: analisador genetico portatil
+  name: analisador genético portátil
   description: "Um analisador portátil que permite consultar informações genéticas sem alterar o alvo."
   components:
   - type: Sprite

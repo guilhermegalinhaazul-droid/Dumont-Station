@@ -134,9 +134,8 @@ public sealed partial class DnaModifierWindow
                 // Keep the gene name button directly beside its block number.
                 row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
-                name.Disabled = state.Portable;
-                if (!state.Portable)
-                    name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
+                name.Disabled = gene.Discovered;
+                name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button
                 {

@@ -85,6 +85,56 @@ public sealed partial class DnaModifierConsoleSystem
 
     private bool IsDiscovered(string id) => _discoveredGenes.Contains(id);
 
+    public bool IsGeneDiscovered(string id) => IsDiscovered(id);
+
+    public GeneticPuzzleState? GetPortablePuzzle(EntityUid analyzer, EntityUid? subject)
+    {
+        return subject is { } target && _pendingSequences.TryGetValue(analyzer, out var pending) &&
+            pending.Subject == target ? pending.State : null;
+    }
+
+    public void TrySelectPortableGene(EntityUid analyzer, EntityUid subjectUid, EntityUid user, int number)
+    {
+        if (!TryComp<DnaModifierComponent>(subjectUid, out var dna) ||
+            dna.EnzymesPrototypes?.FirstOrDefault(g => g.Order == number) is not { } gene ||
+            IsRecipeResult(gene.EnzymesPrototypeId) || IsDiscovered(gene.EnzymesPrototypeId))
+            return;
+
+        var id = gene.EnzymesPrototypeId;
+        if (!_geneAnswers.TryGetValue(id, out var answer))
+            _geneAnswers[id] = answer = GeneticSequence.Generate(_random, GeneticSequence.StructuralPairs);
+        if (!_geneClues.TryGetValue((subjectUid, id), out var clue))
+        {
+            clue = gene.Active
+                ? GeneticSequence.HideStructuralFacilitated(_random, answer)
+                : GeneticSequence.HideStructural(_random, answer, Difficulty(id));
+            _geneClues[(subjectUid, id)] = clue;
+        }
+        _pendingSequences[analyzer] = new PendingSequence
+        {
+            Subject = subjectUid,
+            User = user,
+            Gene = id,
+            Answer = answer,
+            State = new GeneticPuzzleState { Token = ++_sequenceToken, Title = $"{gene.Order} — ???", Original = clue }
+        };
+    }
+
+    public bool TrySubmitPortableGene(EntityUid analyzer, EntityUid subjectUid, EntityUid user, int token, string answer)
+    {
+        if (!_pendingSequences.TryGetValue(analyzer, out var pending) || pending.Subject != subjectUid ||
+            pending.User != user || pending.State.Token != token || pending.Gene is not { } id)
+            return false;
+        _pendingSequences.Remove(analyzer);
+        if (!GeneticSequence.Validate(pending.State.Original, answer, pending.Answer))
+            return false;
+
+        if (_discoveredGenes.Add(id) && TryComp<DnaModifierComponent>(subjectUid, out var dna) &&
+            dna.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == id) is { } gene)
+            _dnaModifier.SetGeneActive((subjectUid, dna), gene, true);
+        return true;
+    }
+
     private bool IsRecipeResult(string id)
         => _prototypeManager.EnumeratePrototypes<GeneticRecipePrototype>()
             .Any(recipe => recipe.Result == id);

@@ -29,6 +29,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     [Dependency] private readonly SharedDnaModifierSystem _sharedDna = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private readonly DnaModifierConsoleSystem _sequencing = default!;
 
     public override void Initialize()
     {
@@ -43,6 +44,8 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportOnDiskEvent>(OnExportToDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportFromDiskEvent>(OnExportFromDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearDiskEvent>(OnClearDisk);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, GeneticSelectMessage>(OnSelectGene);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, GeneticSubmitMessage>(OnSubmitGene);
     }
 
     private void OnAfterInteract(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterInteractEvent args)
@@ -141,6 +144,20 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         Update(ent.Owner);
     }
 
+    private void OnSelectGene(Entity<PortableGeneticAnalyzerComponent> ent, ref GeneticSelectMessage args)
+    {
+        if (TryGetScan(ent.Owner, out var target))
+            _sequencing.TrySelectPortableGene(ent.Owner, target.Owner, args.Actor, args.Number);
+        Update(ent.Owner);
+    }
+
+    private void OnSubmitGene(Entity<PortableGeneticAnalyzerComponent> ent, ref GeneticSubmitMessage args)
+    {
+        if (TryGetScan(ent.Owner, out var target))
+            _sequencing.TrySubmitPortableGene(ent.Owner, target.Owner, args.Actor, args.Token, args.Answer);
+        Update(ent.Owner);
+    }
+
     private void Update(EntityUid uid)
     {
         if (!_ui.HasUi(uid, DnaModifierUiKey.Portable))
@@ -177,10 +194,11 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         var genes = new List<GeneticGeneState>();
         foreach (var gene in enzymes?.OrderBy(g => g.EnzymesPrototypeId == "Species") ?? Enumerable.Empty<EnzymesPrototypeInfo>())
         {
-            var label = gene.EnzymesPrototypeId;
-            if (_prototypes.TryIndex<StructuralEnzymesPrototype>(label, out var proto))
+            var discovered = _sequencing.IsGeneDiscovered(gene.EnzymesPrototypeId);
+            var label = discovered ? gene.EnzymesPrototypeId : "???";
+            if (discovered && _prototypes.TryIndex<StructuralEnzymesPrototype>(label, out var proto))
                 label = string.IsNullOrWhiteSpace(proto.Abbreviation) ? proto.Name : proto.Abbreviation;
-            genes.Add(new GeneticGeneState { Number = gene.Order, Name = label, Discovered = true, Active = gene.Active });
+            genes.Add(new GeneticGeneState { Number = gene.Order, Name = label, Discovered = discovered, Active = gene.Active });
         }
 
         EnzymeInfo? diskData = null;
@@ -197,12 +215,19 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
                 if (_dnaClient.TryGetBufferData((analyzer, client), i, out var buffer))
                     buffers[i] = buffer;
 
+        var appearanceFields = unique is null
+            ? new List<string>()
+            : AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
+                AppearanceGene.Get(unique, field)?.Length == 3).ToList();
+
         return new DnaModifierBoundUserInterfaceState(
             GetNetEntity(analyzer), unique, enzymes, diskData, name, status, dna, species,
             health, 0, false, null, true, hasDisk, buffers, null, TimeSpan.Zero, TimeSpan.Zero,
             target is { } body ? GetNetEntity(body) : null, portable: true)
         {
-            Genes = genes
+            Genes = genes,
+            AppearanceFields = appearanceFields,
+            Puzzle = _sequencing.GetPortablePuzzle(analyzer, target)
         };
     }
 }
