@@ -5,6 +5,7 @@ using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
 using Content.Shared.Interaction;
+using Content.Shared.Forensics.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.UserInterface;
@@ -52,7 +53,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     private void OnOpen(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterActivatableUIOpenEvent args)
         => Update(ent.Owner);
 
-    private void OnSlotPressed(Entity<PortableGeneticAnalyzerComponent> ent, ItemSlotButtonPressedEvent args)
+    private void OnSlotPressed(Entity<PortableGeneticAnalyzerComponent> ent, ref ItemSlotButtonPressedEvent args)
     {
         if (args.SlotId != SharedDnaModifier.DiskSlotName)
             return;
@@ -73,7 +74,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         return true;
     }
 
-    private void OnSave(Entity<PortableGeneticAnalyzerComponent> ent, DnaModifierConsoleSaveServerEvent args)
+    private void OnSave(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleSaveServerEvent args)
     {
         if (args.CurrentSection is < 1 or > 3 || !TryGetScan(ent.Owner, out var target) ||
             !TryComp<DnaClientComponent>(ent.Owner, out var client))
@@ -89,7 +90,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         Update(ent.Owner);
     }
 
-    private void OnExportToDisk(Entity<PortableGeneticAnalyzerComponent> ent, DnaModifierConsoleExportOnDiskEvent args)
+    private void OnExportToDisk(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleExportOnDiskEvent args)
     {
         if (args.Index is < 1 or > 3 || !TryComp<DnaClientComponent>(ent.Owner, out var client) ||
             !_dnaClient.TryGetBufferData((ent.Owner, client), args.Index, out var data) || data == null ||
@@ -100,7 +101,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         Update(ent.Owner);
     }
 
-    private void OnExportFromDisk(Entity<PortableGeneticAnalyzerComponent> ent, DnaModifierConsoleExportFromDiskEvent args)
+    private void OnExportFromDisk(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleExportFromDiskEvent args)
     {
         if (args.Index is < 1 or > 3 || !TryComp<DnaClientComponent>(ent.Owner, out var client) ||
             !_itemSlots.TryGetSlot(ent.Owner, SharedDnaModifier.DiskSlotName, out var slot) || slot.Item is not { } disk ||
@@ -111,7 +112,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         Update(ent.Owner);
     }
 
-    private void OnClearDisk(Entity<PortableGeneticAnalyzerComponent> ent, DnaModifierConsoleClearDiskEvent args)
+    private void OnClearDisk(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleClearDiskEvent args)
     {
         if (_itemSlots.TryGetSlot(ent.Owner, SharedDnaModifier.DiskSlotName, out var slot) && slot.Item is { } disk)
             _sharedDna.TryClearDiskData(disk);
@@ -144,7 +145,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             unique = _dnaModifier.CloneUniqueIdentifiers(scanned.Comp.UniqueIdentifiers);
             enzymes = _dnaModifier.CloneEnzymesPrototypes(scanned.Comp.EnzymesPrototypes);
             name = MetaData(scanned).EntityName;
-            status = TryComp<MobStateComponent>(scanned, out var mob) ? mob.CurrentState.ToString() : string.Empty;
+            status = string.Empty;
             if (TryComp<HumanoidAppearanceComponent>(scanned, out var humanoid))
                 species = humanoid.Species.ToString();
             if (TryComp<DnaComponent>(scanned, out var dnaComp))
