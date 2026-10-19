@@ -33,7 +33,10 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     public override void Initialize()
     {
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, AfterInteractEvent>(OnAfterInteract);
-        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, PortableGeneticAnalyzerDoAfterEvent>(OnScanComplete);
+        // Reuse the already network-registered genetics DoAfter event. A custom
+        // event here can leave the server serializer without a type entry when
+        // an old content assembly is still present in the release output.
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaInjectorDoAfterEvent>(OnScanComplete);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, AfterActivatableUIOpenEvent>(OnOpen);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, ItemSlotButtonPressedEvent>(OnSlotPressed);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleSaveServerEvent>(OnSave);
@@ -48,7 +51,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             return;
 
         if (!_doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, TimeSpan.FromSeconds(0.8),
-                new PortableGeneticAnalyzerDoAfterEvent(), ent.Owner, target: target)
+                new DnaInjectorDoAfterEvent(), ent.Owner, target: target)
             {
                 NeedHand = true,
                 BreakOnMove = true,
@@ -59,7 +62,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         args.Handled = true;
     }
 
-    private void OnScanComplete(Entity<PortableGeneticAnalyzerComponent> ent, ref PortableGeneticAnalyzerDoAfterEvent args)
+    private void OnScanComplete(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaInjectorDoAfterEvent args)
     {
         if (args.Cancelled || !args.Target.HasValue || !HasComp<DnaModifierComponent>(args.Target.Value))
             return;
