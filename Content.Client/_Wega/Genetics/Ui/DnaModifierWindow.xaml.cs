@@ -101,6 +101,10 @@ public sealed partial class DnaModifierWindow : FancyWindow
         CombineContainer.Visible = !state.Portable;
         TransferContainer.Visible = true;
         RejuvenatorContainer.Visible = !state.Portable;
+        Tabs.SetTabVisible(2, !state.Portable);
+        Tabs.SetTabVisible(4, !state.Portable);
+        if (state.Portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
+            Tabs.CurrentTab = 1;
         EjectButton.Visible = !state.Portable;
         ClearButton1.Visible = !state.Portable;
         ClearButton2.Visible = !state.Portable;
@@ -108,9 +112,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RenameButton1.Visible = !state.Portable;
         RenameButton2.Visible = !state.Portable;
         RenameButton3.Visible = !state.Portable;
-        SubjectUI1.Visible = !state.Portable;
-        SubjectUI2.Visible = !state.Portable;
-        SubjectUI3.Visible = !state.Portable;
+        SubjectUI1.Visible = true;
+        SubjectUI2.Visible = true;
+        SubjectUI3.Visible = true;
         SubjectUISE1.Visible = !state.Portable;
         SubjectUISE2.Visible = !state.Portable;
         SubjectUISE3.Visible = !state.Portable;

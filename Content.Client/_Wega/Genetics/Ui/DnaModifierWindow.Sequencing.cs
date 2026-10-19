@@ -118,8 +118,8 @@ public sealed partial class DnaModifierWindow
     private void UpdateSequencingUi(DnaModifierBoundUserInterfaceState state)
     {
         _geneTools.Visible = !state.Portable;
-        _appearanceEditor.Visible = !state.Portable;
-        UiPanel.Visible = state.AppearanceFields.Count > 0 && !state.Portable;
+        _appearanceEditor.Visible = true;
+        UiPanel.Visible = state.AppearanceFields.Count > 0;
         SePanel.Visible = state.Genes.Count > 0;
         GeneticStatusLabel.Text = state.GeneticStatus;
         var signature = string.Join("|", state.Genes.Select(g => $"{g.Number}:{g.Name}:{g.Discovered}:{g.Active}"));
@@ -196,7 +196,8 @@ public sealed partial class DnaModifierWindow
         var group = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            HorizontalExpand = true
+            HorizontalExpand = true,
+            Disabled = _portableMode
         };
         var colorControls = new Dictionary<string, Slider>();
         var colorGroups = new HashSet<string>(StringComparer.Ordinal);
