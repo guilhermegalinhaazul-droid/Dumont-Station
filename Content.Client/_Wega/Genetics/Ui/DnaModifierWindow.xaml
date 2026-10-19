@@ -73,7 +73,7 @@
             <ScrollContainer Name="Scroll" HScrollEnabled="False" VerticalExpand="True">
                 <TabContainer Name="Tabs" Margin="5 5 7 5">
                     <!-- Вкладка Modify U.I. -->
-                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
+                    <BoxContainer Name="TransferContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <Label Text="{Loc 'dna-modifier-box-ui'}" StyleClasses="LabelBig"/>
                         <PanelContainer Name="UiPanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>
@@ -87,7 +87,7 @@
                     </BoxContainer>
 
                     <!-- Вкладка Modify S.E. -->
-                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
+                    <BoxContainer Name="RejuvenatorContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <Label Text="{Loc 'dna-modifier-box-se'}" StyleClasses="LabelBig"/>
                         <PanelContainer Name="SePanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>

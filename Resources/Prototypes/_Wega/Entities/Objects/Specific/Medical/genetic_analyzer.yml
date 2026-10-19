@@ -1,0 +1,34 @@
+- type: entity
+  parent: BaseItem
+  id: PortableGeneticAnalyzer
+  name: analisador genetico portatil
+  description: "Um analisador portátil que permite consultar informações genéticas sem alterar o alvo."
+  components:
+  - type: Sprite
+    sprite: _Wega/Objects/Specific/Medical/geneticanalyzer.rsi
+    state: analyzer
+  - type: Item
+    size: Small
+    inhandVisuals:
+      left:
+      - state: analyzer-inhand-left
+      right:
+      - state: analyzer-inhand-right
+  - type: DnaClient
+  - type: DnaServer
+  - type: PortableGeneticAnalyzer
+  - type: ActivatableUI
+    key: enum.DnaModifierUiKey.Portable
+  - type: UserInterface
+    interfaces:
+      enum.DnaModifierUiKey.Portable:
+        type: DnaModifierBoundUserInterface
+  - type: ContainerContainer
+    containers:
+      diskSlot: !type:ContainerSlot
+  - type: ItemSlots
+    slots:
+      diskSlot:
+        whitelist:
+          components:
+          - DnaModifierDisk

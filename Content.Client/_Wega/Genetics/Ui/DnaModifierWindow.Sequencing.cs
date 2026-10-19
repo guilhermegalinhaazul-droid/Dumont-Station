@@ -117,7 +117,9 @@ public sealed partial class DnaModifierWindow
 
     private void UpdateSequencingUi(DnaModifierBoundUserInterfaceState state)
     {
-        UiPanel.Visible = state.AppearanceFields.Count > 0;
+        _geneTools.Visible = !state.Portable;
+        _appearanceEditor.Visible = !state.Portable;
+        UiPanel.Visible = state.AppearanceFields.Count > 0 && !state.Portable;
         SePanel.Visible = state.Genes.Count > 0;
         GeneticStatusLabel.Text = state.GeneticStatus;
         var signature = string.Join("|", state.Genes.Select(g => $"{g.Number}:{g.Name}:{g.Discovered}:{g.Active}"));
@@ -132,12 +134,14 @@ public sealed partial class DnaModifierWindow
                 // Keep the gene name button directly beside its block number.
                 row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
-                name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
+                name.Disabled = state.Portable;
+                if (!state.Portable)
+                    name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button
                 {
                     Text = Loc.GetString(gene.Active ? "dna-gene-on" : "dna-gene-off"),
-                    Disabled = !gene.Discovered,
+                    Disabled = state.Portable || !gene.Discovered,
                     ModulateSelfOverride = gene.Active ? new Color(64, 197, 108) : new Color(224, 90, 90),
                     MinWidth = 50,
                     SetWidth = 50,
@@ -145,7 +149,8 @@ public sealed partial class DnaModifierWindow
                     // activation toggle without changing either control.
                     Margin = new Thickness(5, 0, 0, 0)
                 };
-                toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
+                if (!state.Portable)
+                    toggle.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticToggleMessage(gene.Number));
                 row.AddChild(toggle);
                 grid.AddChild(row);
             }

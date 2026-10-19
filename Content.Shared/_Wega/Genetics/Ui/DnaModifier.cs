@@ -49,6 +49,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
     public readonly List<GeneCatalogEntry>? GeneCatalog;
     public readonly TimeSpan InjectorCooldownRemaining;
     public readonly TimeSpan SubjectInjectCooldownRemaining;
+    public readonly bool Portable;
     public DnaModifierBoundUserInterfaceState(
         NetEntity console,
         UniqueIdentifiersData?
@@ -70,7 +71,8 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
         List<GeneCatalogEntry>? geneCatalog,
         TimeSpan injectorCooldownRemaining,
         TimeSpan subjectInjectCooldownRemaining,
-        NetEntity? scannerBody = null)
+        NetEntity? scannerBody = null,
+        bool portable = false)
     {
         Console = console;
         ScannerBody = scannerBody;
@@ -91,6 +93,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
         GeneCatalog = geneCatalog;
         InjectorCooldownRemaining = injectorCooldownRemaining;
         SubjectInjectCooldownRemaining = subjectInjectCooldownRemaining;
+        Portable = portable;
     }
 }
 
@@ -98,6 +101,7 @@ public sealed class DnaModifierBoundUserInterfaceState : BoundUserInterfaceState
 public enum DnaModifierUiKey
 {
     Key,
+    Portable,
 }
 
 public enum DnaModifierReagentAmount

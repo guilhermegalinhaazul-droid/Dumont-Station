@@ -34,6 +34,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
     private TimeSpan? _subjectInjectCooldown;
     private bool _initializedBuffer = false;
     private bool _updateBuffer = false;
+    private bool _portableMode;
     private NetEntity _console;
 
     public DnaModifierWindow()
@@ -96,6 +97,26 @@ public sealed partial class DnaModifierWindow : FancyWindow
     {
         _lastUpdate = state;
         _console = state.Console;
+        _portableMode = state.Portable;
+        CombineContainer.Visible = !state.Portable;
+        TransferContainer.Visible = true;
+        RejuvenatorContainer.Visible = !state.Portable;
+        EjectButton.Visible = !state.Portable;
+        ClearButton1.Visible = !state.Portable;
+        ClearButton2.Visible = !state.Portable;
+        ClearButton3.Visible = !state.Portable;
+        RenameButton1.Visible = !state.Portable;
+        RenameButton2.Visible = !state.Portable;
+        RenameButton3.Visible = !state.Portable;
+        SubjectUI1.Visible = !state.Portable;
+        SubjectUI2.Visible = !state.Portable;
+        SubjectUI3.Visible = !state.Portable;
+        SubjectUISE1.Visible = !state.Portable;
+        SubjectUISE2.Visible = !state.Portable;
+        SubjectUISE3.Visible = !state.Portable;
+        SubjectSE1.Visible = !state.Portable;
+        SubjectSE2.Visible = !state.Portable;
+        SubjectSE3.Visible = !state.Portable;
         var console = _entManager.GetEntity(_console);
 
 
@@ -289,8 +310,11 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
         // Buttons Container
         var buttonsContainer = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-        buttonsContainer.AddChild(new Label { Text = Loc.GetString("dna-modifier-label-actions"), MinWidth = 40 });
-        buttonsContainer.AddChild(new Control { MinWidth = 25 });
+        if (!_portableMode)
+        {
+            buttonsContainer.AddChild(new Label { Text = Loc.GetString("dna-modifier-label-actions"), MinWidth = 40 });
+            buttonsContainer.AddChild(new Control { MinWidth = 25 });
+        }
 
         // Injector Button
         var injectorButton = new Button
@@ -300,10 +324,11 @@ public sealed partial class DnaModifierWindow : FancyWindow
             Disabled = _injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown
         };
         injectorButton.OnPressed += _ => OnInjectorPressed(bufferIndex, injectorButton);
-        buttonsContainer.AddChild(injectorButton);
+        if (!_portableMode)
+            buttonsContainer.AddChild(injectorButton);
 
         // Block Inject Button
-        if (hasStructuralEnzymes)
+        if (hasStructuralEnzymes && !_portableMode)
         {
             var blockSelectButton = new OptionButton
             {
@@ -340,7 +365,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
         {
             OnSubjectInjectPressed(bufferIndex, subjectInjectButton);
         };
-        buttonsContainer.AddChild(subjectInjectButton);
+        if (!_portableMode)
+            buttonsContainer.AddChild(subjectInjectButton);
 
         if (data.Identifier != null)
         {
@@ -349,7 +375,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             for (var i = 0; i < identifiers.Count; i++)
                 fields.AddItem(Loc.GetString("dna-eu-" + identifiers[i]), i);
             fields.OnItemSelected += args => fields.SelectId(args.Id);
-            var applyField = new Button { Text = Loc.GetString("dna-eu-apply-block") };
+            var applyField = new Button { Text = Loc.GetString("dna-eu-apply-block"), Visible = !_portableMode };
             applyField.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticBufferAppearanceMessage(bufferIndex, identifiers[fields.SelectedId]));
             bufferContainer.AddChild(new BoxContainer { Children = { fields, applyField } });
         }

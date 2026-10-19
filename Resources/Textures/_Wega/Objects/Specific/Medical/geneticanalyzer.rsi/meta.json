@@ -9,18 +9,7 @@
     "states": [
         {
             "name": "analyzer",
-            "delays": [
-                [
-                    0.1,
-                    0.1,
-                    0.1,
-                    0.1,
-                    0.1,
-                    0.1,
-                    0.1,
-                    0.1
-                ]
-            ]
+            "delays": [[0.1, 0.1, 0.1, 0.1, 0.1]]
         },
         {
             "name": "analyzer-inhand-left",
