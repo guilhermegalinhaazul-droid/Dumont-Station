@@ -124,9 +124,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         SubjectSE1.Visible = !state.Portable;
         SubjectSE2.Visible = !state.Portable;
         SubjectSE3.Visible = !state.Portable;
-        var console = _entManager.GetEntity(_console);
-
-
         // Upper state
 
 
@@ -136,8 +133,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             StatusLabel.Text = state.ScannerBodyStatus;
             SpeciesLabel.Text = string.IsNullOrWhiteSpace(state.ScannerSpecies) ? Loc.GetString("dna-modifier-no-data") : state.ScannerSpecies;
             EjectButton.Disabled = false;
-            AppearancePreview.Visible = state.ScannerBody is not null;
-            if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
+            AppearancePreview.Visible = state.ScannerBody is not null && !state.Portable;
+            if (!state.Portable && state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
                 SetScannerPreview(bodyUid);
         }
         else
