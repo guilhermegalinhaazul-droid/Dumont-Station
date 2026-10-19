@@ -196,8 +196,7 @@ public sealed partial class DnaModifierWindow
         var group = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            HorizontalExpand = true,
-            Disabled = _portableMode
+            HorizontalExpand = true
         };
         var colorControls = new Dictionary<string, Slider>();
         var colorGroups = new HashSet<string>(StringComparer.Ordinal);
@@ -259,7 +258,8 @@ public sealed partial class DnaModifierWindow
                 {
                     MinSize = new Vector2(220, 64),
                     MaxSize = new Vector2(220, 96),
-                    Margin = new Thickness(15, 0, 0, 0)
+                    Margin = new Thickness(15, 0, 0, 0),
+                    MouseFilter = _portableMode ? MouseFilterMode.Ignore : MouseFilterMode.Pass
                 };
                 var selectedValue = markings.Count > 0 ? markings[0] : string.Empty;
                 foreach (var id in markings)
@@ -288,7 +288,8 @@ public sealed partial class DnaModifierWindow
                     MinWidth = 220,
                     MaxWidth = 220,
                     SetWidth = 220,
-                    Margin = new Thickness(15, 0, 0, 0)
+                    Margin = new Thickness(15, 0, 0, 0),
+                    Disabled = _portableMode
                 };
                 options.AddItem(Loc.GetString("dna-eu-female"), 0);
                 options.AddItem(Loc.GetString("dna-eu-male"), 1);
@@ -314,7 +315,8 @@ public sealed partial class DnaModifierWindow
                     MinWidth = 220,
                     MaxWidth = 220,
                     SetWidth = 220,
-                    Margin = new Thickness(15, 0, 0, 0)
+                    Margin = new Thickness(15, 0, 0, 0),
+                    Editable = !_portableMode
                 };
                 input.Text = state.ScannerBodyInfo ?? string.Empty;
                 selected = () => input.Text;
@@ -338,6 +340,7 @@ public sealed partial class DnaModifierWindow
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
                     Margin = new Thickness(15, 0, 0, 0),
+                    Disabled = _portableMode,
                 };
                 var value = new Label
                 {
@@ -379,7 +382,8 @@ public sealed partial class DnaModifierWindow
                     // Keep the sequence control separated from the value
                     // column without compressing the characteristic label.
                     // Shift only the EU action-button column to the right.
-                    Margin = new Thickness(20, 0, 0, 0)
+                    Margin = new Thickness(20, 0, 0, 0),
+                    Disabled = _portableMode
                 };
                 if (IsRgbColorField(field))
                 {
