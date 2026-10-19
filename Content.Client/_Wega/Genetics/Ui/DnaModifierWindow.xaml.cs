@@ -115,6 +115,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         SubjectUI1.Visible = true;
         SubjectUI2.Visible = true;
         SubjectUI3.Visible = true;
+        SubjectUI1.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
+        SubjectUI2.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
+        SubjectUI3.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
         SubjectUISE1.Visible = !state.Portable;
         SubjectUISE2.Visible = !state.Portable;
         SubjectUISE3.Visible = !state.Portable;
