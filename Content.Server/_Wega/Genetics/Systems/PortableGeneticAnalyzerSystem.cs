@@ -6,6 +6,7 @@ using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
 using Content.Shared.Interaction;
 using Content.Shared.Forensics.Components;
+using Content.Shared.DoAfter;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.UserInterface;
@@ -23,6 +24,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 {
     [Dependency] private readonly DnaClientSystem _dnaClient = default!;
     [Dependency] private readonly DnaModifierSystem _dnaModifier = default!;
+    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly SharedDnaModifierSystem _sharedDna = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
@@ -31,6 +33,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     public override void Initialize()
     {
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, AfterInteractEvent>(OnAfterInteract);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, PortableGeneticAnalyzerDoAfterEvent>(OnScanComplete);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, AfterActivatableUIOpenEvent>(OnOpen);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, ItemSlotButtonPressedEvent>(OnSlotPressed);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleSaveServerEvent>(OnSave);
@@ -44,10 +47,26 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         if (args.Handled || !args.CanReach || args.Target is not { } target || !HasComp<DnaModifierComponent>(target))
             return;
 
-        ent.Comp.Target = target;
+        if (!_doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, TimeSpan.FromSeconds(0.8),
+                new PortableGeneticAnalyzerDoAfterEvent(), ent.Owner, target: target)
+            {
+                NeedHand = true,
+                BreakOnMove = true,
+                BreakOnDamage = true,
+            }))
+            return;
+
+        args.Handled = true;
+    }
+
+    private void OnScanComplete(Entity<PortableGeneticAnalyzerComponent> ent, ref PortableGeneticAnalyzerDoAfterEvent args)
+    {
+        if (args.Cancelled || !args.Target.HasValue || !HasComp<DnaModifierComponent>(args.Target.Value))
+            return;
+
+        ent.Comp.Target = args.Target.Value;
         Update(ent.Owner);
         _ui.OpenUi(ent.Owner, DnaModifierUiKey.Portable, args.User);
-        args.Handled = true;
     }
 
     private void OnOpen(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterActivatableUIOpenEvent args)
