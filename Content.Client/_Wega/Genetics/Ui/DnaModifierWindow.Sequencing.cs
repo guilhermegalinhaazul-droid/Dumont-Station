@@ -767,6 +767,18 @@ public sealed partial class DnaModifierWindow
         });
 
         var known = state.Genes.Where(g => g.Discovered).ToList();
+        if (known.Count < 2)
+        {
+            // Do not present empty selectors before the round has revealed
+            // enough genes to make a combination possible.
+            CombineContainer.AddChild(new Label
+            {
+                Text = Loc.GetString("dna-combine-requires-discovered"),
+                StyleClasses = { "LabelSubText" }
+            });
+            return;
+        }
+
         var first = new OptionButton();
         var second = new OptionButton();
         first.MinWidth = 250;

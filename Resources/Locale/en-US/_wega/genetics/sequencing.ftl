@@ -21,6 +21,7 @@ dna-eu-female = Female
 dna-eu-male = Male
 dna-eu-neuter = Unsexed
 dna-combine-instructions = Choose two discovered genes. Sequence the result to identify it.
+dna-combine-requires-discovered = Discover at least two genes to unlock combinations.
 dna-combine-failed = No new combination is available for these genes.
 dna-combine-success = Combination applied to gene { $number }. Sequence it to identify.
 dna-eu-HairColorR = Hair Color R

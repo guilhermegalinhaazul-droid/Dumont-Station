@@ -16,6 +16,7 @@ dna-eu-female = Feminino
 dna-eu-male = Masculino
 dna-eu-neuter = Assexuado
 dna-combine-instructions = Selecione dois genes descobertos. O resultado precisa ser sequenciado para ser identificado.
+dna-combine-requires-discovered = Descubra pelo menos dois genes para liberar a combinação.
 dna-combine-title = Combinação genética
 dna-combine-first = Primeiro gene
 dna-combine-second = Segundo gene
