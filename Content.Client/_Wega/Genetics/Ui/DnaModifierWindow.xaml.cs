@@ -86,7 +86,10 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
     public void ConfigurePortable(bool portable)
     {
-        Tabs.SetTabTitle(1, portable ? string.Empty : Loc.GetString("dna-modifier-tab-se"));
+        // The portable analyzer still exposes the read-only structural-gene
+        // page. Keep its tab label visible; only the editing heading inside
+        // the page is hidden for portable mode.
+        Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         CombineContainer.Visible = !portable;
         RejuvenatorContainer.Visible = !portable;
         Tabs.SetTabVisible(2, !portable);
