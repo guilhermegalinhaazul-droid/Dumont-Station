@@ -52,7 +52,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private void OnAfterInteract(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach || args.Target is not { } target || !HasComp<DnaModifierComponent>(target))
+        if (args.Handled || !args.CanReach || args.Target is not { } target || !HasDnaSample(target))
             return;
 
         if (!_doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, TimeSpan.FromSeconds(0.8),
@@ -69,7 +69,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private void OnScanComplete(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaInjectorDoAfterEvent args)
     {
-        if (args.Cancelled || !args.Target.HasValue || !HasComp<DnaModifierComponent>(args.Target.Value))
+        if (args.Cancelled || !args.Target.HasValue || !HasDnaSample(args.Target.Value))
             return;
 
         ent.Comp.Target = args.Target.Value;
@@ -100,6 +100,30 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             return false;
         target = (targetUid, dna);
         return true;
+    }
+
+    private bool HasDnaSample(EntityUid uid)
+        => HasComp<DnaModifierComponent>(uid) || HasComp<DnaComponent>(uid) ||
+           (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0);
+
+    private bool TryGetSampleDna(EntityUid uid, out string dna)
+    {
+        if (TryComp<DnaComponent>(uid, out var direct) && !string.IsNullOrWhiteSpace(direct.DNA))
+        {
+            dna = direct.DNA;
+            return true;
+        }
+
+        if (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0)
+        {
+            // Gibbed organs and blood traces retain the source DNA in the
+            // forensics record. Prefer the newest trace when several exist.
+            dna = forensics.DNAs.OrderByDescending(entry => entry.Item2).First().Item1;
+            return !string.IsNullOrWhiteSpace(dna);
+        }
+
+        dna = string.Empty;
+        return false;
     }
 
     private void OnSave(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleSaveServerEvent args)
@@ -192,6 +216,13 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
                 species = humanoid.Species.ToString();
             if (TryComp<DnaComponent>(scanned, out var dnaComp))
                 dna = GeneticSequence.ToNitrogenBases(dnaComp.DNA ?? string.Empty);
+        }
+        else if (TryComp<PortableGeneticAnalyzerComponent>(analyzer, out var portable) &&
+                 portable.Target is { } sample && TryGetSampleDna(sample, out var sampleDna))
+        {
+            target = sample;
+            name = MetaData(sample).EntityName;
+            dna = GeneticSequence.ToNitrogenBases(sampleDna);
         }
 
         var genes = new List<GeneticGeneState>();
