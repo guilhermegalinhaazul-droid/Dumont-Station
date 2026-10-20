@@ -51,6 +51,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabTitle(2, Loc.GetString("dna-tab-combine"));
         Tabs.SetTabTitle(3, Loc.GetString("dna-modifier-tab-transfer"));
         Tabs.SetTabTitle(4, Loc.GetString("dna-modifier-tab-rejuvenator"));
+        Tabs.OnTabChanged += _ => RefreshTabsLayout();
 
         InitializeSequencingUi();
         EjectButton.OnPressed += _ => OnGeneticMessage?.Invoke(new DnaModifierConsoleEjectEvent(_console));
@@ -92,9 +93,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabVisible(4, !portable);
         if (portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
             Tabs.CurrentTab = 1;
-        SyncTabContentVisibility();
-        Tabs.InvalidateMeasure();
-        Tabs.InvalidateArrange();
+        RefreshTabsLayout();
     }
 
     private void SyncTabContentVisibility()
@@ -103,13 +102,19 @@ public sealed partial class DnaModifierWindow : FancyWindow
             Tabs.GetChild(i).Visible = i == Tabs.CurrentTab;
     }
 
+    private void RefreshTabsLayout()
+    {
+        SyncTabContentVisibility();
+        Tabs.InvalidateMeasure();
+        Tabs.InvalidateArrange();
+    }
+
     public void UpdateState(DnaModifierBoundUserInterfaceState state)
     {
         _lastUpdate = state;
         _console = state.Console;
         _portableMode = state.Portable;
         ConfigurePortable(state.Portable);
-        SyncTabContentVisibility();
         StructuralTitleLabel.Visible = !state.Portable;
         TransferContainer.Visible = true;
         EjectButton.Visible = !state.Portable;
@@ -175,6 +180,10 @@ public sealed partial class DnaModifierWindow : FancyWindow
             : null;
 
         UpdateSequencingUi(state);
+        // Sequencing may change the selected page. Re-assert the invariant
+        // after all state-driven controls have been updated so an old page
+        // cannot remain painted over the active tab.
+        RefreshTabsLayout();
 
         // Buffer & Disk
         // Rebuild only when the samples actually changed. Recreating the
