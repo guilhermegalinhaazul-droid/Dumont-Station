@@ -69,9 +69,9 @@
         <Label Name="GeneticStatusLabel" Margin="10 0"/>
 
         <!-- Нижняя часть окна -->
-        <BoxContainer Orientation="Vertical" VerticalExpand="False" Margin="10" MinHeight="500">
-            <ScrollContainer Name="Scroll" HScrollEnabled="False" VerticalExpand="True">
-                <TabContainer Name="Tabs" Margin="5 5 7 5">
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="10" MinHeight="500">
+            <ScrollContainer Name="Scroll" HScrollEnabled="False" HorizontalExpand="True" VerticalExpand="True">
+                <TabContainer Name="Tabs" HorizontalExpand="True" VerticalExpand="True" Margin="5 5 7 5">
                     <!-- Вкладка Modify U.I. -->
                     <BoxContainer Name="TransferContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
                         <Label Text="{Loc 'dna-modifier-box-ui'}" StyleClasses="LabelBig"/>
