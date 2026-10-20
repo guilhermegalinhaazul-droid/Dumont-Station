@@ -209,6 +209,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             InitializeBufferData(state.Buffers);
         }
 
+        UpdateSubjectSaveButtons(state);
+
         EjectButtonDisk.Disabled = state.HasDisk ? false : true;
 
         FromDisk1.Disabled = state.HasDisk ? false : true;
@@ -590,6 +592,26 @@ public sealed partial class DnaModifierWindow : FancyWindow
             SubjectUI3.Disabled = true;
             SubjectUISE3.Disabled = true;
             SubjectSE3.Disabled = true;
+        }
+    }
+
+    private void UpdateSubjectSaveButtons(DnaModifierBoundUserInterfaceState state)
+    {
+        var hasSubject = !string.IsNullOrWhiteSpace(state.ScannerBodyInfo);
+        for (var index = 1; index <= 3; index++)
+        {
+            var occupied = state.Buffers.TryGetValue(index, out var data) && data != null;
+            var disabled = !hasSubject || occupied;
+            var buttons = index switch
+            {
+                1 => (SubjectUI1, SubjectUISE1, SubjectSE1),
+                2 => (SubjectUI2, SubjectUISE2, SubjectSE2),
+                3 => (SubjectUI3, SubjectUISE3, SubjectSE3),
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+            buttons.Item1.Disabled = disabled;
+            buttons.Item2.Disabled = disabled;
+            buttons.Item3.Disabled = disabled;
         }
     }
     #endregion
