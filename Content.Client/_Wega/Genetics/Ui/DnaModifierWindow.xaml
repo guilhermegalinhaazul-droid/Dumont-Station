@@ -88,7 +88,7 @@
 
                     <!-- Вкладка Modify S.E. -->
                     <BoxContainer Name="RejuvenatorContainer" Orientation="Vertical" HorizontalExpand="True" Margin="5" SeparationOverride="10">
-                        <Label Text="{Loc 'dna-modifier-box-se'}" StyleClasses="LabelBig"/>
+                        <Label Name="StructuralTitleLabel" Text="{Loc 'dna-modifier-box-se'}" StyleClasses="LabelBig"/>
                         <PanelContainer Name="SePanel" VerticalExpand="True" MinSize="0 200" Visible="False">
                             <PanelContainer.PanelOverride>
                                 <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />

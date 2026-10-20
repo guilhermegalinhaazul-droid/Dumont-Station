@@ -85,6 +85,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
     public void ConfigurePortable(bool portable)
     {
+        Tabs.SetTabTitle(1, portable ? string.Empty : Loc.GetString("dna-modifier-tab-se"));
         CombineContainer.Visible = !portable;
         RejuvenatorContainer.Visible = !portable;
         Tabs.SetTabVisible(2, !portable);
@@ -109,6 +110,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         _portableMode = state.Portable;
         ConfigurePortable(state.Portable);
         SyncTabContentVisibility();
+        StructuralTitleLabel.Visible = !state.Portable;
         TransferContainer.Visible = true;
         EjectButton.Visible = !state.Portable;
         ClearButton1.Visible = !state.Portable;
