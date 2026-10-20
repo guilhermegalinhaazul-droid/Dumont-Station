@@ -109,18 +109,17 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RenameButton1.Visible = !state.Portable;
         RenameButton2.Visible = !state.Portable;
         RenameButton3.Visible = !state.Portable;
+        // Keep all three sample choices available on the portable analyzer:
+        // unique enzymes, structural enzymes, or both together.
         SubjectUI1.Visible = true;
         SubjectUI2.Visible = true;
         SubjectUI3.Visible = true;
-        SubjectUI1.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
-        SubjectUI2.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
-        SubjectUI3.Text = state.Portable ? "Salvar amostra" : Loc.GetString("dna-modifier-button-subject-ui");
-        SubjectUISE1.Visible = !state.Portable;
-        SubjectUISE2.Visible = !state.Portable;
-        SubjectUISE3.Visible = !state.Portable;
-        SubjectSE1.Visible = !state.Portable;
-        SubjectSE2.Visible = !state.Portable;
-        SubjectSE3.Visible = !state.Portable;
+        SubjectUISE1.Visible = true;
+        SubjectUISE2.Visible = true;
+        SubjectUISE3.Visible = true;
+        SubjectSE1.Visible = true;
+        SubjectSE2.Visible = true;
+        SubjectSE3.Visible = true;
         // Upper state
 
 
@@ -130,8 +129,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
             StatusLabel.Text = state.ScannerBodyStatus;
             SpeciesLabel.Text = string.IsNullOrWhiteSpace(state.ScannerSpecies) ? Loc.GetString("dna-modifier-no-data") : state.ScannerSpecies;
             EjectButton.Disabled = false;
-            AppearancePreview.Visible = state.ScannerBody is not null && !state.Portable;
-            if (!state.Portable && state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
+            AppearancePreview.Visible = state.ScannerBody is not null;
+            if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
                 SetScannerPreview(bodyUid);
         }
         else
