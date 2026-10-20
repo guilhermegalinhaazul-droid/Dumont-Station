@@ -82,20 +82,26 @@ public sealed partial class DnaModifierWindow : FancyWindow
     }
 
     private DnaModifierBoundUserInterfaceState? _lastUpdate;
+
+    public void ConfigurePortable(bool portable)
+    {
+        CombineContainer.Visible = !portable;
+        RejuvenatorContainer.Visible = !portable;
+        Tabs.SetTabVisible(2, !portable);
+        Tabs.SetTabVisible(4, !portable);
+        if (portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
+            Tabs.CurrentTab = 1;
+        Tabs.InvalidateMeasure();
+        Tabs.InvalidateArrange();
+    }
+
     public void UpdateState(DnaModifierBoundUserInterfaceState state)
     {
         _lastUpdate = state;
         _console = state.Console;
         _portableMode = state.Portable;
-        CombineContainer.Visible = !state.Portable;
+        ConfigurePortable(state.Portable);
         TransferContainer.Visible = true;
-        RejuvenatorContainer.Visible = !state.Portable;
-        Tabs.SetTabVisible(2, !state.Portable);
-        Tabs.SetTabVisible(4, !state.Portable);
-        if (state.Portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
-            Tabs.CurrentTab = 1;
-        Tabs.InvalidateMeasure();
-        Tabs.InvalidateArrange();
         EjectButton.Visible = !state.Portable;
         ClearButton1.Visible = !state.Portable;
         ClearButton2.Visible = !state.Portable;

@@ -25,6 +25,7 @@ public sealed class DnaModifierBoundUserInterface : BoundUserInterface
         base.Open();
 
         _window = this.CreateWindow<DnaModifierWindow>();
+        _window.ConfigurePortable(UiKey is DnaModifierUiKey.Portable);
 
         _window.OnGeneticMessage += SendMessage;
 
