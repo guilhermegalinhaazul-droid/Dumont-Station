@@ -134,8 +134,11 @@ public sealed partial class DnaModifierWindow
                 // Keep the gene name button directly beside its block number.
                 row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
-                name.Disabled = gene.Discovered;
-                name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
+                // The portable analyzer is a read-only gap viewer. It must
+                // never open the sequencing puzzle or submit a gene.
+                name.Disabled = state.Portable || gene.Discovered;
+                if (!state.Portable)
+                    name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button
                 {
@@ -171,6 +174,8 @@ public sealed partial class DnaModifierWindow
                 BuildAppearanceGroup(_appearanceEditor, group, state);
             }
         }
+        if (state.Portable)
+            state.Puzzle = null;
         if (_puzzleToken == state.Puzzle?.Token)
             return; // Periodic UI updates must not erase the player's answers.
         _puzzleToken = state.Puzzle?.Token;

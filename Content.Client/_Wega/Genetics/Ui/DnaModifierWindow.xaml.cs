@@ -159,22 +159,15 @@ public sealed partial class DnaModifierWindow : FancyWindow
         UpdateSequencingUi(state);
 
         // Buffer & Disk
-        if (!_initializedBuffer)
-        {
-            BufferContainer1.RemoveAllChildren();
-            BufferContainer2.RemoveAllChildren();
-            BufferContainer3.RemoveAllChildren();
-            InitializeBufferData(state.Buffers);
-        }
-        else if (_updateBuffer)
-        {
-            _updateBuffer = false;
-            _initializedBuffer = false;
-            BufferContainer1.RemoveAllChildren();
-            BufferContainer2.RemoveAllChildren();
-            BufferContainer3.RemoveAllChildren();
-            InitializeBufferData(state.Buffers);
-        }
+        // Rebuild each state atomically. A save can send a server update
+        // before the local click flag is consumed, otherwise old controls
+        // remain attached and duplicate the portable view.
+        BufferContainer1.RemoveAllChildren();
+        BufferContainer2.RemoveAllChildren();
+        BufferContainer3.RemoveAllChildren();
+        _initializedBuffer = false;
+        _updateBuffer = false;
+        InitializeBufferData(state.Buffers);
 
         EjectButtonDisk.Disabled = state.HasDisk ? false : true;
 

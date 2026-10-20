@@ -11,6 +11,8 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Genetics.System;
@@ -30,6 +32,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly DnaModifierConsoleSystem _sequencing = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
@@ -44,8 +47,6 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportOnDiskEvent>(OnExportToDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportFromDiskEvent>(OnExportFromDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearDiskEvent>(OnClearDisk);
-        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, GeneticSelectMessage>(OnSelectGene);
-        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, GeneticSubmitMessage>(OnSubmitGene);
     }
 
     private void OnAfterInteract(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterInteractEvent args)
@@ -71,6 +72,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             return;
 
         ent.Comp.Target = args.Target.Value;
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Items/Medical/healthscanner.ogg"), ent.Owner);
         Update(ent.Owner);
         _ui.OpenUi(ent.Owner, DnaModifierUiKey.Portable, args.User);
     }
@@ -226,8 +228,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             target is { } body ? GetNetEntity(body) : null, portable: true)
         {
             Genes = genes,
-            AppearanceFields = appearanceFields,
-            Puzzle = _sequencing.GetPortablePuzzle(analyzer, target)
+            AppearanceFields = appearanceFields
         };
     }
 }
