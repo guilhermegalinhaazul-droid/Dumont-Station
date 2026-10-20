@@ -34,6 +34,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
     private TimeSpan? _subjectInjectCooldown;
     private bool _initializedBuffer = false;
     private bool _updateBuffer = false;
+    private string _bufferSignature = string.Empty;
     private bool _portableMode;
     private NetEntity _console;
 
@@ -93,6 +94,8 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabVisible(4, !state.Portable);
         if (state.Portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
             Tabs.CurrentTab = 1;
+        Tabs.InvalidateMeasure();
+        Tabs.InvalidateArrange();
         EjectButton.Visible = !state.Portable;
         ClearButton1.Visible = !state.Portable;
         ClearButton2.Visible = !state.Portable;
@@ -159,15 +162,25 @@ public sealed partial class DnaModifierWindow : FancyWindow
         UpdateSequencingUi(state);
 
         // Buffer & Disk
-        // Rebuild each state atomically. A save can send a server update
-        // before the local click flag is consumed, otherwise old controls
-        // remain attached and duplicate the portable view.
-        BufferContainer1.RemoveAllChildren();
-        BufferContainer2.RemoveAllChildren();
-        BufferContainer3.RemoveAllChildren();
-        _initializedBuffer = false;
-        _updateBuffer = false;
-        InitializeBufferData(state.Buffers);
+        // Rebuild only when the samples actually changed. Recreating the
+        // buffer controls for every state update races TabContainer's measure
+        // pass and makes the unique-enzyme page draw over the buffer page.
+        var bufferSignature = string.Join("|", Enumerable.Range(1, 3).Select(index =>
+        {
+            if (!state.Buffers.TryGetValue(index, out var data) || data == null)
+                return $"{index}:empty";
+            return $"{index}:{data.SampleName}:{data.Identifier != null}:{data.Info?.Count ?? 0}";
+        }));
+        if (!_initializedBuffer || _updateBuffer || _bufferSignature != bufferSignature)
+        {
+            _bufferSignature = bufferSignature;
+            _updateBuffer = false;
+            BufferContainer1.RemoveAllChildren();
+            BufferContainer2.RemoveAllChildren();
+            BufferContainer3.RemoveAllChildren();
+            _initializedBuffer = false;
+            InitializeBufferData(state.Buffers);
+        }
 
         EjectButtonDisk.Disabled = state.HasDisk ? false : true;
 
