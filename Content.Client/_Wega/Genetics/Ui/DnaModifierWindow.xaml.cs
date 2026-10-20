@@ -91,8 +91,15 @@ public sealed partial class DnaModifierWindow : FancyWindow
         Tabs.SetTabVisible(4, !portable);
         if (portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
             Tabs.CurrentTab = 1;
+        SyncTabContentVisibility();
         Tabs.InvalidateMeasure();
         Tabs.InvalidateArrange();
+    }
+
+    private void SyncTabContentVisibility()
+    {
+        for (var i = 0; i < Tabs.ChildCount; i++)
+            Tabs.GetChild(i).Visible = i == Tabs.CurrentTab;
     }
 
     public void UpdateState(DnaModifierBoundUserInterfaceState state)
@@ -101,6 +108,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         _console = state.Console;
         _portableMode = state.Portable;
         ConfigurePortable(state.Portable);
+        SyncTabContentVisibility();
         TransferContainer.Visible = true;
         EjectButton.Visible = !state.Portable;
         ClearButton1.Visible = !state.Portable;
