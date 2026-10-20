@@ -47,6 +47,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportOnDiskEvent>(OnExportToDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportFromDiskEvent>(OnExportFromDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearDiskEvent>(OnClearDisk);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, GeneticSelectMessage>(OnSelectGene);
     }
 
     private void OnAfterInteract(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterInteractEvent args)
@@ -229,6 +230,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         {
             Genes = genes,
             AppearanceFields = appearanceFields
+            ,Puzzle = _sequencing.GetPortablePuzzle(analyzer, target)
         };
     }
 }

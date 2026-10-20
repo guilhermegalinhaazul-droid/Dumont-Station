@@ -142,6 +142,7 @@ public sealed class GeneticPuzzleState
     public string Title = string.Empty;
     public string Original = string.Empty;
     public bool Appearance;
+    public bool ReadOnly;
 }
 
 [Serializable, NetSerializable]

@@ -116,7 +116,13 @@ public sealed partial class DnaModifierConsoleSystem
             User = user,
             Gene = id,
             Answer = answer,
-            State = new GeneticPuzzleState { Token = ++_sequenceToken, Title = $"{gene.Order} — ???", Original = clue }
+            State = new GeneticPuzzleState
+            {
+                Token = ++_sequenceToken,
+                Title = $"{gene.Order} — ???",
+                Original = clue,
+                ReadOnly = true
+            }
         };
     }
 
