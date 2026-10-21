@@ -1,5 +1,9 @@
 using System.Linq;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.Components.SolutionManager;
+using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
@@ -33,6 +37,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly DnaModifierConsoleSystem _sequencing = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
 
     public override void Initialize()
     {
@@ -74,8 +79,11 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
         ent.Comp.Target = args.Target.Value;
         _audio.PlayPvs(new SoundPathSpecifier("/Audio/Items/Medical/healthscanner.ogg"), ent.Owner);
-        Update(ent.Owner);
         _ui.OpenUi(ent.Owner, DnaModifierUiKey.Portable, args.User);
+        // Open the UI first, then send the state for the newly scanned target.
+        // Updating before OpenUi is a no-op on the first scan and can leave the
+        // client displaying the previous target until it is scanned twice.
+        Update(ent.Owner);
     }
 
     private void OnOpen(Entity<PortableGeneticAnalyzerComponent> ent, ref AfterActivatableUIOpenEvent args)
@@ -104,7 +112,27 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private bool HasDnaSample(EntityUid uid)
         => HasComp<DnaModifierComponent>(uid) || HasComp<DnaComponent>(uid) ||
-           (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0);
+           (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0) ||
+           HasDnaInSolutions(uid);
+
+    private bool HasDnaInSolutions(EntityUid uid)
+    {
+        if (!TryComp<SolutionContainerManagerComponent>(uid, out var manager))
+            return false;
+
+        foreach (var containerName in manager.Containers)
+        {
+            if (!_solutions.TryGetSolution(uid, containerName, out _, out var solution))
+                continue;
+            foreach (var reagent in solution.Solution.Contents)
+            {
+                if (reagent.Reagent.Data?.OfType<DnaData>().Any() == true)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
     private bool TryGetSampleDna(EntityUid uid, out string dna)
     {
@@ -122,6 +150,24 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             return !string.IsNullOrWhiteSpace(dna);
         }
 
+        if (TryComp<SolutionContainerManagerComponent>(uid, out var manager))
+        {
+            foreach (var containerName in manager.Containers)
+            {
+                if (!_solutions.TryGetSolution(uid, containerName, out _, out var solution))
+                    continue;
+                foreach (var reagent in solution.Solution.Contents)
+                {
+                    var sample = reagent.Reagent.Data?.OfType<DnaData>().FirstOrDefault();
+                    if (sample is not null && !string.IsNullOrWhiteSpace(sample.DNA))
+                    {
+                        dna = sample.DNA;
+                        return true;
+                    }
+                }
+            }
+        }
+
         dna = string.Empty;
         return false;
     }
@@ -132,12 +178,22 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             !TryComp<DnaClientComponent>(ent.Owner, out var client))
             return;
 
-        var data = new EnzymeInfo
+        var data = new EnzymeInfo { SampleName = MetaData(target).EntityName };
+        switch (args.CurrentType)
         {
-            SampleName = MetaData(target).EntityName,
-            Identifier = _dnaModifier.CloneUniqueIdentifiers(target.Comp.UniqueIdentifiers),
-            Info = _dnaModifier.CloneEnzymesPrototypes(target.Comp.EnzymesPrototypes)
-        };
+            case 1: // EU only
+                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(target.Comp.UniqueIdentifiers);
+                break;
+            case 2: // EU + EE
+                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(target.Comp.UniqueIdentifiers);
+                data.Info = _dnaModifier.CloneEnzymesPrototypes(target.Comp.EnzymesPrototypes);
+                break;
+            case 3: // EE only
+                data.Info = _dnaModifier.CloneEnzymesPrototypes(target.Comp.EnzymesPrototypes);
+                break;
+            default:
+                return;
+        }
         _dnaClient.TryAddToBuffer((ent.Owner, client), args.CurrentSection, data);
         Update(ent.Owner);
     }
