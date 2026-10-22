@@ -199,6 +199,8 @@ public sealed class BloodstreamSystem : SharedBloodstreamSystem
         else
             dnaData.DNA = Loc.GetString("forensics-dna-unknown");
 
+        dnaData.GeneticSample = DnaModifier.CreateGeneticSample(uid);
+
         bloodData.Add(dnaData);
 
         return bloodData;

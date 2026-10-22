@@ -12,6 +12,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Polymorph;
 using Content.Shared.Popups;
 using Content.Shared.StatusEffectNew;
+using Content.Shared.Genetics;
 using Robust.Shared.Containers;
 using Robust.Shared.Random;
 using System.Text;
@@ -211,21 +212,12 @@ public sealed partial class MutationSystem : EntitySystem
     }
 
     private LocId? InstabilityPopup(int instability)
-        => instability switch
+        => GeneticsInstabilityRules.Stage(instability) switch
         {
-            // 0-10
-            < 10 => null,
-            // 10-30
-            < 30 => "genetics-instability-warning-shiver",
-            // 30-40
-            < 40 => "genetics-instability-warning-cold",
-            // 40-60
-            < 60 => "genetics-instability-warning-sick",
-            // 60-80
-            < 80 => "genetics-instability-warning-skin-moving",
-            // 80-100
-            < 100 => "genetics-instability-warning-cells-burning",
-            // 100+
+            0 => null,
+            1 => "genetics-instability-warning-shiver",
+            2 => "genetics-instability-warning-sick",
+            3 => "genetics-instability-warning-skin-moving",
             _ => "genetics-instability-warning-dna-exploding"
         };
 
@@ -707,7 +699,7 @@ public sealed partial class MutationSystem : EntitySystem
         if (instability == 0)
             return;
 
-        ent.Comp.TotalInstability += instability;
+        ent.Comp.TotalInstability = GeneticsInstabilityRules.Add(ent.Comp.TotalInstability, instability);
         DirtyField(ent, ent.Comp, nameof(MutatableComponent.TotalInstability));
 
         if (!automatic && InstabilityPopup(ent.Comp.TotalInstability) is {} key)
@@ -719,7 +711,7 @@ public sealed partial class MutationSystem : EntitySystem
                 _popup.PopupEntity(msg, ent, ent);
         }
 
-        if (ent.Comp.TotalInstability >= ent.Comp.MaxInstability)
+        if (GeneticsInstabilityRules.IsMelting(ent.Comp.TotalInstability, ent.Comp.MaxInstability))
             _status.TrySetStatusEffectDuration(ent.Owner, ent.Comp.MeltingEffect, ent.Comp.MeltDuration);
         else
             _status.TryRemoveStatusEffect(ent.Owner, ent.Comp.MeltingEffect);

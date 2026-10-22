@@ -78,6 +78,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Robust.Shared.Serialization;
+using Content.Shared.Genetics;
 
 namespace Content.Shared.Chemistry.Reagent;
 
@@ -90,11 +91,17 @@ public sealed partial class DnaData : ReagentData
     [DataField] // Goobstation
     public TimeSpan Freshness = TimeSpan.Zero; // Goobstation
 
+    // Preserve the source's genetic profile with blood samples. The forensic
+    // DNA string alone cannot reconstruct genes after the source is removed.
+    [DataField]
+    public EnzymeInfo? GeneticSample;
+
     // Goobstation start - fix solution shallow copy
     public DnaData(DnaData other)
     {
         DNA = other.DNA;
         Freshness = other.Freshness;
+        GeneticSample = other.GeneticSample is null ? null : (EnzymeInfo) other.GeneticSample.Clone();
     }
 
     public override DnaData Clone()

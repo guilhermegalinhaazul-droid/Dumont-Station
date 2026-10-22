@@ -14,6 +14,7 @@
 // SPDX-License-Identifier: MIT
 
 using Robust.Shared.GameStates;
+using Content.Shared.Genetics;
 
 namespace Content.Shared.Forensics.Components // Goob/Einstein Engins - Shared Forensics Component
 {
@@ -28,6 +29,11 @@ namespace Content.Shared.Forensics.Components // Goob/Einstein Engins - Shared F
 
         [DataField, AutoNetworkedField] // Einstein Engines - Network that shit
         public HashSet<(string, TimeSpan)> DNAs = new(); // Goobstation
+
+        // Snapshots by DNA let gibbed organs and forensic traces retain the
+        // donor's genetic profile after the original mob is removed.
+        [DataField]
+        public Dictionary<string, EnzymeInfo> GeneticSamples = new();
 
         [DataField, AutoNetworkedField] // Einstein Engines - Scent Tracking
         public string Scent = String.Empty;

@@ -18,6 +18,7 @@ using Content.Shared.Damage;
 using Content.Shared.Drunk;
 using Content.Shared.Fluids;
 using Content.Shared.Forensics.Components;
+using Content.Shared.Genetics.Systems;
 using Content.Shared.HealthExaminable;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
@@ -47,6 +48,7 @@ public abstract partial class SharedBloodstreamSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageableSystem = default!;
     [Dependency] private readonly SharedDrunkSystem _drunkSystem = default!;
     [Dependency] private readonly SharedStutteringSystem _stutteringSystem = default!;
+    [Dependency] protected readonly SharedDnaModifierSystem DnaModifier = default!;
 
     private float _bloodlossMultiplier = 4f; // Goobstation
 
@@ -619,6 +621,8 @@ public abstract partial class SharedBloodstreamSystem : EntitySystem
         }
         else
             dnaData.DNA = Loc.GetString("forensics-dna-unknown");
+
+        dnaData.GeneticSample = DnaModifier.CreateGeneticSample(uid);
 
         bloodData.Add(dnaData);
 

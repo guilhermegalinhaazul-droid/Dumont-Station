@@ -90,6 +90,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Linq;
 using Content.Server._EinsteinEngines.Forensics.Components;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
@@ -106,6 +107,8 @@ using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.DoAfter;
 using Content.Shared.Forensics;
 using Content.Shared.Forensics.Components;
+using Content.Shared.Genetics;
+using Content.Shared.Genetics.Systems;
 using Content.Shared.Forensics.Systems;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
@@ -123,6 +126,7 @@ namespace Content.Server.Forensics
 {
     public sealed class ForensicsSystem : SharedForensicsSystem
     {
+        [Dependency] private readonly SharedDnaModifierSystem _dnaModifier = default!;
         [Dependency] private readonly IRobustRandom _random = default!;
         [Dependency] private readonly InventorySystem _inventory = default!;
         [Dependency] private readonly DoAfterSystem _doAfterSystem = default!;
@@ -159,6 +163,13 @@ namespace Content.Server.Forensics
                 foreach (var dna in soln) // Goobstation
                 {
                     comp.DNAs.Add(dna);
+                }
+
+                foreach (var reagent in ev.Solution.Contents)
+                foreach (var data in reagent.Reagent.EnsureReagentData().OfType<DnaData>())
+                {
+                    if (data.GeneticSample is not null && !string.IsNullOrWhiteSpace(data.DNA))
+                        comp.GeneticSamples[data.DNA] = (EnzymeInfo) data.GeneticSample.Clone();
                 }
             }
         }
@@ -213,6 +224,8 @@ namespace Content.Server.Forensics
             {
                 var partComp = EnsureComp<ForensicsComponent>(part);
                 partComp.DNAs.Add((dna, TimeSpan.Zero)); // Goobstation
+                if (!string.IsNullOrWhiteSpace(dna) && _dnaModifier.CreateGeneticSample(uid) is { } sample)
+                    partComp.GeneticSamples[dna] = sample;
                 partComp.CanDnaBeCleaned = false;
                 Dirty(part, partComp); // Einstein Engines
             }
@@ -233,6 +246,8 @@ namespace Content.Server.Forensics
                         component.DNAs.RemoveWhere(x => x.Item1 == hitEntityComp.DNA);
 
                         component.DNAs.Add((hitEntityComp.DNA, _timing.CurTime));
+                        if (_dnaModifier.CreateGeneticSample(hitEntity) is { } sample)
+                            component.GeneticSamples[hitEntityComp.DNA] = sample;
                     } // Goobstation End
                 }
             }
@@ -256,6 +271,9 @@ namespace Content.Server.Forensics
             {
                 dest.DNAs.Add(dna);
             }
+
+            foreach (var (dna, sample) in src.GeneticSamples)
+                dest.GeneticSamples[dna] = (EnzymeInfo) sample.Clone();
 
             foreach (var fiber in src.Fibers)
             {
@@ -420,7 +438,10 @@ namespace Content.Server.Forensics
             targetComp.Scent = string.Empty;
 
             if (targetComp.CanDnaBeCleaned)
+            {
                 targetComp.DNAs = new();
+                targetComp.GeneticSamples.Clear();
+            }
 
             // leave behind evidence it was cleaned
             if (TryComp<FiberComponent>(args.Used, out var fiber))
@@ -527,6 +548,8 @@ namespace Content.Server.Forensics
 
             var recipientComp = EnsureComp<ForensicsComponent>(args.Recipient);
             recipientComp.DNAs.Add((component.DNA, TimeSpan.Zero)); // Goobstation
+            if (_dnaModifier.CreateGeneticSample(uid) is { } sample)
+                recipientComp.GeneticSamples[component.DNA] = sample;
             recipientComp.CanDnaBeCleaned = args.CanDnaBeCleaned;
         }
 
@@ -564,6 +587,8 @@ namespace Content.Server.Forensics
             {
                 EnsureComp<ForensicsComponent>(recipient, out var recipientComp);
                 recipientComp.DNAs.Add((donorComp.DNA, TimeSpan.Zero)); // Goobstation
+                if (_dnaModifier.CreateGeneticSample(donor) is { } sample)
+                    recipientComp.GeneticSamples[donorComp.DNA] = sample;
                 recipientComp.CanDnaBeCleaned = canDnaBeCleaned;
             }
         }

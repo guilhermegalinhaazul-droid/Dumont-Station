@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
+using Content.Shared.Genetics;
 using Content.Shared.Humanoid.Markings;
 using Robust.Shared.Random;
 
@@ -9,6 +11,23 @@ public abstract partial class SharedDnaModifierSystem : EntitySystem
 {
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+
+    /// <summary>
+    /// Creates a detached genetic profile suitable for carrying with blood
+    /// and forensic samples.
+    /// </summary>
+    public EnzymeInfo? CreateGeneticSample(EntityUid uid)
+    {
+        if (!TryComp<DnaModifierComponent>(uid, out var modifier))
+            return null;
+
+        return new EnzymeInfo
+        {
+            SampleName = MetaData(uid).EntityName,
+            Identifier = modifier.UniqueIdentifiers?.Clone(modifier.UniqueIdentifiers),
+            Info = modifier.EnzymesPrototypes?.Select(info => (EnzymesPrototypeInfo) info.Clone()).ToList()
+        };
+    }
 
     public void TrySaveInDisk(EntityUid disk, EnzymeInfo enzyme)
     {

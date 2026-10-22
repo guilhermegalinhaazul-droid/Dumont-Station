@@ -111,9 +111,21 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     }
 
     private bool HasDnaSample(EntityUid uid)
-        => HasComp<DnaModifierComponent>(uid) || HasComp<DnaComponent>(uid) ||
-           (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0) ||
-           HasDnaInSolutions(uid);
+    {
+        if (HasComp<DnaModifierComponent>(uid))
+            return true;
+
+        if (TryComp<DnaComponent>(uid, out var direct) && IsUsableDna(direct.DNA))
+            return true;
+
+        if (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Any(entry => IsUsableDna(entry.Item1)))
+            return true;
+
+        return HasDnaInSolutions(uid);
+    }
+
+    private bool IsUsableDna(string? dna)
+        => !string.IsNullOrWhiteSpace(dna) && dna != Loc.GetString("forensics-dna-unknown");
 
     private bool HasDnaInSolutions(EntityUid uid)
     {
@@ -124,9 +136,9 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         {
             if (!_solutions.TryGetSolution(uid, containerName, out _, out var solution))
                 continue;
-            foreach (var reagent in solution.Solution.Contents)
+            foreach (var reagent in solution.Contents)
             {
-                if (reagent.Reagent.Data?.OfType<DnaData>().Any() == true)
+                if (reagent.Reagent.Data?.OfType<DnaData>().Any(data => IsUsableDna(data.DNA)) == true)
                     return true;
             }
         }
@@ -136,18 +148,19 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private bool TryGetSampleDna(EntityUid uid, out string dna)
     {
-        if (TryComp<DnaComponent>(uid, out var direct) && !string.IsNullOrWhiteSpace(direct.DNA))
+        if (TryComp<DnaComponent>(uid, out var direct) && IsUsableDna(direct.DNA))
         {
-            dna = direct.DNA;
+            dna = direct.DNA!;
             return true;
         }
 
-        if (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Count > 0)
+        if (TryComp<ForensicsComponent>(uid, out var forensics) && forensics.DNAs.Any(entry => IsUsableDna(entry.Item1)))
         {
             // Gibbed organs and blood traces retain the source DNA in the
             // forensics record. Prefer the newest trace when several exist.
-            dna = forensics.DNAs.OrderByDescending(entry => entry.Item2).First().Item1;
-            return !string.IsNullOrWhiteSpace(dna);
+            dna = forensics.DNAs.Where(entry => IsUsableDna(entry.Item1))
+                .OrderByDescending(entry => entry.Item2).First().Item1;
+            return true;
         }
 
         if (TryComp<SolutionContainerManagerComponent>(uid, out var manager))
@@ -156,10 +169,10 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             {
                 if (!_solutions.TryGetSolution(uid, containerName, out _, out var solution))
                     continue;
-                foreach (var reagent in solution.Solution.Contents)
+                foreach (var reagent in solution.Contents)
                 {
-                    var sample = reagent.Reagent.Data?.OfType<DnaData>().FirstOrDefault();
-                    if (sample is not null && !string.IsNullOrWhiteSpace(sample.DNA))
+                    var sample = reagent.Reagent.Data?.OfType<DnaData>().FirstOrDefault(data => IsUsableDna(data.DNA));
+                    if (sample is not null)
                     {
                         dna = sample.DNA;
                         return true;
@@ -172,28 +185,117 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         return false;
     }
 
+    private bool TryGetGeneticSample(EntityUid uid, out EnzymeInfo sample, out string dna)
+    {
+        sample = default!;
+        dna = string.Empty;
+
+        if (TryComp<DnaModifierComponent>(uid, out var modifier))
+        {
+            sample = new EnzymeInfo
+            {
+                SampleName = MetaData(uid).EntityName,
+                Identifier = _dnaModifier.CloneUniqueIdentifiers(modifier.UniqueIdentifiers),
+                Info = _dnaModifier.CloneEnzymesPrototypes(modifier.EnzymesPrototypes)
+            };
+            if (TryComp<DnaComponent>(uid, out var directDna) && IsUsableDna(directDna.DNA))
+                dna = directDna.DNA!;
+            return sample.Identifier is not null || sample.Info is { Count: > 0 };
+        }
+
+        if (!TryGetSampleDna(uid, out dna))
+            return false;
+
+        if (TryComp<ForensicsComponent>(uid, out var forensics) &&
+            forensics.GeneticSamples.TryGetValue(dna, out var forensicSample))
+        {
+            sample = (EnzymeInfo) forensicSample.Clone();
+            return true;
+        }
+
+        if (TryGetSolutionGeneticSample(uid, dna, out var solutionSample))
+        {
+            sample = solutionSample;
+            return true;
+        }
+
+        // Older blood and forensic traces only carry the DNA string. If their
+        // source is still present, recover its current Wega profile by DNA.
+        var query = EntityQueryEnumerator<DnaComponent, DnaModifierComponent>();
+        while (query.MoveNext(out var source, out var dnaComp, out var sourceModifier))
+        {
+            if (dnaComp.DNA != dna)
+                continue;
+
+            sample = new EnzymeInfo
+            {
+                SampleName = MetaData(source).EntityName,
+                Identifier = _dnaModifier.CloneUniqueIdentifiers(sourceModifier.UniqueIdentifiers),
+                Info = _dnaModifier.CloneEnzymesPrototypes(sourceModifier.EnzymesPrototypes)
+            };
+            return sample.Identifier is not null || sample.Info is { Count: > 0 };
+        }
+
+        return false;
+    }
+
+    private bool TryGetSolutionGeneticSample(EntityUid uid, string dna, out EnzymeInfo sample)
+    {
+        sample = default!;
+        if (!TryComp<SolutionContainerManagerComponent>(uid, out var manager))
+            return false;
+
+        foreach (var containerName in manager.Containers)
+        {
+            if (!_solutions.TryGetSolution(uid, containerName, out _, out var solution))
+                continue;
+
+            foreach (var reagent in solution.Contents)
+            {
+                var data = reagent.Reagent.Data?.OfType<DnaData>().FirstOrDefault(entry => entry.DNA == dna);
+                if (data?.GeneticSample is null)
+                    continue;
+
+                sample = (EnzymeInfo) data.GeneticSample.Clone();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void OnSave(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleSaveServerEvent args)
     {
-        if (args.CurrentSection is < 1 or > 3 || !TryGetScan(ent.Owner, out var target) ||
+        if (args.CurrentSection is < 1 or > 3 || ent.Comp.Target is not { } targetUid ||
+            !TryGetGeneticSample(targetUid, out var profile, out _) ||
             !TryComp<DnaClientComponent>(ent.Owner, out var client))
             return;
 
-        var data = new EnzymeInfo { SampleName = MetaData(target).EntityName };
+        var data = new EnzymeInfo
+        {
+            SampleName = string.IsNullOrWhiteSpace(profile.SampleName) ? MetaData(targetUid).EntityName : profile.SampleName
+        };
         switch (args.CurrentType)
         {
             case 1: // EU only
-                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(target.Comp.UniqueIdentifiers);
+                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(profile.Identifier);
                 break;
             case 2: // EU + EE
-                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(target.Comp.UniqueIdentifiers);
-                data.Info = _dnaModifier.CloneEnzymesPrototypes(target.Comp.EnzymesPrototypes);
+                data.Identifier = _dnaModifier.CloneUniqueIdentifiers(profile.Identifier);
+                data.Info = _dnaModifier.CloneEnzymesPrototypes(profile.Info);
                 break;
             case 3: // EE only
-                data.Info = _dnaModifier.CloneEnzymesPrototypes(target.Comp.EnzymesPrototypes);
+                data.Info = _dnaModifier.CloneEnzymesPrototypes(profile.Info);
                 break;
             default:
                 return;
         }
+
+        if ((args.CurrentType == 1 && data.Identifier is null) ||
+            (args.CurrentType == 2 && (data.Identifier is null || data.Info is not { Count: > 0 })) ||
+            (args.CurrentType == 3 && data.Info is not { Count: > 0 }))
+            return;
+
         _dnaClient.TryAddToBuffer((ent.Owner, client), args.CurrentSection, data);
         Update(ent.Owner);
     }
@@ -264,13 +366,19 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         if (TryGetScan(analyzer, out var scanned))
         {
             target = scanned.Owner;
-            unique = _dnaModifier.CloneUniqueIdentifiers(scanned.Comp.UniqueIdentifiers);
-            enzymes = _dnaModifier.CloneEnzymesPrototypes(scanned.Comp.EnzymesPrototypes);
             name = MetaData(scanned).EntityName;
+            if (TryGetGeneticSample(scanned.Owner, out var profile, out var scannedDna))
+            {
+                unique = profile.Identifier;
+                enzymes = profile.Info;
+                dna = GeneticSequence.ToNitrogenBases(scannedDna);
+                if (!string.IsNullOrWhiteSpace(profile.SampleName))
+                    name = profile.SampleName;
+            }
             status = string.Empty;
             if (TryComp<HumanoidAppearanceComponent>(scanned, out var humanoid))
                 species = humanoid.Species.ToString();
-            if (TryComp<DnaComponent>(scanned, out var dnaComp))
+            if (string.IsNullOrWhiteSpace(dna) && TryComp<DnaComponent>(scanned, out var dnaComp))
                 dna = GeneticSequence.ToNitrogenBases(dnaComp.DNA ?? string.Empty);
         }
         else if (TryComp<PortableGeneticAnalyzerComponent>(analyzer, out var portable) &&
@@ -279,6 +387,13 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             target = sample;
             name = MetaData(sample).EntityName;
             dna = GeneticSequence.ToNitrogenBases(sampleDna);
+            if (TryGetGeneticSample(sample, out var profile, out _))
+            {
+                unique = profile.Identifier;
+                enzymes = profile.Info;
+                if (!string.IsNullOrWhiteSpace(profile.SampleName))
+                    name = profile.SampleName;
+            }
         }
 
         var genes = new List<GeneticGeneState>();
