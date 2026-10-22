@@ -91,7 +91,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         // the page is hidden for portable mode.
         Tabs.SetTabTitle(1, Loc.GetString("dna-modifier-tab-se"));
         CombineContainer.Visible = !portable;
-        RejuvenatorContainer.Visible = !portable;
         Tabs.SetTabVisible(2, !portable);
         Tabs.SetTabVisible(4, !portable);
         if (portable && (Tabs.CurrentTab == 2 || Tabs.CurrentTab == 4))
@@ -121,9 +120,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         StructuralTitleLabel.Visible = !state.Portable;
         TransferContainer.Visible = true;
         EjectButton.Visible = !state.Portable;
-        ClearButton1.Visible = !state.Portable;
-        ClearButton2.Visible = !state.Portable;
-        ClearButton3.Visible = !state.Portable;
+        ClearButton1.Visible = true;
+        ClearButton2.Visible = true;
+        ClearButton3.Visible = true;
         RenameButton1.Visible = !state.Portable;
         RenameButton2.Visible = !state.Portable;
         RenameButton3.Visible = !state.Portable;
@@ -207,6 +206,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             BufferContainer3.RemoveAllChildren();
             _initializedBuffer = false;
             InitializeBufferData(state.Buffers);
+            RefreshTabsLayout();
         }
 
         UpdateSubjectSaveButtons(state);
@@ -395,7 +395,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         if (!_portableMode)
             buttonsContainer.AddChild(subjectInjectButton);
 
-        if (data.Identifier != null)
+        if (data.Identifier != null && !_portableMode)
         {
             var fields = new OptionButton();
             var identifiers = AppearanceGene.Fields.ToList();
@@ -612,6 +612,18 @@ public sealed partial class DnaModifierWindow : FancyWindow
             buttons.Item1.Disabled = disabled;
             buttons.Item2.Disabled = disabled;
             buttons.Item3.Disabled = disabled;
+
+            if (state.Portable)
+            {
+                var clearButton = index switch
+                {
+                    1 => ClearButton1,
+                    2 => ClearButton2,
+                    3 => ClearButton3,
+                    _ => throw new ArgumentOutOfRangeException(nameof(index))
+                };
+                clearButton.Disabled = !occupied;
+            }
         }
     }
     #endregion

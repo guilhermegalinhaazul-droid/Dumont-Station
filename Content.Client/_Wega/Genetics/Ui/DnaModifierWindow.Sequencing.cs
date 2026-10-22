@@ -136,7 +136,7 @@ public sealed partial class DnaModifierWindow
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
                 // The portable analyzer is a read-only gap viewer. It must
                 // never open the sequencing puzzle or submit a gene.
-                name.Disabled = gene.Discovered;
+                name.Disabled = state.Portable || gene.Discovered;
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button

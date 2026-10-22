@@ -49,6 +49,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, AfterActivatableUIOpenEvent>(OnOpen);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, ItemSlotButtonPressedEvent>(OnSlotPressed);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleSaveServerEvent>(OnSave);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearBufferEvent>(OnClearBuffer);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportOnDiskEvent>(OnExportToDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportFromDiskEvent>(OnExportFromDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearDiskEvent>(OnClearDisk);
@@ -300,6 +301,15 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         Update(ent.Owner);
     }
 
+    private void OnClearBuffer(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleClearBufferEvent args)
+    {
+        if (args.Index is < 1 or > 3 || !TryComp<DnaClientComponent>(ent.Owner, out var client))
+            return;
+
+        _dnaClient.TryClearBuffer((ent.Owner, client), args.Index);
+        Update(ent.Owner);
+    }
+
     private void OnExportToDisk(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleExportOnDiskEvent args)
     {
         if (args.Index is < 1 or > 3 || !TryComp<DnaClientComponent>(ent.Owner, out var client) ||
@@ -423,7 +433,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         var appearanceFields = unique is null
             ? new List<string>()
             : AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
-                AppearanceGene.Get(unique, field)?.Length == 3).ToList();
+                AppearanceGene.Get(unique, field) is { Length: > 0 }).ToList();
 
         return new DnaModifierBoundUserInterfaceState(
             GetNetEntity(analyzer), unique, enzymes, diskData, name, status, dna, species,
