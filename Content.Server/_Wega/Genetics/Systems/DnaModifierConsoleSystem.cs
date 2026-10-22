@@ -669,10 +669,29 @@ namespace Content.Server.Genetics.System
                 || !TryComp<DnaClientComponent>(clientEntity, out var client))
                 return;
 
-            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data) || data.Info == null)
+            if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
                 return;
 
-            var targetBlock = data.Info.FirstOrDefault(e => e.Order == args.CurrentBlock);
+            if (args.AppearanceField is { Length: > 0 } appearanceField)
+            {
+                if (data.Identifier is not { } identifiers || !AppearanceGene.Exists(appearanceField) ||
+                    !AppearanceGene.Fields.Contains(appearanceField) ||
+                    _timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
+                    return;
+
+                var selectedField = new UniqueIdentifiersData { ID = identifiers.ID };
+                if (!AppearanceGene.Copy(identifiers, selectedField, appearanceField))
+                    return;
+
+                _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
+                    selectedField, null, appearanceField);
+                console.LastInjectorTime = _timing.CurTime;
+                PlayClickSound((clientEntity, console));
+                UpdateUserInterface(clientEntity, console);
+                return;
+            }
+
+            var targetBlock = data.Info?.FirstOrDefault(e => e.Order == args.CurrentBlock);
             // A block copied into a buffer is already an explicit laboratory
             // selection. Requiring the round-wide discovery set here made the
             // block injector silently do nothing for saved samples.
@@ -702,14 +721,15 @@ namespace Content.Server.Genetics.System
                 _timing.CurTime < console.LastSubjectInjectTime + console.SubjectInjectCooldown ||
                 !_dnaClient.TryGetBufferData(uid, args.Index, out var data))
                 return;
-            if (data.Identifier is { } appearance)
+            var sample = new EnzymeInfo
             {
-                BeginAppearance(uid, console, subject, args.Actor, appearance, null);
-                _pendingSequences[uid].Structural = data.Info?.Where(g => IsDiscovered(g.EnzymesPrototypeId))
-                    .Select(g => (EnzymesPrototypeInfo) g.Clone()).ToList();
+                Identifier = _dnaModifier.CloneUniqueIdentifiers(data.Identifier),
+                Info = data.Info?.Where(g => IsDiscovered(g.EnzymesPrototypeId))
+                    .Select(g => (EnzymesPrototypeInfo) g.Clone()).ToList()
+            };
+            if (sample.Identifier == null && sample.Info is not { Count: > 0 })
                 return;
-            }
-            var sample = new EnzymeInfo { Info = data.Info?.Where(g => IsDiscovered(g.EnzymesPrototypeId)).ToList() };
+
             _dnaModifier.ChangeDna(subject, sample);
             console.LastSubjectInjectTime = _timing.CurTime;
             PlayClickSound((uid, console));

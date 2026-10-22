@@ -348,7 +348,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
             buttonsContainer.AddChild(new Control { MinWidth = 25 });
         }
 
-        // Injector Button
+        // Each saved sample has one transfer flow: make an injector with the
+        // full sample, choose one EU field or EE block, make a single-item
+        // injector, or apply the sample to the connected subject.
         var injectorButton = new Button
         {
             Name = "InjectorButton",
@@ -359,57 +361,63 @@ public sealed partial class DnaModifierWindow : FancyWindow
         if (!_portableMode)
             buttonsContainer.AddChild(injectorButton);
 
-        // Block Inject Button
-        if (hasStructuralEnzymes && !_portableMode)
+        if (!_portableMode)
         {
-            var blockSelectButton = new OptionButton
+            var selectionButton = new OptionButton
             {
-                MinWidth = 40,
+                MinWidth = 130,
                 StyleClasses = { StyleNano.ButtonOpenRight }
             };
-            foreach (var gene in data.Info!)
-                blockSelectButton.AddItem($"{gene.Order}", gene.Order);
-            // Block order values are not guaranteed to start at one.
-            // Select the first actual block so the generated injector always contains data.
-            blockSelectButton.SelectId(data.Info[0].Order);
-            blockSelectButton.OnItemSelected += args => blockSelectButton.SelectId(args.Id);
+            var selectionById = new Dictionary<int, (int? Block, string? AppearanceField)>();
+            var selectionId = 0;
+            if (hasStructuralEnzymes)
+            {
+                foreach (var gene in data.Info!)
+                {
+                    selectionButton.AddItem($"EE {gene.Order}", selectionId);
+                    selectionById[selectionId++] = (gene.Order, null);
+                }
+            }
+
+            if (data.Identifier is { } identifiers)
+            {
+                foreach (var field in AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
+                             AppearanceGene.Get(identifiers, field) is { Length: > 0 }))
+                {
+                    selectionButton.AddItem($"EU: {Loc.GetString("dna-eu-" + field)}", selectionId);
+                    selectionById[selectionId++] = (null, field);
+                }
+            }
+
+            if (selectionById.Count > 0)
+                selectionButton.SelectId(selectionById.Keys.First());
+            selectionButton.Disabled = selectionById.Count == 0;
+            selectionButton.OnItemSelected += args => selectionButton.SelectId(args.Id);
 
             var injectBlockButton = new Button
             {
                 Text = Loc.GetString("dna-modifier-button-inject-block"),
                 StyleClasses = { StyleNano.ButtonOpenLeft },
-                Disabled = _injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown
+                Disabled = selectionById.Count == 0 ||
+                           (_injectorCooldown.HasValue && _gameTiming.CurTime < _injectorCooldown)
             };
-            injectBlockButton.OnPressed += _ => OnInjectBlockPressed(bufferIndex, injectBlockButton, blockSelectButton.SelectedId);
+            injectBlockButton.OnPressed += _ =>
+            {
+                if (selectionById.TryGetValue(selectionButton.SelectedId, out var selected))
+                    OnInjectBlockPressed(bufferIndex, injectBlockButton, selected.Block ?? 0, selected.AppearanceField);
+            };
 
-            buttonsContainer.AddChild(blockSelectButton);
+            buttonsContainer.AddChild(selectionButton);
             buttonsContainer.AddChild(injectBlockButton);
-        }
 
-        // Subject Inject Button
-        var subjectInjectButton = new Button
-        {
-            Name = "SubjectInjectButton",
-            Text = Loc.GetString("dna-modifier-button-subject-inject"),
-            Disabled = _subjectInjectCooldown.HasValue && _gameTiming.CurTime < _subjectInjectCooldown
-        };
-        subjectInjectButton.OnPressed += _ =>
-        {
-            OnSubjectInjectPressed(bufferIndex, subjectInjectButton);
-        };
-        if (!_portableMode)
+            var subjectInjectButton = new Button
+            {
+                Name = "SubjectInjectButton",
+                Text = Loc.GetString("dna-modifier-button-subject-inject"),
+                Disabled = _subjectInjectCooldown.HasValue && _gameTiming.CurTime < _subjectInjectCooldown
+            };
+            subjectInjectButton.OnPressed += _ => OnSubjectInjectPressed(bufferIndex, subjectInjectButton);
             buttonsContainer.AddChild(subjectInjectButton);
-
-        if (data.Identifier != null && !_portableMode)
-        {
-            var fields = new OptionButton();
-            var identifiers = AppearanceGene.Fields.ToList();
-            for (var i = 0; i < identifiers.Count; i++)
-                fields.AddItem(Loc.GetString("dna-eu-" + identifiers[i]), i);
-            fields.OnItemSelected += args => fields.SelectId(args.Id);
-            var applyField = new Button { Text = Loc.GetString("dna-eu-apply-block"), Visible = !_portableMode };
-            applyField.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticBufferAppearanceMessage(bufferIndex, identifiers[fields.SelectedId]));
-            bufferContainer.AddChild(new BoxContainer { Children = { fields, applyField } });
         }
 
         // Assemble container
@@ -491,12 +499,12 @@ public sealed partial class DnaModifierWindow : FancyWindow
             new DnaModifierConsoleInjectorEvent(_console, index));
     }
 
-    private void OnInjectBlockPressed(int bufferIndex, Button button, int blockId)
+    private void OnInjectBlockPressed(int bufferIndex, Button button, int blockId, string? appearanceField = null)
     {
         _updateBuffer = true;
         button.Disabled = true;
         OnGeneticMessage?.Invoke(
-            new DnaModifierInjectBlockEvent(_console, bufferIndex, blockId));
+            new DnaModifierInjectBlockEvent(_console, bufferIndex, blockId, appearanceField));
     }
 
     private void OnSubjectInjectPressed(int index, Button button)

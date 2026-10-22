@@ -134,9 +134,9 @@ public sealed partial class DnaModifierWindow
                 // Keep the gene name button directly beside its block number.
                 row.AddChild(new Label { Text = $"{gene.Number}", MinWidth = 26 });
                 var name = new GeneNameButton(gene.Name) { ToolTip = gene.Name, SetWidth = 105 };
-                // The portable analyzer is a read-only gap viewer. It must
-                // never open the sequencing puzzle or submit a gene.
-                name.Disabled = state.Portable || gene.Discovered;
+                // Sequencing an unknown gene is a research action; on the
+                // portable analyzer it never activates or edits the scanned target.
+                name.Disabled = gene.Discovered;
                 name.OnPressed += _ => OnGeneticMessage?.Invoke(new GeneticSelectMessage(gene.Number));
                 row.AddChild(name);
                 var toggle = new Button

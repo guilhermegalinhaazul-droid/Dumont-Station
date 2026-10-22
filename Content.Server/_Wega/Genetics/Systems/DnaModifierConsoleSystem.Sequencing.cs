@@ -120,8 +120,7 @@ public sealed partial class DnaModifierConsoleSystem
             {
                 Token = ++_sequenceToken,
                 Title = $"{gene.Order} — ???",
-                Original = clue,
-                ReadOnly = true
+                Original = clue
             }
         };
     }
@@ -135,9 +134,9 @@ public sealed partial class DnaModifierConsoleSystem
         if (!GeneticSequence.Validate(pending.State.Original, answer, pending.Answer))
             return false;
 
-        if (_discoveredGenes.Add(id) && TryComp<DnaModifierComponent>(subjectUid, out var dna) &&
-            dna.EnzymesPrototypes?.FirstOrDefault(g => g.EnzymesPrototypeId == id) is { } gene)
-            _dnaModifier.SetGeneActive((subjectUid, dna), gene, true);
+        // Portable analysis may discover a gene, but it must not mutate the
+        // scanned entity. Activation remains an explicit console operation.
+        _discoveredGenes.Add(id);
         return true;
     }
 

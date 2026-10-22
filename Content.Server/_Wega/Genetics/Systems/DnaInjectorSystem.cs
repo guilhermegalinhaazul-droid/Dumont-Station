@@ -27,7 +27,8 @@ public sealed partial class DnaModifierSystem
         SubscribeLocalEvent<DnaModifierActivateAllComponent, ComponentStartup>(OnActivateAll);
     }
 
-    public void OnFillingInjector(EntityUid injector, UniqueIdentifiersData? uniqueIdentifiers, List<EnzymesPrototypeInfo>? enzymesPrototypes)
+    public void OnFillingInjector(EntityUid injector, UniqueIdentifiersData? uniqueIdentifiers,
+        List<EnzymesPrototypeInfo>? enzymesPrototypes, string? uniqueIdentifierField = null)
     {
         if (!TryComp(injector, out DnaModifierInjectorComponent? comp))
             return;
@@ -42,6 +43,7 @@ public sealed partial class DnaModifierSystem
         comp.EnzymesPrototypes = enzymesPrototypes != null
             ? CloneEnzymesPrototypes(enzymesPrototypes)
             : null;
+        comp.UniqueIdentifierField = uniqueIdentifierField;
 
         Dirty(injector, comp);
     }
@@ -84,7 +86,16 @@ public sealed partial class DnaModifierSystem
 
         if (ent.Comp.UniqueIdentifiers != null)
         {
-            dnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(ent.Comp.UniqueIdentifiers);
+            if (ent.Comp.UniqueIdentifierField is { } field)
+            {
+                if (dnaModifier.UniqueIdentifiers is not { } current ||
+                    !AppearanceGene.Copy(ent.Comp.UniqueIdentifiers, current, field))
+                    return false;
+            }
+            else
+            {
+                dnaModifier.UniqueIdentifiers = CloneUniqueIdentifiers(ent.Comp.UniqueIdentifiers);
+            }
         }
 
         if (ent.Comp.EnzymesPrototypes != null)
