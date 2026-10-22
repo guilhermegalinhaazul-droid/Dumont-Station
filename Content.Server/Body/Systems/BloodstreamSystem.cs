@@ -132,11 +132,14 @@ using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Forensics;
 using Content.Shared.Forensics.Components;
+using Content.Shared.Genetics.Systems;
 
 namespace Content.Server.Body.Systems;
 
 public sealed class BloodstreamSystem : SharedBloodstreamSystem
 {
+    [Dependency] private readonly SharedDnaModifierSystem _dnaModifier = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -189,7 +192,7 @@ public sealed class BloodstreamSystem : SharedBloodstreamSystem
     /// <summary>
     /// Get the reagent data for blood that a specific entity should have.
     /// </summary>
-    public List<ReagentData> GetEntityBloodData(EntityUid uid)
+    public override List<ReagentData> GetEntityBloodData(EntityUid uid)
     {
         var bloodData = new List<ReagentData>();
         var dnaData = new DnaData();
@@ -199,7 +202,7 @@ public sealed class BloodstreamSystem : SharedBloodstreamSystem
         else
             dnaData.DNA = Loc.GetString("forensics-dna-unknown");
 
-        dnaData.GeneticSample = DnaModifier.CreateGeneticSample(uid);
+        dnaData.GeneticSample = _dnaModifier.CreateGeneticSample(uid);
 
         bloodData.Add(dnaData);
 
