@@ -13,11 +13,13 @@ using Content.Shared.Forensics.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Server.Administration;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Player;
 
 namespace Content.Server.Genetics.System;
 
@@ -38,6 +40,8 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
     [Dependency] private readonly DnaModifierConsoleSystem _sequencing = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
+    [Dependency] private readonly QuickDialogSystem _quickDialog = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -50,6 +54,7 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, ItemSlotButtonPressedEvent>(OnSlotPressed);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleSaveServerEvent>(OnSave);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearBufferEvent>(OnClearBuffer);
+        SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleRenameBufferEvent>(OnRenameBuffer);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportOnDiskEvent>(OnExportToDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleExportFromDiskEvent>(OnExportFromDisk);
         SubscribeLocalEvent<PortableGeneticAnalyzerComponent, DnaModifierConsoleClearDiskEvent>(OnClearDisk);
@@ -308,6 +313,34 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
         _dnaClient.TryClearBuffer((ent.Owner, client), args.Index);
         Update(ent.Owner);
+    }
+
+    private void OnRenameBuffer(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleRenameBufferEvent args)
+    {
+        var index = args.Index;
+        var user = args.Actor;
+        var analyzer = ent.Owner;
+        if (index is < 1 or > 3 || !TryComp<DnaClientComponent>(analyzer, out var client) ||
+            !_dnaClient.TryGetBufferData((analyzer, client), index, out var data) ||
+            !TryComp<ActorComponent>(user, out var actor))
+            return;
+
+        _quickDialog.OpenDialog(actor.PlayerSession, Loc.GetString("dna-modifier-button-rename"), "",
+            (string name) =>
+            {
+                var finalName = string.IsNullOrWhiteSpace(name) ? data.SampleName : name;
+                if (!EntityManager.EntityExists(analyzer) || !EntityManager.EntityExists(user))
+                    return;
+
+                var analyzerPosition = _transform.GetWorldPosition(analyzer);
+                var userPosition = _transform.GetWorldPosition(user);
+                if ((userPosition - analyzerPosition).Length() > 3f ||
+                    !TryComp<DnaClientComponent>(analyzer, out var currentClient))
+                    return;
+
+                _dnaClient.TryRenameBuffer((analyzer, currentClient), index, finalName);
+                Update(analyzer);
+            });
     }
 
     private void OnExportToDisk(Entity<PortableGeneticAnalyzerComponent> ent, ref DnaModifierConsoleExportOnDiskEvent args)

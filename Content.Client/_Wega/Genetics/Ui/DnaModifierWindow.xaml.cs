@@ -123,9 +123,9 @@ public sealed partial class DnaModifierWindow : FancyWindow
         ClearButton1.Visible = true;
         ClearButton2.Visible = true;
         ClearButton3.Visible = true;
-        RenameButton1.Visible = !state.Portable;
-        RenameButton2.Visible = !state.Portable;
-        RenameButton3.Visible = !state.Portable;
+        RenameButton1.Visible = true;
+        RenameButton2.Visible = true;
+        RenameButton3.Visible = true;
         // Keep all three sample choices available on the portable analyzer:
         // unique enzymes, structural enzymes, or both together.
         SubjectUI1.Visible = true;
@@ -218,6 +218,11 @@ public sealed partial class DnaModifierWindow : FancyWindow
         FromDisk3.Disabled = state.HasDisk ? false : true;
 
         ClearButtonDisk.Disabled = state.HasDisk ? false : true;
+
+        // The portable analyzer receives its target data before buffer controls
+        // have necessarily been created. Re-run layout after all state-driven
+        // controls are up so the first scan displays the genetics panels.
+        RefreshTabsLayout();
 
 
         UpdateDiskContainer(state.Enzyme);
