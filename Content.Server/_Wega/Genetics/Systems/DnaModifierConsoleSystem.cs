@@ -584,8 +584,13 @@ namespace Content.Server.Genetics.System
             if (dataToSend == null)
                 return;
 
-            if (dataToSend.Identifier != null && scanBody is { } namedSubject)
-                dataToSend.Identifier.EntityName = Name(namedSubject);
+            if (scanBody is { } namedSubject)
+            {
+                var subjectName = Name(namedSubject);
+                dataToSend.SampleName = subjectName;
+                if (dataToSend.Identifier != null)
+                    dataToSend.Identifier.EntityName = subjectName;
+            }
             _dnaClient.TryAddToBuffer((clientEntity, client), args.CurrentSection, dataToSend);
 
             PlayClickSound((GetEntity(args.Uid), console));

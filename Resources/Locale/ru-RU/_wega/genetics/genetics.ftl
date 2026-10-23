@@ -39,7 +39,7 @@ dna-modifier-button-subject-se = СФ субъекта
 
 dna-modifier-button-no-buffer = Буфер данных пуст
 
-dna-modifier-label-sample-name = Субъект:
+dna-modifier-label-sample-name = Имя:
 
 dna-modifier-label-data = Тип данных:
 dna-modifier-label-both-prototypes = Уникальные Идентификаторы и Структурные Ферменты

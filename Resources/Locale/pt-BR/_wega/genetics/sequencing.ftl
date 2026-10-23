@@ -59,6 +59,6 @@ dna-eu-HeadAccessoryStyle = Chifres/acessórios
 dna-eu-HeadMarkingStyle = Marcação da cabeça
 dna-eu-BodyMarkingStyle = Marcação do corpo
 dna-eu-TailMarkingStyle = Estilo da cauda
-dna-eu-EntityName = Nome da entidade
+dna-eu-EntityName = Nome
 dna-sequence-research-reward = Gene descoberto: a pesquisa recebeu { $points } pontos científicos.
 dna-sequence-research-radio = Gene descoberto: { $gene }. A pesquisa recebeu { $points } pontos científicos.

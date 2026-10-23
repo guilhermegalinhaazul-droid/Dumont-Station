@@ -480,10 +480,13 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             // Пол (блок 32)
             uniqueIdentifiers.Gender = humanoid.Sex switch
             {
-                Sex.Female => GenerateTripleHexValues(0x0, 0x5, 0x0, 0x7, 0x0, 0x3), // <= 0x5 <= 0x7 <= 0x3
-                Sex.Male => GenerateTripleHexValues(0x0, 0x7, 0x0, 0x7, 0x0, 0x8), // < 0x8 <= 0x7 < 0x9
-                Sex.Unsexed => GenerateTripleHexValues(0x8, 0xF, 0x7, 0xF, 0x9, 0xF), // >= 0x8 >= 0x7 >= 0x9
-                _ => GenerateRandomHexValues()
+                // Keep each generated sequence inside the matching decoder
+                // range. The previous male range overlapped female, which
+                // classified many male samples as female on injection.
+                Sex.Female => GenerateTripleHexValues(0x0, 0x6, 0x0, 0x8, 0x0, 0x4),
+                Sex.Male => GenerateTripleHexValues(0x6, 0x8, 0x0, 0x8, 0x0, 0x9),
+                Sex.Unsexed => GenerateTripleHexValues(0x8, 0x10, 0x7, 0x10, 0x9, 0x10),
+                _ => GenerateTripleHexValues(0x8, 0x10, 0x7, 0x10, 0x9, 0x10)
             };
 
             component.UniqueIdentifiers = uniqueIdentifiers;
@@ -523,8 +526,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 EyeColorG = GenerateRandomHexValues(),
                 EyeColorB = GenerateRandomHexValues(),
                 Gender = _random.Next(0, 2) == 0
-                    ? GenerateRandomGenderHexValue(0x000, 0x23D) // Женщина
-                    : GenerateRandomGenderHexValue(0x23E, 0x320), // Мужчина
+                    ? GenerateTripleHexValues(0x0, 0x6, 0x0, 0x8, 0x0, 0x4)
+                    : GenerateTripleHexValues(0x6, 0x8, 0x0, 0x8, 0x0, 0x9),
                 HairStyle = GenerateRandomHexValues(),
                 BeardStyle = GenerateRandomHexValues(),
                 HeadAccessoryStyle = empty,

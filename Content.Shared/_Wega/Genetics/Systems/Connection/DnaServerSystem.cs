@@ -58,7 +58,6 @@ public sealed class DnaServerSystem : EntitySystem
         if (!Resolve(server, ref server.Comp))
             return false;
 
-        var sampleName = GenerateSampleName();
         EnzymeInfo? buffer = bufferIndex switch
         {
             1 => server.Comp.Buffer1,
@@ -67,7 +66,8 @@ public sealed class DnaServerSystem : EntitySystem
             _ => null
         };
 
-        data.SampleName = sampleName;
+        if (string.IsNullOrWhiteSpace(data.SampleName))
+            data.SampleName = GenerateSampleName();
 
         if (buffer == null)
         {

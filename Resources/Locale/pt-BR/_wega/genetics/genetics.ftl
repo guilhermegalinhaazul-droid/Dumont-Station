@@ -40,7 +40,7 @@ dna-modifier-button-subject-se = EE do Sujeito
 
 dna-modifier-button-no-buffer = Buffer de Dados Vazio
 
-dna-modifier-label-sample-name = Sujeito:
+dna-modifier-label-sample-name = Nome:
 
 dna-modifier-label-data = Tipo de Dados:
 dna-modifier-label-both-prototypes = Identificadores Únicos e Enzimas Estruturais
