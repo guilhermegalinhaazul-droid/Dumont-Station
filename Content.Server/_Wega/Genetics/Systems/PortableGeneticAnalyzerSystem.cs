@@ -4,6 +4,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Body.Organ;
 using Content.Shared.Genetics;
 using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
@@ -118,6 +119,9 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private bool HasDnaSample(EntityUid uid)
     {
+        if (TryGetOrganDna(uid, out _))
+            return true;
+
         if (HasComp<DnaModifierComponent>(uid))
             return true;
 
@@ -154,6 +158,9 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
 
     private bool TryGetSampleDna(EntityUid uid, out string dna)
     {
+        if (TryGetOrganDna(uid, out dna))
+            return true;
+
         if (TryComp<DnaComponent>(uid, out var direct) && IsUsableDna(direct.DNA))
         {
             dna = direct.DNA!;
@@ -196,6 +203,28 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         sample = default!;
         dna = string.Empty;
 
+        // Prefer the profile snapshotted when the organ was removed. If the
+        // donor is still available, use its direct reference before searching
+        // by DNA, since clones can share a DNA string but have different profiles.
+        if (TryGetOrganDna(uid, out var organDna) && TryComp<OrganComponent>(uid, out var organ))
+        {
+            dna = organDna;
+            if (TryComp<ForensicsComponent>(uid, out var organForensics) &&
+                organForensics.GeneticSamples.TryGetValue(organDna, out var savedOrganSample) &&
+                HasGeneticProfile(savedOrganSample))
+            {
+                sample = (EnzymeInfo) savedOrganSample.Clone();
+                return true;
+            }
+
+            if ((organ.Body ?? organ.OriginalBody) is { } donor &&
+                _dnaModifier.CreateGeneticSample(donor) is { } donorSample && HasGeneticProfile(donorSample))
+            {
+                sample = (EnzymeInfo) donorSample.Clone();
+                return true;
+            }
+        }
+
         if (TryComp<DnaModifierComponent>(uid, out var modifier))
         {
             sample = new EnzymeInfo
@@ -206,7 +235,8 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             };
             if (TryComp<DnaComponent>(uid, out var directDna) && IsUsableDna(directDna.DNA))
                 dna = directDna.DNA!;
-            return sample.Identifier is not null || sample.Info is { Count: > 0 };
+            if (HasGeneticProfile(sample))
+                return true;
         }
 
         if (!TryGetSampleDna(uid, out dna))
@@ -216,7 +246,8 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             forensics.GeneticSamples.TryGetValue(dna, out var forensicSample))
         {
             sample = (EnzymeInfo) forensicSample.Clone();
-            return true;
+            if (HasGeneticProfile(sample))
+                return true;
         }
 
         if (TryGetSolutionGeneticSample(uid, dna, out var solutionSample))
@@ -245,6 +276,24 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
         return false;
     }
 
+    private bool TryGetOrganDna(EntityUid uid, out string dna)
+    {
+        dna = string.Empty;
+        if (!TryComp<OrganComponent>(uid, out var organ))
+            return false;
+
+        var donor = organ.Body ?? organ.OriginalBody;
+        if (donor is not { } donorUid || !EntityManager.EntityExists(donorUid) ||
+            !TryComp<DnaComponent>(donorUid, out var donorDna) || !IsUsableDna(donorDna.DNA))
+            return false;
+
+        dna = donorDna.DNA!;
+        return true;
+    }
+
+    private static bool HasGeneticProfile(EnzymeInfo profile)
+        => profile.Identifier is not null || profile.Info is { Count: > 0 };
+
     private bool TryGetSolutionGeneticSample(EntityUid uid, string dna, out EnzymeInfo sample)
     {
         sample = default!;
@@ -259,10 +308,10 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             foreach (var reagent in solution.Contents)
             {
                 var data = reagent.Reagent.Data?.OfType<DnaData>().FirstOrDefault(entry => entry.DNA == dna);
-                if (data?.GeneticSample is null)
+                if (data?.GeneticSample is not { } geneticSample || !HasGeneticProfile(geneticSample))
                     continue;
 
-                sample = (EnzymeInfo) data.GeneticSample.Clone();
+                sample = (EnzymeInfo) geneticSample.Clone();
                 return true;
             }
         }

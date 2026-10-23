@@ -99,6 +99,7 @@ using Content.Server.Fluids.EntitySystems;
 using Content.Server.Forensics.Components;
 using Content.Server.Popups;
 using Content.Shared.Body.Events;
+using Content.Shared.Body.Organ;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Chemistry.Components;
@@ -144,6 +145,7 @@ namespace Content.Server.Forensics
             SubscribeLocalEvent<ScentComponent, MapInitEvent>(OnScentInit, after: new[] { typeof(BloodstreamSystem) }); // Einstein Engines
 
             SubscribeLocalEvent<ForensicsComponent, BeingGibbedEvent>(OnBeingGibbed);
+            SubscribeLocalEvent<OrganComponent, OrganRemovedEvent>(OnOrganRemoved);
             SubscribeLocalEvent<ForensicsComponent, MeleeHitEvent>(OnMeleeHit);
             SubscribeLocalEvent<ForensicsComponent, GotRehydratedEvent>(OnRehydrated);
             SubscribeLocalEvent<CleansForensicsComponent, AfterInteractEvent>(OnAfterInteract, after: new[] { typeof(AbsorbentSystem) });
@@ -168,10 +170,31 @@ namespace Content.Server.Forensics
                 foreach (var reagent in ev.Solution.Contents)
                 foreach (var data in reagent.Reagent.EnsureReagentData().OfType<DnaData>())
                 {
-                    if (data.GeneticSample is not null && !string.IsNullOrWhiteSpace(data.DNA))
-                        comp.GeneticSamples[data.DNA] = (EnzymeInfo) data.GeneticSample.Clone();
+                    if (string.IsNullOrWhiteSpace(data.DNA))
+                        continue;
+
+                    var sample = data.GeneticSample is { } carriedSample &&
+                                 (carriedSample.Identifier is not null || carriedSample.Info is { Count: > 0 })
+                        ? (EnzymeInfo) carriedSample.Clone()
+                        : GetGeneticSampleByDna(data.DNA);
+                    if (sample is not null)
+                        comp.GeneticSamples[data.DNA] = sample;
                 }
             }
+        }
+
+        private EnzymeInfo? GetGeneticSampleByDna(string dna)
+        {
+            var query = EntityQueryEnumerator<DnaComponent, DnaModifierComponent>();
+            while (query.MoveNext(out var source, out var dnaComponent, out _))
+            {
+                if (dnaComponent.DNA != dna)
+                    continue;
+
+                return _dnaModifier.CreateGeneticSample(source);
+            }
+
+            return null;
         }
 
         private void OnInteract(EntityUid uid, HandsComponent component, ContactInteractionEvent args)
@@ -229,6 +252,20 @@ namespace Content.Server.Forensics
                 partComp.CanDnaBeCleaned = false;
                 Dirty(part, partComp); // Einstein Engines
             }
+        }
+
+        private void OnOrganRemoved(Entity<OrganComponent> organ, ref OrganRemovedEvent args)
+        {
+            if (args.OldBody is not { } donor ||
+                !TryComp<DnaComponent>(donor, out var dna) ||
+                string.IsNullOrWhiteSpace(dna.DNA) ||
+                _dnaModifier.CreateGeneticSample(donor) is not { } sample)
+                return;
+
+            var forensics = EnsureComp<ForensicsComponent>(organ.Owner);
+            forensics.DNAs.Add((dna.DNA, TimeSpan.Zero));
+            forensics.GeneticSamples[dna.DNA] = sample;
+            Dirty(organ.Owner, forensics);
         }
 
         private void OnMeleeHit(EntityUid uid, ForensicsComponent component, MeleeHitEvent args)

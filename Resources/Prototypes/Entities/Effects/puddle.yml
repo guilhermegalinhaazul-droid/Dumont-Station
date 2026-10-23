@@ -292,6 +292,8 @@
       puddle:
         maxVol: 1000
   - type: Puddle
+  # Preserve donor genetic profiles carried by blood in this solution.
+  - type: DnaSubstanceTrace
   - type: MixableSolution
     solution: puddle
   - type: Appearance
