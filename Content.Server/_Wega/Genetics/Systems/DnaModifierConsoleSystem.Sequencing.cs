@@ -120,7 +120,11 @@ public sealed partial class DnaModifierConsoleSystem
             {
                 Token = ++_sequenceToken,
                 Title = $"{gene.Order} — ???",
-                Original = clue
+                Original = clue,
+                // The handheld analyzer can inspect an unknown gene, while
+                // the console remains the only place where sequence gaps can
+                // be edited and submitted.
+                ReadOnly = true
             }
         };
     }
