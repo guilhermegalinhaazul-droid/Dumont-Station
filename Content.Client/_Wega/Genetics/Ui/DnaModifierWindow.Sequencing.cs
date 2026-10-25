@@ -37,7 +37,75 @@ public sealed partial class DnaModifierWindow
     private string _geneSignature = string.Empty;
     private string _appearanceSignature = string.Empty;
     private int? _puzzleToken;
-    private void SetScannerPreview(EntityUid source) => SubjectPreview.SetEntity(source);
+    private EntityUid? _appearancePreview;
+    private EntityUid? _appearancePreviewSource;
+
+    private bool SetScannerPreview(EntityUid source)
+    {
+        if (EnsureAppearancePreview(source) is not { } preview)
+        {
+            ClearScannerPreview();
+            return false;
+        }
+
+        SubjectPreview.SetEntity(preview);
+        return true;
+    }
+
+    private EntityUid? EnsureAppearancePreview(EntityUid source)
+    {
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
+            return null;
+
+        var preview = _appearancePreview ?? default;
+        var created = false;
+        if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
+        {
+            ClearScannerPreview();
+            var species = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
+            preview = _entManager.SpawnEntity(species.DollPrototype, MapCoordinates.Nullspace);
+            _appearancePreview = preview;
+            _appearancePreviewSource = source;
+            created = true;
+        }
+
+        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var previewAppearance) ||
+            !_entManager.TryGetComponent<SpriteComponent>(preview, out var previewSprite))
+            return null;
+
+        if (created)
+        {
+            // This display-only entity is copied once per scanned subject.
+            // Never copy later appearance updates, so sequencing cannot recolor it.
+            previewAppearance.Species = sourceAppearance.Species;
+            previewAppearance.Sex = sourceAppearance.Sex;
+            previewAppearance.Gender = sourceAppearance.Gender;
+            previewAppearance.SkinColor = sourceAppearance.SkinColor;
+            previewAppearance.EyeColor = sourceAppearance.EyeColor;
+            previewAppearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
+            previewAppearance.Height = sourceAppearance.Height;
+            previewAppearance.Width = sourceAppearance.Width;
+            _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, previewAppearance, previewSprite));
+        }
+        return preview;
+    }
+
+    private void ClearScannerPreview()
+    {
+        if (_appearancePreview is { } preview && _entManager.EntityExists(preview))
+            _entManager.DeleteEntity(preview);
+
+        _appearancePreview = null;
+        _appearancePreviewSource = null;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (disposing)
+            ClearScannerPreview();
+    }
 
     private void InitializeSequencingUi()
     {

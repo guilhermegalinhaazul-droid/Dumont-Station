@@ -146,9 +146,13 @@ public sealed partial class DnaModifierWindow : FancyWindow
             StatusLabel.Text = state.ScannerBodyStatus;
             SpeciesLabel.Text = string.IsNullOrWhiteSpace(state.ScannerSpecies) ? Loc.GetString("dna-modifier-no-data") : state.ScannerSpecies;
             EjectButton.Disabled = false;
-            AppearancePreview.Visible = state.ScannerBody is not null;
             if (state.ScannerBody is { } body && _entManager.TryGetEntity(body, out var bodyEntity) && bodyEntity is { } bodyUid)
-                SetScannerPreview(bodyUid);
+                AppearancePreview.Visible = SetScannerPreview(bodyUid);
+            else
+            {
+                AppearancePreview.Visible = false;
+                ClearScannerPreview();
+            }
         }
         else
         {
@@ -157,6 +161,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             SpeciesLabel.Text = Loc.GetString("dna-modifier-no-data");
             EjectButton.Disabled = true;
             AppearancePreview.Visible = false;
+            ClearScannerPreview();
 
             DisabledSubjectDiskBlock(null);
         }
