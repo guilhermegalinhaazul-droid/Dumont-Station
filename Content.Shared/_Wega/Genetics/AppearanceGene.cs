@@ -30,6 +30,20 @@ public static class AppearanceGene
     public static IEnumerable<string> Fields => ColorFields.Append(Name);
     public static bool Exists(string field) => field == Name || Array.IndexOf(ColorFields, field) >= 0;
 
+    public static string? GetColorGroup(string field)
+    {
+        if (field.Length == 0 || field[^1] is not ('R' or 'G' or 'B'))
+            return null;
+
+        var group = field[..^1];
+        return ColorFields.Contains(group + "R") && ColorFields.Contains(group + "G") && ColorFields.Contains(group + "B")
+            ? group
+            : null;
+    }
+
+    public static string[] GetColorGroupFields(string group)
+        => new[] { group + "R", group + "G", group + "B" };
+
     public static List<string> ForSkinColoration(IEnumerable<string> fields, HumanoidSkinColor coloration)
     {
         return fields.Where(field => coloration switch

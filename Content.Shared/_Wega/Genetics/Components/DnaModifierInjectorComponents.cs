@@ -15,6 +15,9 @@ public sealed partial class DnaModifierInjectorComponent : Component
     public string? UniqueIdentifierField { get; set; }
 
     [ViewVariables(VVAccess.ReadOnly)]
+    public List<string>? UniqueIdentifierFields { get; set; }
+
+    [ViewVariables(VVAccess.ReadOnly)]
     public List<EnzymesPrototypeInfo>? EnzymesPrototypes { get; set; } = default!;
 
     [DataField("injectSound")]

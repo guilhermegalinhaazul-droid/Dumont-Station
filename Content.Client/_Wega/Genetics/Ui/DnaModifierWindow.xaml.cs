@@ -367,7 +367,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
                 MinWidth = 130,
                 StyleClasses = { StyleNano.ButtonOpenRight }
             };
-            var selectionById = new Dictionary<int, (int? Block, string? AppearanceField)>();
+            var selectionById = new Dictionary<int, (int? Block, string[]? AppearanceFields)>();
             var selectionId = 0;
             if (hasStructuralEnzymes)
             {
@@ -380,11 +380,27 @@ public sealed partial class DnaModifierWindow : FancyWindow
 
             if (data.Identifier is { } identifiers)
             {
-                foreach (var field in AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
-                             AppearanceGene.Get(identifiers, field) is { Length: > 0 }))
+                var availableFields = AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
+                    AppearanceGene.Get(identifiers, field) is { Length: > 0 }).ToList();
+                var addedColorGroups = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var field in availableFields)
                 {
+                    var colorGroup = AppearanceGene.GetColorGroup(field);
+                    if (colorGroup is { } group)
+                    {
+                        if (!addedColorGroups.Add(group))
+                            continue;
+
+                        var groupFields = AppearanceGene.GetColorGroupFields(group)
+                            .Where(availableFields.Contains)
+                            .ToArray();
+                        selectionButton.AddItem($"EU: {Loc.GetString("dna-eu-" + group)}", selectionId);
+                        selectionById[selectionId++] = (null, groupFields);
+                        continue;
+                    }
+
                     selectionButton.AddItem($"EU: {Loc.GetString("dna-eu-" + field)}", selectionId);
-                    selectionById[selectionId++] = (null, field);
+                    selectionById[selectionId++] = (null, new[] { field });
                 }
             }
 
@@ -403,7 +419,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
             injectBlockButton.OnPressed += _ =>
             {
                 if (selectionById.TryGetValue(selectionButton.SelectedId, out var selected))
-                    OnInjectBlockPressed(bufferIndex, injectBlockButton, selected.Block ?? 0, selected.AppearanceField);
+                    OnInjectBlockPressed(bufferIndex, injectBlockButton, selected.Block ?? 0, selected.AppearanceFields);
             };
 
             buttonsContainer.AddChild(selectionButton);
@@ -498,12 +514,12 @@ public sealed partial class DnaModifierWindow : FancyWindow
             new DnaModifierConsoleInjectorEvent(_console, index));
     }
 
-    private void OnInjectBlockPressed(int bufferIndex, Button button, int blockId, string? appearanceField = null)
+    private void OnInjectBlockPressed(int bufferIndex, Button button, int blockId, string[]? appearanceFields = null)
     {
         _updateBuffer = true;
         button.Disabled = true;
         OnGeneticMessage?.Invoke(
-            new DnaModifierInjectBlockEvent(_console, bufferIndex, blockId, appearanceField));
+            new DnaModifierInjectBlockEvent(_console, bufferIndex, blockId, appearanceFields));
     }
 
     private void OnSubjectInjectPressed(int index, Button button)

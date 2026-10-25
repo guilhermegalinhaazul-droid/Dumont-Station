@@ -677,19 +677,22 @@ namespace Content.Server.Genetics.System
             if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
                 return;
 
-            if (args.AppearanceField is { Length: > 0 } appearanceField)
+            if (args.AppearanceFields is { Length: > 0 } appearanceFields)
             {
-                if (data.Identifier is not { } identifiers || !AppearanceGene.Exists(appearanceField) ||
-                    !AppearanceGene.Fields.Contains(appearanceField) ||
+                if (data.Identifier is not { } identifiers || appearanceFields.Any(field =>
+                        !AppearanceGene.Exists(field) || !AppearanceGene.Fields.Contains(field)) ||
                     _timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
                     return;
 
                 var selectedField = new UniqueIdentifiersData { ID = identifiers.ID };
-                if (!AppearanceGene.Copy(identifiers, selectedField, appearanceField))
-                    return;
+                foreach (var field in appearanceFields)
+                {
+                    if (!AppearanceGene.Copy(identifiers, selectedField, field))
+                        return;
+                }
 
                 _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
-                    selectedField, null, appearanceField);
+                    selectedField, null, uniqueIdentifierFields: appearanceFields);
                 console.LastInjectorTime = _timing.CurTime;
                 PlayClickSound((clientEntity, console));
                 UpdateUserInterface(clientEntity, console);

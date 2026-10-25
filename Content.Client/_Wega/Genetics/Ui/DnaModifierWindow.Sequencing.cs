@@ -143,8 +143,14 @@ public sealed partial class DnaModifierWindow
             Orientation = BoxContainer.LayoutOrientation.Vertical,
             HorizontalExpand = true
         };
+        var appearanceFields = fields.ToArray();
+        var colorButtonFields = appearanceFields
+            .Where(IsRgbColorField)
+            .GroupBy(field => field[..^1], StringComparer.Ordinal)
+            .ToDictionary(colorGroup => colorGroup.Key,
+                colorGroup => colorGroup.OrderBy(field => field[^1] switch { 'R' => 0, 'G' => 1, _ => 2 })
+                    .ElementAt(colorGroup.Count() / 2), StringComparer.Ordinal);
         var colorControls = new Dictionary<string, Slider>();
-        var colorGroups = new HashSet<string>(StringComparer.Ordinal);
         var dimensionControls = new Dictionary<string, Slider>();
         var dimensions = GetDimensionMetrics(state);
 
@@ -180,7 +186,7 @@ public sealed partial class DnaModifierWindow
             }
         }
 
-        foreach (var field in fields)
+        foreach (var field in appearanceFields)
         {
             var label = Loc.GetString("dna-eu-" + field);
             var row = new BoxContainer
@@ -398,8 +404,10 @@ public sealed partial class DnaModifierWindow
                 row.AddChild(value);
             }
 
-            if (field != nameof(UniqueIdentifiersData.Width) &&
-                (!IsRgbColorField(field) || colorGroups.Add(field[..^1])))
+            var hasSequenceButton = !IsRgbColorField(field)
+                ? field != nameof(UniqueIdentifiersData.Width)
+                : colorButtonFields.TryGetValue(field[..^1], out var centerField) && centerField == field;
+            if (hasSequenceButton)
             {
                 var apply = new Button
                 {
@@ -410,10 +418,8 @@ public sealed partial class DnaModifierWindow
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
                     SetHeight = appearanceControlHeight,
-                    // Keep the sequence control separated from the value
-                    // column without compressing the characteristic label.
-                    // Shift only the EU action-button column to the right.
-                    Margin = new Thickness(20, 0, 0, 0),
+                    HorizontalAlignment = Control.HAlignment.Center,
+                    VerticalAlignment = Control.VAlignment.Center,
                     Disabled = _portableMode
                 };
                 if (IsRgbColorField(field))
@@ -459,21 +465,28 @@ public sealed partial class DnaModifierWindow
                         OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, selectedValue));
                     };
                 }
-                row.AddChild(apply);
+                var actionSlot = new BoxContainer
+                {
+                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                    HorizontalExpand = true,
+                    VerticalAlignment = Control.VAlignment.Center,
+                    MinHeight = appearanceControlHeight,
+                    MaxHeight = appearanceControlHeight,
+                    SetHeight = appearanceControlHeight
+                };
+                actionSlot.AddChild(apply);
+                row.AddChild(actionSlot);
             }
             else
             {
                 // Keep the same column width on RGB rows whose channels share
-                // the single sequence button from the first channel.
+                // the single sequence button centered on the middle channel.
                 row.AddChild(new Control
                 {
-                    MinWidth = sequenceButtonWidth,
-                    MaxWidth = sequenceButtonWidth,
-                    SetWidth = sequenceButtonWidth,
+                    HorizontalExpand = true,
                     MinHeight = appearanceControlHeight,
                     MaxHeight = appearanceControlHeight,
-                    SetHeight = appearanceControlHeight,
-                    Margin = new Thickness(20, 0, 0, 0)
+                    SetHeight = appearanceControlHeight
                 });
             }
             group.AddChild(row);

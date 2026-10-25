@@ -86,14 +86,14 @@ public sealed class DnaModifierInjectBlockEvent : BoundUserInterfaceMessage
     public NetEntity Uid { get; }
     public int Index { get; }
     public int CurrentBlock { get; }
-    public string? AppearanceField { get; }
+    public string[]? AppearanceFields { get; }
 
-    public DnaModifierInjectBlockEvent(NetEntity uid, int index, int currentBlock, string? appearanceField = null)
+    public DnaModifierInjectBlockEvent(NetEntity uid, int index, int currentBlock, string[]? appearanceFields = null)
     {
         Uid = uid;
         Index = index;
         CurrentBlock = currentBlock;
-        AppearanceField = appearanceField;
+        AppearanceFields = appearanceFields;
     }
 }
 
