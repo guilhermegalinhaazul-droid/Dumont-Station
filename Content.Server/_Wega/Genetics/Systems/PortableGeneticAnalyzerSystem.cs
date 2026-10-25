@@ -9,6 +9,7 @@ using Content.Shared.Genetics;
 using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
+using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Interaction;
 using Content.Shared.Forensics.Components;
 using Content.Shared.DoAfter;
@@ -516,6 +517,9 @@ public sealed class PortableGeneticAnalyzerSystem : EntitySystem
             ? new List<string>()
             : AppearanceGene.Fields.Where(field => field == AppearanceGene.Name ||
                 AppearanceGene.Get(unique, field) is { Length: > 0 }).ToList();
+        if (target is { } appearanceTarget && TryComp<HumanoidAppearanceComponent>(appearanceTarget, out var targetAppearance))
+            appearanceFields = AppearanceGene.ForSkinColoration(appearanceFields,
+                _prototypes.Index<SpeciesPrototype>(targetAppearance.Species).SkinColoration);
 
         return new DnaModifierBoundUserInterfaceState(
             GetNetEntity(analyzer), unique, enzymes, diskData, name, status, dna, species,

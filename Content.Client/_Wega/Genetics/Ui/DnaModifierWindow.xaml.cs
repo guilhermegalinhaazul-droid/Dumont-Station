@@ -157,7 +157,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
             SpeciesLabel.Text = Loc.GetString("dna-modifier-no-data");
             EjectButton.Disabled = true;
             AppearancePreview.Visible = false;
-            ClearScannerPreview();
 
             DisabledSubjectDiskBlock(null);
         }

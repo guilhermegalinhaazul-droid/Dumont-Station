@@ -11,6 +11,7 @@ using Content.Shared.Genetics.Systems;
 using Content.Shared.Genetics.UI;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
+using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Research.Components;
 using Robust.Shared.Timing;
 
@@ -195,8 +196,9 @@ public sealed partial class DnaModifierConsoleSystem
         }
         if (subject.Comp.UniqueIdentifiers is not { } appearance)
             return;
-        state.AppearanceFields = AppearanceGene.Fields.Where(f => f == AppearanceGene.Name ||
-            AppearanceGene.Get(appearance, f)?.Length == 3).ToList();
+        var skinColoration = _prototypeManager.Index<SpeciesPrototype>(subject.Comp.Species).SkinColoration;
+        state.AppearanceFields = AppearanceGene.ForSkinColoration(AppearanceGene.Fields.Where(f => f == AppearanceGene.Name ||
+            AppearanceGene.Get(appearance, f)?.Length == 3), skinColoration);
         foreach (var field in state.AppearanceFields.Where(f => f.EndsWith("Style")))
             state.AppearanceOptions[field] = GetMarkingOptions(subject, field).Select(m => m.MarkingPrototypeId).Prepend(string.Empty).ToList();
     }
@@ -400,7 +402,8 @@ public sealed partial class DnaModifierConsoleSystem
         for (var i = 0; i < args.Fields.Length; i++)
         {
             var field = args.Fields[i];
-            if (!IsRgbField(field) || !TrySetAppearanceValue(selected, field, args.Values[i]))
+            var isDimension = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
+            if ((!IsRgbField(field) && !isDimension) || !TrySetAppearanceValue(selected, field, args.Values[i]))
                 return;
         }
 

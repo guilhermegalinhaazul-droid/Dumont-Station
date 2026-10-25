@@ -16,11 +16,13 @@ namespace Content.Shared.Eye.Blinding.Components;
 [NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class VisionCorrectionComponent : Component
 {
+    public const float PoorVisionCorrection = -4f;
+
     /// <summary>
     /// Amount of effective eye damage to add when this item is worn
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite), DataField("visionBonus"), AutoNetworkedField]
-    public float VisionBonus = 0f;
+    public float VisionBonus = PoorVisionCorrection;
 
     /// <summary>
     /// Controls the exponent of the blur effect when worn

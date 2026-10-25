@@ -345,7 +345,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
             if (speciesProto.SkinColoration == HumanoidSkinColor.Hues ||
                 speciesProto.SkinColoration == HumanoidSkinColor.TintedHues ||
-                speciesProto.SkinColoration == HumanoidSkinColor.VoxFeathers)
+                speciesProto.SkinColoration == HumanoidSkinColor.VoxFeathers ||
+                speciesProto.SkinColoration == HumanoidSkinColor.AnimalFur)
             {
                 var furColorArray = ConvertColorToHexArray(humanoid.SkinColor);
                 uniqueIdentifiers.FurColorR = new[] { furColorArray[0], furColorArray[1], furColorArray[2] };
@@ -746,6 +747,7 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             case HumanoidSkinColor.Hues:
             case HumanoidSkinColor.TintedHues:
             case HumanoidSkinColor.VoxFeathers:
+            case HumanoidSkinColor.AnimalFur:
                 string redHex = uniqueIdentifiers.FurColorR[0] + uniqueIdentifiers.FurColorR[1];
                 string greenHex = uniqueIdentifiers.FurColorG[0] + uniqueIdentifiers.FurColorG[1];
                 string blueHex = uniqueIdentifiers.FurColorB[0] + uniqueIdentifiers.FurColorB[1];
@@ -759,6 +761,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 float blueNormalized = blue / 255f;
 
                 var newColor = new Color(redNormalized, greenNormalized, blueNormalized);
+
+                if (speciesProto.SkinColoration == HumanoidSkinColor.AnimalFur)
+                    newColor = SkinColor.ClosestAnimalFurColor(newColor);
 
                 humanoid.Comp.SkinColor = newColor;
                 break;

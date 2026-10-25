@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Content.Shared.Humanoid;
 
 namespace Content.Shared.Genetics;
 
@@ -28,6 +29,22 @@ public static class AppearanceGene
 
     public static IEnumerable<string> Fields => ColorFields.Append(Name);
     public static bool Exists(string field) => field == Name || Array.IndexOf(ColorFields, field) >= 0;
+
+    public static List<string> ForSkinColoration(IEnumerable<string> fields, HumanoidSkinColor coloration)
+    {
+        return fields.Where(field => coloration switch
+        {
+            HumanoidSkinColor.HumanToned => field != nameof(UniqueIdentifiersData.FurColorR)
+                && field != nameof(UniqueIdentifiersData.FurColorG)
+                && field != nameof(UniqueIdentifiersData.FurColorB),
+            HumanoidSkinColor.Hues or HumanoidSkinColor.TintedHues or HumanoidSkinColor.VoxFeathers or HumanoidSkinColor.AnimalFur
+                => field != nameof(UniqueIdentifiersData.SkinTone),
+            _ => field != nameof(UniqueIdentifiersData.SkinTone)
+                && field != nameof(UniqueIdentifiersData.FurColorR)
+                && field != nameof(UniqueIdentifiersData.FurColorG)
+                && field != nameof(UniqueIdentifiersData.FurColorB)
+        }).ToList();
+    }
 
     public static string[]? Get(UniqueIdentifiersData data, string field) => field switch
     {

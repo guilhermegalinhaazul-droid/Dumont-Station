@@ -11,6 +11,8 @@ using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Systems;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -35,65 +37,7 @@ public sealed partial class DnaModifierWindow
     private string _geneSignature = string.Empty;
     private string _appearanceSignature = string.Empty;
     private int? _puzzleToken;
-    private EntityUid? _appearancePreview;
-    private EntityUid? _appearancePreviewSource;
-
-    private void SetScannerPreview(EntityUid source)
-    {
-        if (EnsureAppearancePreview(source) is { } preview)
-            SubjectPreview.SetEntity(preview);
-        else
-            SubjectPreview.SetEntity(source);
-    }
-
-    private EntityUid? EnsureAppearancePreview(EntityUid source)
-    {
-        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(source, out var sourceAppearance))
-            return null;
-
-        var preview = _appearancePreview ?? default;
-        var created = false;
-        if (!preview.IsValid() || !_entManager.EntityExists(preview) || _appearancePreviewSource != source)
-        {
-            if (preview.IsValid() && _entManager.EntityExists(preview))
-                _entManager.DeleteEntity(preview);
-
-            var species = _prototypeManager.Index<SpeciesPrototype>(sourceAppearance.Species);
-            preview = _entManager.SpawnEntity(species.DollPrototype, MapCoordinates.Nullspace);
-            _appearancePreview = preview;
-            _appearancePreviewSource = source;
-            created = true;
-        }
-
-        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(preview, out var previewAppearance)
-            || !_entManager.TryGetComponent<SpriteComponent>(preview, out var previewSprite))
-            return preview;
-
-        // Copy the scanned appearance only when creating a new preview. Re-copying
-        // it on every state update would erase unsaved changes made in the editor.
-        if (created)
-        {
-            previewAppearance.Species = sourceAppearance.Species;
-            previewAppearance.Sex = sourceAppearance.Sex;
-            previewAppearance.Gender = sourceAppearance.Gender;
-            previewAppearance.SkinColor = sourceAppearance.SkinColor;
-            previewAppearance.EyeColor = sourceAppearance.EyeColor;
-            previewAppearance.MarkingSet = new MarkingSet(sourceAppearance.MarkingSet);
-            previewAppearance.Height = sourceAppearance.Height;
-            previewAppearance.Width = sourceAppearance.Width;
-            _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((preview, previewAppearance, previewSprite));
-        }
-        return preview;
-    }
-
-    private void ClearScannerPreview()
-    {
-        if (_appearancePreview is { } preview && _entManager.EntityExists(preview))
-            _entManager.DeleteEntity(preview);
-
-        _appearancePreview = null;
-        _appearancePreviewSource = null;
-    }
+    private void SetScannerPreview(EntityUid source) => SubjectPreview.SetEntity(source);
 
     private void InitializeSequencingUi()
     {
@@ -201,6 +145,13 @@ public sealed partial class DnaModifierWindow
         };
         var colorControls = new Dictionary<string, Slider>();
         var colorGroups = new HashSet<string>(StringComparer.Ordinal);
+        var dimensionControls = new Dictionary<string, Slider>();
+        var dimensions = GetDimensionMetrics(state);
+
+        float MinWidthForHeight(float height) => Math.Max(dimensions.MinWidth, height / dimensions.SizeRatio);
+        float MaxWidthForHeight(float height) => Math.Min(dimensions.MaxWidth, height * dimensions.SizeRatio);
+        float MinHeightForWidth(float width) => Math.Max(dimensions.MinHeight, width / dimensions.SizeRatio);
+        float MaxHeightForWidth(float width) => Math.Min(dimensions.MaxHeight, width * dimensions.SizeRatio);
 
         void RefreshColorGroup(string field)
         {
@@ -275,7 +226,6 @@ public sealed partial class DnaModifierWindow
                     if (args.ItemList[args.ItemIndex].Metadata is string id)
                     {
                         selectedValue = id;
-                        PreviewAppearance(field, id);
                     }
                 };
                 selected = () => selectedValue;
@@ -304,7 +254,6 @@ public sealed partial class DnaModifierWindow
                 options.OnItemSelected += args =>
                 {
                     options.SelectId(args.Id);
-                    PreviewAppearance(field, args.Id.ToString());
                 };
                 row.AddChild(options);
                 row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
@@ -321,15 +270,96 @@ public sealed partial class DnaModifierWindow
                 };
                 input.Text = state.ScannerBodyInfo ?? string.Empty;
                 selected = () => input.Text;
-                input.OnTextChanged += args => PreviewAppearance(field, args.Text);
                 row.AddChild(input);
                 row.AddChild(CreateAppearanceValueSpacer(appearanceControlHeight));
             }
+            else if (field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
+            {
+                var isHeight = field == nameof(UniqueIdentifiersData.Height);
+                var ratio = ReadAppearanceValue(state, field, 200) / 100f;
+                var currentHeight = ReadAppearanceValue(state, nameof(UniqueIdentifiersData.Height), 200) / 100f;
+                var currentWidth = ReadAppearanceValue(state, nameof(UniqueIdentifiersData.Width), 200) / 100f;
+                var minRatio = isHeight ? dimensions.MinHeight : dimensions.MinWidth;
+                var maxRatio = isHeight ? dimensions.MaxHeight : dimensions.MaxWidth;
+                if (isHeight)
+                {
+                    minRatio = MinHeightForWidth(currentWidth);
+                    maxRatio = MaxHeightForWidth(currentWidth);
+                }
+                else
+                {
+                    minRatio = MinWidthForHeight(currentHeight);
+                    maxRatio = MaxWidthForHeight(currentHeight);
+                }
+                var minValue = isHeight
+                    ? dimensions.AverageHeight * minRatio
+                    : dimensions.BaseMass * (currentHeight + minRatio) / 2f;
+                var maxValue = isHeight
+                    ? dimensions.AverageHeight * maxRatio
+                    : dimensions.BaseMass * (currentHeight + maxRatio) / 2f;
+                var physicalValue = isHeight
+                    ? dimensions.AverageHeight * ratio
+                    : dimensions.BaseMass * (currentHeight + ratio) / 2f;
+                var slider = new GeneColorSlider
+                {
+                    MinValue = minValue,
+                    MaxValue = Math.Max(minValue + 1, maxValue),
+                    MinWidth = 220,
+                    MaxWidth = 220,
+                    SetWidth = 220,
+                    MinHeight = appearanceControlHeight,
+                    MaxHeight = appearanceControlHeight,
+                    SetHeight = appearanceControlHeight,
+                    Margin = new Thickness(15, 0, 0, 0),
+                    Disabled = _portableMode
+                };
+                slider.Value = Math.Clamp(physicalValue, slider.MinValue, slider.MaxValue);
+                var value = new Label
+                {
+                    MinWidth = 45,
+                    MaxWidth = 45,
+                    SetWidth = 45,
+                    Text = $"{(int) MathF.Round(physicalValue)} {(isHeight ? "cm" : "kg") }"
+                };
+                dimensionControls[field] = slider;
+                slider.OnValueChanged += args =>
+                {
+                    value.Text = $"{(int) MathF.Round(args.Value)} {(isHeight ? "cm" : "kg")}";
+                    if (isHeight && dimensionControls.TryGetValue(nameof(UniqueIdentifiersData.Width), out var weightSlider))
+                    {
+                        var heightRatio = args.Value / dimensions.AverageHeight;
+                        var widthMin = dimensions.BaseMass * (heightRatio + MinWidthForHeight(heightRatio)) / 2f;
+                        var widthMax = dimensions.BaseMass * (heightRatio + MaxWidthForHeight(heightRatio)) / 2f;
+                        weightSlider.MinValue = widthMin;
+                        weightSlider.MaxValue = Math.Max(widthMin + 1, widthMax);
+                    }
+                    else if (!isHeight)
+                    {
+                        var selectedHeightSlider = dimensionControls[nameof(UniqueIdentifiersData.Height)];
+                        var selectedHeightRatio = selectedHeightSlider.Value / dimensions.AverageHeight;
+                        var widthRatio = 2f * args.Value / dimensions.BaseMass - selectedHeightRatio;
+                        var heightMin = dimensions.AverageHeight * MinHeightForWidth(widthRatio);
+                        var heightMax = dimensions.AverageHeight * MaxHeightForWidth(widthRatio);
+                        selectedHeightSlider.MinValue = heightMin;
+                        selectedHeightSlider.MaxValue = Math.Max(heightMin + 1, heightMax);
+                    }
+                };
+                selected = () =>
+                {
+                    var selectedHeight = dimensionControls[nameof(UniqueIdentifiersData.Height)].Value / dimensions.AverageHeight;
+                    var selectedWeight = dimensionControls[nameof(UniqueIdentifiersData.Width)].Value;
+                    var widthRatio = 2f * selectedWeight / dimensions.BaseMass - selectedHeight;
+                    var ratioValue = isHeight ? selectedHeight : widthRatio;
+                    return Math.Clamp((int) MathF.Round(ratioValue * 100f),
+                        (int) MathF.Ceiling(minRatio * 100f), (int) MathF.Floor(maxRatio * 100f)).ToString("D3");
+                };
+                row.AddChild(slider);
+                row.AddChild(value);
+            }
             else
             {
-                var isScale = field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width);
-                var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : isScale ? 200 : 255;
-                var min = isScale ? 50 : 0;
+                var max = field == nameof(UniqueIdentifiersData.SkinTone) ? 100 : 255;
+                var min = 0;
                 var slider = new GeneColorSlider
                 {
                     MinValue = min,
@@ -362,14 +392,14 @@ public sealed partial class DnaModifierWindow
                         RefreshColorGroup(field);
                     else if (field == nameof(UniqueIdentifiersData.SkinTone))
                         slider.SetFillColor(SkinToneToColor((int) args.Value));
-                    PreviewAppearance(field, value.Text);
                 };
                 selected = () => ((int) slider.Value).ToString();
                 row.AddChild(slider);
                 row.AddChild(value);
             }
 
-            if (!IsRgbColorField(field) || colorGroups.Add(field[..^1]))
+            if (field != nameof(UniqueIdentifiersData.Width) &&
+                (!IsRgbColorField(field) || colorGroups.Add(field[..^1])))
             {
                 var apply = new Button
                 {
@@ -404,8 +434,28 @@ public sealed partial class DnaModifierWindow
                 {
                     apply.OnPressed += _ =>
                     {
+                        if (field == nameof(UniqueIdentifiersData.Height))
+                        {
+                            var fieldsToSequence = new[]
+                            {
+                                nameof(UniqueIdentifiersData.Height), nameof(UniqueIdentifiersData.Width)
+                            };
+                            OnGeneticMessage?.Invoke(new GeneticAppearanceGroupMessage(fieldsToSequence,
+                                fieldsToSequence.Select(dimension =>
+                                {
+                                    var heightRatio = dimensionControls[nameof(UniqueIdentifiersData.Height)].Value / dimensions.AverageHeight;
+                                    var weight = dimensionControls[nameof(UniqueIdentifiersData.Width)].Value;
+                                    var widthRatio = Math.Clamp(2f * weight / dimensions.BaseMass - heightRatio,
+                                        MinWidthForHeight(heightRatio), MaxWidthForHeight(heightRatio));
+                                    heightRatio = Math.Clamp(heightRatio, MinHeightForWidth(widthRatio), MaxHeightForWidth(widthRatio));
+                                    var ratio = dimension == nameof(UniqueIdentifiersData.Height) ? heightRatio : widthRatio;
+                                    return Math.Clamp((int) MathF.Round(ratio * 100f), 50, 200).ToString("D3");
+                                }).ToArray()));
+                            return;
+                        }
+                        if (field == nameof(UniqueIdentifiersData.Width))
+                            return;
                         var selectedValue = selected();
-                        PreviewAppearance(field, selectedValue);
                         OnGeneticMessage?.Invoke(new GeneticAppearanceMessage(field, selectedValue));
                     };
                 }
@@ -448,137 +498,34 @@ public sealed partial class DnaModifierWindow
         };
     }
 
-    private void PreviewAppearance(string field, string value)
+    private (float AverageHeight, float MinHeight, float MaxHeight,
+        float MinWidth, float MaxWidth, float SizeRatio, float BaseMass) GetDimensionMetrics(DnaModifierBoundUserInterfaceState state)
     {
-        if (_lastUpdate?.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out EntityUid? source) || source is not { } sourceEntity ||
-            !_entManager.EntityExists(sourceEntity))
-            return;
+        const float defaultMass = 71f;
+        var defaults = (176.1f, 0.8f, 1.2f, 0.85f, 1.15f, 1.2f, defaultMass);
+        if (state.ScannerBody is not { } netBody || !_entManager.TryGetEntity(netBody, out EntityUid? subject) ||
+            subject is not { } subjectEntity || !_entManager.TryGetComponent<HumanoidAppearanceComponent>(subjectEntity, out var appearance) ||
+            !_prototypeManager.TryIndex(appearance.Species, out SpeciesPrototype? species) || species == null)
+            return defaults;
 
-        var preview = EnsureAppearancePreview(sourceEntity);
-        if (preview is not { } previewEntity)
-            return;
+        var baseMass = defaultMass;
+        if (_prototypeManager.Index(species.Prototype).TryGetComponent<FixturesComponent>(out var fixtures, _entManager.ComponentFactory) &&
+            fixtures.Fixtures.TryGetValue("fix1", out var fixture))
+            baseMass = FixtureSystem.GetMassData(fixture.Shape, fixture.Density).Mass;
 
-        if (!_entManager.TryGetComponent<HumanoidAppearanceComponent>(previewEntity, out var appearance) ||
-            !_entManager.TryGetComponent<SpriteComponent>(previewEntity, out var sprite))
-            return;
-
-        if (field.EndsWith("Style") && value.Length > 0 && _prototypeManager.TryIndex<MarkingPrototype>(value, out var marking))
-        {
-            var category = field switch
-            {
-                nameof(UniqueIdentifiersData.HairStyle) => MarkingCategories.Hair,
-                nameof(UniqueIdentifiersData.BeardStyle) => MarkingCategories.FacialHair,
-                nameof(UniqueIdentifiersData.HeadAccessoryStyle) => MarkingCategories.HeadTop,
-                nameof(UniqueIdentifiersData.HeadMarkingStyle) => MarkingCategories.Head,
-                nameof(UniqueIdentifiersData.BodyMarkingStyle) => MarkingCategories.Chest,
-                nameof(UniqueIdentifiersData.TailMarkingStyle) => MarkingCategories.Tail,
-                _ => MarkingCategories.Special
-            };
-            appearance.MarkingSet.RemoveCategory(category);
-            appearance.MarkingSet.AddBack(category, marking.AsMarking());
-        }
-        else if (field == nameof(UniqueIdentifiersData.Gender) && int.TryParse(value, out var gender))
-        {
-            appearance.Gender = (Gender) Math.Clamp(gender, 0, 2);
-            appearance.Sex = gender == 0 ? Sex.Female : gender == 1 ? Sex.Male : Sex.Unsexed;
-        }
-        else if (field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width)
-                 && int.TryParse(value, out var scale))
-        {
-            var factor = Math.Clamp(scale / 100f, 0.5f, 2f);
-            if (field == nameof(UniqueIdentifiersData.Height))
-                appearance.Height = factor;
-            else
-                appearance.Width = factor;
-        }
-
-        ApplyColorPreview(state: _lastUpdate, appearance, field, value);
-
-        _entManager.System<HumanoidAppearanceSystem>().UpdateSprite((previewEntity, appearance, sprite));
-        SubjectPreview.SetEntity(previewEntity);
-    }
-
-    private static void ApplyColorPreview(DnaModifierBoundUserInterfaceState? state,
-        HumanoidAppearanceComponent appearance, string field, string value)
-    {
-        if (state?.Unique is null || !int.TryParse(value, out var channel))
-            return;
-
-        if (field == nameof(UniqueIdentifiersData.SkinTone))
-        {
-            appearance.SkinColor = SkinToneToColor(Math.Clamp(channel, 0, 100));
-            return;
-        }
-
-        channel = Math.Clamp(channel, 0, 255);
-        if (field is nameof(UniqueIdentifiersData.EyeColorR) or nameof(UniqueIdentifiersData.EyeColorG)
-            or nameof(UniqueIdentifiersData.EyeColorB))
-        {
-            var color = appearance.EyeColor;
-            var eyeR = field.EndsWith("R") ? channel : color.RByte;
-            var eyeG = field.EndsWith("G") ? channel : color.GByte;
-            var eyeB = field.EndsWith("B") ? channel : color.BByte;
-            appearance.EyeColor = new Color((byte) eyeR, (byte) eyeG, (byte) eyeB);
-            return;
-        }
-
-        if (field is nameof(UniqueIdentifiersData.FurColorR) or nameof(UniqueIdentifiersData.FurColorG)
-            or nameof(UniqueIdentifiersData.FurColorB))
-        {
-            var color = appearance.SkinColor;
-            var furR = field.EndsWith("R") ? channel : color.RByte;
-            var furG = field.EndsWith("G") ? channel : color.GByte;
-            var furB = field.EndsWith("B") ? channel : color.BByte;
-            appearance.SkinColor = new Color((byte) furR, (byte) furG, (byte) furB);
-            return;
-        }
-
-        var category = field switch
-        {
-            nameof(UniqueIdentifiersData.HairColorR) or nameof(UniqueIdentifiersData.HairColorG) or nameof(UniqueIdentifiersData.HairColorB)
-                => MarkingCategories.Hair,
-            nameof(UniqueIdentifiersData.SecondaryHairColorR) or nameof(UniqueIdentifiersData.SecondaryHairColorG) or nameof(UniqueIdentifiersData.SecondaryHairColorB)
-                => MarkingCategories.Hair,
-            nameof(UniqueIdentifiersData.BeardColorR) or nameof(UniqueIdentifiersData.BeardColorG) or nameof(UniqueIdentifiersData.BeardColorB)
-                => MarkingCategories.FacialHair,
-            nameof(UniqueIdentifiersData.HeadAccessoryColorR) or nameof(UniqueIdentifiersData.HeadAccessoryColorG) or nameof(UniqueIdentifiersData.HeadAccessoryColorB)
-                => MarkingCategories.HeadTop,
-            nameof(UniqueIdentifiersData.HeadMarkingColorR) or nameof(UniqueIdentifiersData.HeadMarkingColorG) or nameof(UniqueIdentifiersData.HeadMarkingColorB)
-                => MarkingCategories.Head,
-            nameof(UniqueIdentifiersData.BodyMarkingColorR) or nameof(UniqueIdentifiersData.BodyMarkingColorG) or nameof(UniqueIdentifiersData.BodyMarkingColorB)
-                => MarkingCategories.Chest,
-            nameof(UniqueIdentifiersData.TailMarkingColorR) or nameof(UniqueIdentifiersData.TailMarkingColorG) or nameof(UniqueIdentifiersData.TailMarkingColorB)
-                => MarkingCategories.Tail,
-            _ => (MarkingCategories?) null
-        };
-        if (category is not { } markingCategory || !appearance.MarkingSet.TryGetCategory(markingCategory, out var markings)
-            || markings.Count == 0)
-            return;
-
-        var marking = markings[0];
-        var colorIndex = field.StartsWith("SecondaryHairColor", StringComparison.Ordinal) ? 1 : 0;
-        if (colorIndex >= marking.MarkingColors.Count)
-        {
-            colorIndex = 0;
-        }
-        var existing = marking.MarkingColors[colorIndex];
-        var markingR = field.EndsWith("R") ? channel : existing.RByte;
-        var markingG = field.EndsWith("G") ? channel : existing.GByte;
-        var markingB = field.EndsWith("B") ? channel : existing.BByte;
-        marking.SetColor(colorIndex, new Color((byte) markingR, (byte) markingG, (byte) markingB));
+        return (species.AverageHeight, species.MinHeight, species.MaxHeight,
+            species.MinWidth, species.MaxWidth, species.SizeRatio, baseMass);
     }
 
     private static int ReadAppearanceValue(DnaModifierBoundUserInterfaceState state, string field, int max)
     {
         if (state.Unique is null || AppearanceGene.Get(state.Unique, field) is not { Length: > 0 } value)
-            return 0;
+            return field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width) ? 100 : 0;
 
-        var encoded = value[0];
         if (field == nameof(UniqueIdentifiersData.Gender))
         {
             if (value.Length < 3)
                 return 0;
-
             var gender = (TryHexDigit(value[0]), TryHexDigit(value[1]), TryHexDigit(value[2]));
             return gender switch
             {
@@ -589,39 +536,31 @@ public sealed partial class DnaModifierWindow
             };
         }
 
-        if (field is nameof(UniqueIdentifiersData.SkinTone)
-            or nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
+        if (field == nameof(UniqueIdentifiersData.SkinTone))
         {
-            if (field == nameof(UniqueIdentifiersData.SkinTone) && value.Length >= 3)
-            {
-                var tone = value[0] == "1"
-                    ? 100
-                    : TryHexDigit(value[1]) * 10 + TryHexDigit(value[2]);
-                return Math.Clamp(tone, 0, max);
-            }
-
-            return Math.Clamp(int.TryParse(encoded, out var decimalValue) ? decimalValue : 0, 0, max);
+            var tone = value.Length >= 3 && value[0] == "1"
+                ? 100
+                : value.Length >= 3 ? TryHexDigit(value[1]) * 10 + TryHexDigit(value[2]) : 0;
+            return Math.Clamp(tone, 0, max);
         }
 
-        // RGB channels are stored as three hexadecimal nibbles (the first two
-        // represent the 0-255 channel value, the third is reserved metadata).
-        var hex = value.Length >= 2 ? string.Concat(value[0], value[1]) : encoded;
-        return Math.Clamp(int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var hexValue)
-            ? hexValue
-            : 0, 0, max);
+        if (field is nameof(UniqueIdentifiersData.Height) or nameof(UniqueIdentifiersData.Width))
+            return Math.Clamp(int.TryParse(string.Concat(value), out var scale) ? scale : 100, 50, 200);
+
+        var encoded = value.Length >= 2 ? string.Concat(value[0], value[1]) : value[0];
+        return Math.Clamp(int.TryParse(encoded, System.Globalization.NumberStyles.HexNumber, null, out var parsed)
+            ? parsed : 0, 0, max);
     }
 
     private static bool IsColorField(string field)
         => field.Contains("Color", StringComparison.Ordinal) || field == nameof(UniqueIdentifiersData.SkinTone);
 
     private static bool IsRgbColorField(string field)
-        => IsColorField(field) && field.Length > 0 &&
-           field[^1] is 'R' or 'G' or 'B' && field != nameof(UniqueIdentifiersData.SkinTone);
+        => IsColorField(field) && field.Length > 0 && (field[^1] is 'R' or 'G' or 'B')
+           && field != nameof(UniqueIdentifiersData.SkinTone);
 
     private static int TryHexDigit(string value)
-        => int.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var result)
-            ? result
-            : 0;
+        => int.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var digit) ? digit : 0;
 
     private static Color SkinToneToColor(int toneValue)
         => SkinColor.HumanSkinTone(Math.Clamp(toneValue, 0, 100));
@@ -867,10 +806,14 @@ public sealed partial class DnaModifierWindow
         private float _lastViewportWidth;
         private bool _metricsReady;
         private bool _hovered;
+        private readonly bool _centerName;
 
         public GeneNameButton(string name)
         {
             Text = name;
+            // Count displayed text elements so an accented letter, including
+            // a decomposed letter-plus-combining-accent, is still one character.
+            _centerName = System.Globalization.StringInfo.ParseCombiningCharacters(name).Length <= 13;
             SetWidth = NameButtonWidth;
             MaxWidth = NameButtonWidth;
             ToolTip = name;
@@ -912,7 +855,7 @@ public sealed partial class DnaModifierWindow
 
             // Long names remain aligned to the left while idle and only
             // scroll when the pointer is over this button.
-            if (!_hovered || _overflow <= 0f)
+            if (_centerName || !_hovered || _overflow <= 0f)
             {
                 ResetScroll();
                 return;
@@ -972,7 +915,7 @@ public sealed partial class DnaModifierWindow
             if (!_metricsReady || Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
             {
                 var overflow = MathF.Max(0f, textWidth - viewportWidth);
-                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, overflow);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth);
                 _scrollOffset = 0f;
                 _direction = -1;
                 _pause = overflow > 0f ? PauseAtEdge : 0f;
@@ -984,7 +927,7 @@ public sealed partial class DnaModifierWindow
             _metricsReady = true;
             var origin = _metricsReady
                 ? _labelOriginX
-                : GetTextOrigin(contentBox.Left, viewportWidth, textWidth, _overflow);
+                : GetTextOrigin(contentBox.Left, viewportWidth, textWidth);
             Label.Arrange(UIBox2.FromDimensions(
                 new Vector2(origin, contentBox.Top),
                 new Vector2(textWidth, contentBox.Height)));
@@ -1009,14 +952,14 @@ public sealed partial class DnaModifierWindow
 
             if (!_metricsReady)
             {
-                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, currentOverflow);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth);
                 _metricsReady = true;
             }
             else if (Math.Abs(viewportWidth - _lastViewportWidth) > 0.5f)
             {
                 // Layout changes can move the label while it is idle. Reposition
                 // the text and recalculate the scroll distance.
-                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth, currentOverflow);
+                _labelOriginX = GetTextOrigin(contentBox.Left, viewportWidth, textWidth);
                 _scrollOffset = 0f;
                 _direction = -1;
                 _pause = _hovered && currentOverflow > 0f ? PauseAtEdge : 0f;
@@ -1035,12 +978,11 @@ public sealed partial class DnaModifierWindow
                 SetLabelPosition();
         }
 
-        private static float GetTextOrigin(float contentLeft, float viewportWidth, float textWidth, float overflow)
+        private float GetTextOrigin(float contentLeft, float viewportWidth, float textWidth)
         {
-            if (overflow > 0f)
-                return contentLeft + SafetyMargin;
-
-            return contentLeft + SafetyMargin + (viewportWidth - textWidth) / 2f;
+            return _centerName
+                ? contentLeft + SafetyMargin + (viewportWidth - textWidth) / 2f
+                : contentLeft + SafetyMargin;
         }
 
         private void ResetScroll()

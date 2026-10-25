@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Shared.Eye.Blinding.Components;
+using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory.Events;
 using Content.Shared.Inventory;
 
@@ -15,6 +16,14 @@ namespace Content.Shared.Eye.Blinding.Systems;
 
 public sealed class BlurryVisionSystem : EntitySystem
 {
+    private static readonly HashSet<string> VisionCorrectionExceptions = new()
+    {
+        "ClothingEyesGlassesCheapSunglasses",
+        "ClothingEyesGlassesGar",
+        "ClothingEyesGlassesGarOrange",
+        "ClothingEyesGlassesGarGiga"
+    };
+
     public override void Initialize()
     {
         base.Initialize();
@@ -22,13 +31,43 @@ public sealed class BlurryVisionSystem : EntitySystem
         SubscribeLocalEvent<VisionCorrectionComponent, GotEquippedEvent>(OnGlassesEquipped);
         SubscribeLocalEvent<VisionCorrectionComponent, GotUnequippedEvent>(OnGlassesUnequipped);
         SubscribeLocalEvent<VisionCorrectionComponent, InventoryRelayedEvent<GetBlurEvent>>(OnGetBlur);
+        SubscribeLocalEvent<ClothingComponent, GotEquippedEvent>(OnClothingEquipped);
+        SubscribeLocalEvent<ClothingComponent, GotUnequippedEvent>(OnClothingUnequipped);
+        SubscribeLocalEvent<ClothingComponent, InventoryRelayedEvent<GetBlurEvent>>(OnClothingGetBlur);
     }
 
     private void OnGetBlur(Entity<VisionCorrectionComponent> glasses, ref InventoryRelayedEvent<GetBlurEvent> args)
     {
+        if (IsVisionCorrectionException(glasses.Owner))
+            return;
+
         args.Args.Blur += glasses.Comp.VisionBonus;
         args.Args.CorrectionPower *= glasses.Comp.CorrectionPower;
     }
+
+    private void OnClothingGetBlur(Entity<ClothingComponent> clothing, ref InventoryRelayedEvent<GetBlurEvent> args)
+    {
+        if ((clothing.Comp.Slots & SlotFlags.EYES) == 0 || IsVisionCorrectionException(clothing.Owner) ||
+            HasComp<VisionCorrectionComponent>(clothing))
+            return;
+
+        args.Args.Blur += VisionCorrectionComponent.PoorVisionCorrection;
+    }
+
+    private void OnClothingEquipped(Entity<ClothingComponent> clothing, ref GotEquippedEvent args)
+    {
+        if ((args.SlotFlags & SlotFlags.EYES) != 0 && !IsVisionCorrectionException(clothing.Owner))
+            UpdateBlurMagnitude(args.Equipee);
+    }
+
+    private void OnClothingUnequipped(Entity<ClothingComponent> clothing, ref GotUnequippedEvent args)
+    {
+        if ((args.SlotFlags & SlotFlags.EYES) != 0 && !IsVisionCorrectionException(clothing.Owner))
+            UpdateBlurMagnitude(args.Equipee);
+    }
+
+    private bool IsVisionCorrectionException(EntityUid entity)
+        => MetaData(entity).EntityPrototype?.ID is { } id && VisionCorrectionExceptions.Contains(id);
 
     public void UpdateBlurMagnitude(Entity<BlindableComponent?> ent)
     {
