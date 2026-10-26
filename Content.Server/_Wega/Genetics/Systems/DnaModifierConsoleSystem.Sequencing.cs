@@ -194,9 +194,10 @@ public sealed partial class DnaModifierConsoleSystem
             else
                 _pendingSequences.Remove(console);
         }
-        if (subject.Comp.UniqueIdentifiers is not { } appearance)
+        if (subject.Comp.UniqueIdentifiers is not { } appearance ||
+            !TryComp<HumanoidAppearanceComponent>(subject, out var humanoidAppearance))
             return;
-        var skinColoration = _prototypeManager.Index<SpeciesPrototype>(subject.Comp.Species).SkinColoration;
+        var skinColoration = _prototypeManager.Index<SpeciesPrototype>(humanoidAppearance.Species).SkinColoration;
         state.AppearanceFields = AppearanceGene.ForSkinColoration(AppearanceGene.Fields.Where(f => f == AppearanceGene.Name ||
             AppearanceGene.Get(appearance, f)?.Length == 3), skinColoration);
         foreach (var field in state.AppearanceFields.Where(f => f.EndsWith("Style")))
