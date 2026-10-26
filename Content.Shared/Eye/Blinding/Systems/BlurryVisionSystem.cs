@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Shared.Eye.Blinding.Components;
+using Content.Shared.Clothing;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Inventory.Events;
 using Content.Shared.Inventory;
@@ -31,8 +32,8 @@ public sealed class BlurryVisionSystem : EntitySystem
         SubscribeLocalEvent<VisionCorrectionComponent, GotEquippedEvent>(OnGlassesEquipped);
         SubscribeLocalEvent<VisionCorrectionComponent, GotUnequippedEvent>(OnGlassesUnequipped);
         SubscribeLocalEvent<VisionCorrectionComponent, InventoryRelayedEvent<GetBlurEvent>>(OnGetBlur);
-        SubscribeLocalEvent<ClothingComponent, GotEquippedEvent>(OnClothingEquipped);
-        SubscribeLocalEvent<ClothingComponent, GotUnequippedEvent>(OnClothingUnequipped);
+        SubscribeLocalEvent<ClothingComponent, ClothingGotEquippedEvent>(OnClothingEquipped);
+        SubscribeLocalEvent<ClothingComponent, ClothingGotUnequippedEvent>(OnClothingUnequipped);
         SubscribeLocalEvent<ClothingComponent, InventoryRelayedEvent<GetBlurEvent>>(OnClothingGetBlur);
     }
 
@@ -54,16 +55,18 @@ public sealed class BlurryVisionSystem : EntitySystem
         args.Args.Blur += VisionCorrectionComponent.PoorVisionCorrection;
     }
 
-    private void OnClothingEquipped(Entity<ClothingComponent> clothing, ref GotEquippedEvent args)
+    private void OnClothingEquipped(Entity<ClothingComponent> clothing, ref ClothingGotEquippedEvent args)
     {
-        if ((args.SlotFlags & SlotFlags.EYES) != 0 && !IsVisionCorrectionException(clothing.Owner))
-            UpdateBlurMagnitude(args.Equipee);
+        if (clothing.Comp.InSlotFlag is { } slotFlags && (slotFlags & SlotFlags.EYES) != 0 &&
+            !IsVisionCorrectionException(clothing.Owner))
+            UpdateBlurMagnitude(args.Wearer);
     }
 
-    private void OnClothingUnequipped(Entity<ClothingComponent> clothing, ref GotUnequippedEvent args)
+    private void OnClothingUnequipped(Entity<ClothingComponent> clothing, ref ClothingGotUnequippedEvent args)
     {
-        if ((args.SlotFlags & SlotFlags.EYES) != 0 && !IsVisionCorrectionException(clothing.Owner))
-            UpdateBlurMagnitude(args.Equipee);
+        if (clothing.Comp.InSlotFlag is { } slotFlags && (slotFlags & SlotFlags.EYES) != 0 &&
+            !IsVisionCorrectionException(clothing.Owner))
+            UpdateBlurMagnitude(args.Wearer);
     }
 
     private bool IsVisionCorrectionException(EntityUid entity)

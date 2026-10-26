@@ -889,12 +889,29 @@ public sealed partial class DnaModifierWindow
         private bool _hovered;
         private readonly bool _centerName;
 
+        private static int CountTextElements(string text)
+        {
+            var count = 0;
+            foreach (var rune in text.EnumerateRunes())
+            {
+                var category = System.Text.Rune.GetUnicodeCategory(rune);
+                if (category is System.Globalization.UnicodeCategory.NonSpacingMark or
+                    System.Globalization.UnicodeCategory.SpacingCombiningMark or
+                    System.Globalization.UnicodeCategory.EnclosingMark)
+                    continue;
+
+                count++;
+            }
+
+            return count;
+        }
+
         public GeneNameButton(string name)
         {
             Text = name;
             // Count displayed text elements so an accented letter, including
             // a decomposed letter-plus-combining-accent, is still one character.
-            _centerName = System.Globalization.StringInfo.ParseCombiningCharacters(name).Length <= 13;
+            _centerName = CountTextElements(name) <= 13;
             SetWidth = NameButtonWidth;
             MaxWidth = NameButtonWidth;
             ToolTip = name;
