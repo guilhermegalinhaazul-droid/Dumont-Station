@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Content.Shared.Genetics;
+using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Robust.Shared.Random;
 
@@ -105,41 +106,18 @@ public abstract partial class SharedDnaModifierSystem : EntitySystem
 
     public string[] ConvertSkinToneToHexArray(Color skinColor)
     {
-        float skinToneValue = HumanSkinToneFromColor(skinColor);
+        // Store the same 0-100 tone used by character customization. Scaling
+        // that range to 0-99 made some samples one shade darker and made tone
+        // 100 impossible to preserve.
+        var tone = Math.Clamp((int)Math.Round(SkinColor.HumanSkinToneFromColor(skinColor),
+            MidpointRounding.AwayFromZero), 0, 100);
 
-        int normalizedTone = (int)Math.Round(skinToneValue / 100f * 99);
-        normalizedTone = Math.Clamp(normalizedTone, 0, 99);
-
-        int digit1 = normalizedTone / 10;
-        int digit2 = normalizedTone % 10;
-
-        int firstHex = (normalizedTone >= 100) ? 1 : 0;
-
-        return new[]
-        {
-            firstHex.ToString("X1"),
-            digit1.ToString("X1"),
-            digit2.ToString("X1")
-        };
+        return tone == 100
+            ? new[] { "1", "0", "0" }
+            : new[] { "0", (tone / 10).ToString(), (tone % 10).ToString() };
     }
 
-    public float HumanSkinToneFromColor(Color color)
-    {
-        var hsv = Color.ToHsv(color);
-        // check for hue/value first, if hue is lower than this percentage
-        // and value is 1.0
-        // then it'll be hue
-        if (Math.Clamp(hsv.X, 25f / 360f, 1) > 25f / 360f
-            && hsv.Z == 1.0)
-        {
-            return Math.Abs(45 - (hsv.X * 360));
-        }
-        // otherwise it'll directly be the saturation
-        else
-        {
-            return hsv.Y * 100;
-        }
-    }
+    public float HumanSkinToneFromColor(Color color) => SkinColor.HumanSkinToneFromColor(color);
 
     public Color ConvertSkinToneToColor(string[] skinTone)
     {
@@ -157,27 +135,7 @@ public abstract partial class SharedDnaModifierSystem : EntitySystem
 
             int toneValue = isMaxTone ? 100 : Math.Clamp(tens * 10 + units, 0, 99);
 
-            float hue, saturation, value;
-
-            if (toneValue <= 20)
-            {
-                hue = 25 + (45 - 25) * (20 - toneValue) / 20f;
-                saturation = 0.2f;
-                value = 1f;
-            }
-            else
-            {
-                hue = 25f;
-                saturation = 0.2f + 0.8f * (toneValue - 20) / 80f;
-                value = 1f - 0.8f * (toneValue - 20) / 80f;
-            }
-
-            return Color.FromHsv(new Vector4(
-                hue / 360f,
-                saturation,
-                value,
-                1f
-            ));
+            return SkinColor.HumanSkinTone(toneValue);
         }
         catch
         {
