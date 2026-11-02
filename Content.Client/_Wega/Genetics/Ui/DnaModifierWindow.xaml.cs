@@ -378,7 +378,11 @@ public sealed partial class DnaModifierWindow : FancyWindow
             {
                 foreach (var gene in data.Info!)
                 {
-                    selectionButton.AddItem($"EE {gene.Order}", selectionId);
+                    var geneName = _prototypeManager.TryIndex<StructuralEnzymesPrototype>(gene.EnzymesPrototypeId,
+                        out var prototype)
+                        ? prototype.Name
+                        : gene.EnzymesPrototypeId;
+                    selectionButton.AddItem($"EE {gene.Order}: {geneName}", selectionId);
                     selectionById[selectionId++] = (gene.Order, null);
                 }
             }

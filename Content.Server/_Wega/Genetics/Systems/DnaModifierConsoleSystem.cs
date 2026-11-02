@@ -655,11 +655,10 @@ namespace Content.Server.Genetics.System
 
             if (_timing.CurTime < console.LastInjectorTime + console.InjectorCooldown)
                 return;
-            var discovered = data.Info?.Where(g => IsDiscovered(g.EnzymesPrototypeId)).ToList();
-            if (data.Identifier == null && discovered?.Count is not > 0)
+            if (data.Identifier == null && data.Info is not { Count: > 0 })
                 return;
             _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
-                data.Identifier, discovered);
+                data.Identifier, data.Info);
 
             console.LastInjectorTime = _timing.CurTime;
 
@@ -732,8 +731,7 @@ namespace Content.Server.Genetics.System
             var sample = new EnzymeInfo
             {
                 Identifier = _dnaModifier.CloneUniqueIdentifiers(data.Identifier),
-                Info = data.Info?.Where(g => IsDiscovered(g.EnzymesPrototypeId))
-                    .Select(g => (EnzymesPrototypeInfo) g.Clone()).ToList()
+                Info = data.Info?.Select(g => (EnzymesPrototypeInfo) g.Clone()).ToList()
             };
             if (sample.Identifier == null && sample.Info is not { Count: > 0 })
                 return;
